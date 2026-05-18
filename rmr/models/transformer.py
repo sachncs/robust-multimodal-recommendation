@@ -6,7 +6,6 @@ query-pooling graph transformer that aggregates contextualized tokens into a
 single query embedding per item.
 """
 
-from typing import Dict
 
 import torch
 import torch.nn as nn
@@ -17,7 +16,7 @@ class InputEmbedding(nn.Module):
 
     def __init__(
         self,
-        input_dims: Dict[str, int],
+        input_dims: dict[str, int],
         pe_dim: int,
         hidden_dim: int,
         dropout: float = 0.5,
@@ -38,25 +37,34 @@ class InputEmbedding(nn.Module):
 
     def forward(
         self,
-        features: Dict[str, torch.Tensor],
+        features: dict[str, torch.Tensor],
         mask: torch.Tensor,
         pe: torch.Tensor,
     ) -> torch.Tensor:
         """Projects concatenated (masked features + PE) into hidden space.
 
+        Supports both per-node inputs (``(B, d_m)``) and batched sequences
+        (``(B, S, d_m)``).  The ``mask`` tensor should be either
+        ``(B, M)`` or ``(B, S, M)``.
+
         Args:
-            features: Dict of tensors, each with shape (B, d_m).
-            mask: Binary indicator matrix of shape (B, M) where M is the number
-                of modalities. A value of 0 means the modality is missing.
-            pe: Positional encoding tensor of shape (B, pe_dim).
+            features: Dict of tensors.  Each tensor has shape ``(B, d_m)``
+                or ``(B, S, d_m)``.
+            mask: Binary indicator matrix of shape ``(B, M)`` or
+                ``(B, S, M)``.  A value of 0 means the modality is missing.
+            pe: Positional encoding tensor of shape ``(B, pe_dim)`` or
+                ``(B, S, pe_dim)``.
 
         Returns:
-            Projected embeddings of shape (B, hidden_dim).
+            Projected embeddings of shape ``(B, hidden_dim)`` or
+            ``(B, S, hidden_dim)``.
         """
         mods = list(features.keys())
         feats_list = []
         for i, m in enumerate(mods):
-            feat = features[m] * mask[:, i : i + 1]
+            feat = features[m]
+            mask_slice = mask[..., i : i + 1]
+            feat = feat * mask_slice
             feats_list.append(feat)
         x = torch.cat(feats_list + [pe], dim=-1)
         h = self.project(x)
@@ -103,11 +111,11 @@ class GraphTransformerLayer(nn.Module):
         """Applies self-attention and feed-forward network with residuals.
 
         Args:
-            x: Input tensor of shape (B, seq_len, hidden_dim).
+            x: Input tensor of shape ``(B, seq_len, hidden_dim)``.
             attn_mask: Optional attention mask.
 
         Returns:
-            Output tensor of shape (B, seq_len, hidden_dim).
+            Output tensor of shape ``(B, seq_len, hidden_dim)``.
         """
         attn_out, _ = self.attn(
             x, x, x, attn_mask=attn_mask, need_weights=False
@@ -123,7 +131,7 @@ class JointEncodingGraphTransformer(nn.Module):
 
     def __init__(
         self,
-        input_dims: Dict[str, int],
+        input_dims: dict[str, int],
         pe_dim: int,
         hidden_dim: int = 128,
         num_layers: int = 2,
@@ -154,22 +162,30 @@ class JointEncodingGraphTransformer(nn.Module):
 
     def forward(
         self,
-        features: Dict[str, torch.Tensor],
+        features: dict[str, torch.Tensor],
         mask: torch.Tensor,
         pe: torch.Tensor,
     ) -> torch.Tensor:
         """Computes query embeddings via transformer and attention pooling.
 
+        Accepts either a single token per batch item (legacy query-only
+        mode) or a sequence of tokens per batch item (subgraph encoding).
+
         Args:
-            features: Dict of tensors, each with shape (B, d_m).
-            mask: Binary indicator matrix of shape (B, M).
-            pe: Positional encoding tensor of shape (B, pe_dim).
+            features: Dict of tensors.  Shapes are ``(B, d_m)`` for
+                single-token inputs or ``(B, S, d_m)`` for sequences.
+            mask: Binary indicator matrix of shape ``(B, M)`` or
+                ``(B, S, M)``.
+            pe: Positional encoding tensor of shape ``(B, pe_dim)`` or
+                ``(B, S, pe_dim)``.
 
         Returns:
-            Query embeddings of shape (B, hidden_dim).
+            Query embeddings of shape ``(B, hidden_dim)``.
         """
         h = self.input_embed(features, mask, pe)
-        h = h.unsqueeze(1)  # (B, 1, hidden_dim)
+        # If input is per-node (no sequence dimension), add one.
+        if h.dim() == 2:
+            h = h.unsqueeze(1)  # (B, 1, hidden_dim)
         for layer in self.layers:
             h = layer(h)
         # Attention-weighted aggregation over the sequence dimension.

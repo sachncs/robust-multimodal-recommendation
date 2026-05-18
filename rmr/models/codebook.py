@@ -2,7 +2,7 @@
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as functional
 
 
 class SparseRoutingCodebook(nn.Module):
@@ -67,9 +67,9 @@ class SparseRoutingCodebook(nn.Module):
             eps = -torch.log(
                 -torch.log(torch.rand_like(logits) + 1e-10) + 1e-10
             )
-            g = F.softmax((logits + eps) / self.tau, dim=-1)
+            g = functional.softmax((logits + eps) / self.tau, dim=-1)
         else:
-            g = F.softmax(logits / self.tau, dim=-1)
+            g = functional.softmax(logits / self.tau, dim=-1)
         if self.top_p < self.codebook_size:
             top_vals, top_idx = torch.topk(g, self.top_p, dim=-1)
             mask = torch.zeros_like(g)
@@ -109,7 +109,9 @@ class SparseRoutingCodebook(nn.Module):
     def load_loss(self, g: torch.Tensor) -> torch.Tensor:
         """Compute the codebook load-balancing loss.
 
-        Penalizes imbalance by summing the squared mean routing weights.
+        Penalizes imbalance by summing the squared mean routing weights
+        scaled by the codebook size, matching the paper formula
+        ``L_load = C * sum_e g_bar_e^2``.
 
         Args:
             g: Routing weights tensor of shape (batch_size, codebook_size).
@@ -118,5 +120,5 @@ class SparseRoutingCodebook(nn.Module):
             Scalar tensor containing the load loss.
         """
         bar_g = g.mean(dim=0)
-        load = (bar_g ** 2).sum()
+        load = self.codebook_size * (bar_g ** 2).sum()
         return load

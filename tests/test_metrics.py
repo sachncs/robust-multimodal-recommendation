@@ -1,5 +1,6 @@
 import numpy as np
-from rmr.evaluation.metrics import dcg_at_k, recall_at_k, ndcg_at_k
+
+from rmr.evaluation.metrics import dcg_at_k, ndcg_at_k, recall_at_k
 
 
 def test_recall_at_k():

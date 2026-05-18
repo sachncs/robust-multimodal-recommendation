@@ -1,6 +1,5 @@
 """Evaluator for recommendation performance."""
 
-from typing import Dict, List
 
 import numpy as np
 
@@ -14,7 +13,7 @@ class Evaluator:
     values.
     """
 
-    def __init__(self, ks: List[int] = None) -> None:
+    def __init__(self, ks: list[int] = None) -> None:
         """Initialize the evaluator.
 
         Args:
@@ -29,7 +28,7 @@ class Evaluator:
         self,
         scores: np.ndarray,
         labels: np.ndarray,
-    ) -> Dict[str, float]:
+    ) -> dict[str, float]:
         """Evaluate scores against ground-truth labels.
 
         Args:

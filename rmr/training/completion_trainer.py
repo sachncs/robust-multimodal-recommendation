@@ -1,6 +1,5 @@
 """Trainer for the GRE-MC modality completion stage."""
 
-from typing import Dict, Tuple
 
 import scipy.sparse as sp
 import torch
@@ -48,11 +47,11 @@ class CompletionTrainer:
 
     def compute_loss(
         self,
-        predictions: Dict[str, torch.Tensor],
-        targets: Dict[str, torch.Tensor],
+        predictions: dict[str, torch.Tensor],
+        targets: dict[str, torch.Tensor],
         mask: torch.Tensor,
         g: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Computes the total completion loss.
 
         The reconstruction loss is computed only on modalities that are masked
@@ -71,11 +70,13 @@ class CompletionTrainer:
         """
         recon_loss = torch.tensor(0.0, device=mask.device)
         mods = list(predictions.keys())
+        missing_count = 0.0
         for i, m in enumerate(mods):
             missing = (mask[:, i] == 0).float().unsqueeze(1)
             diff = predictions[m] - targets[m]
             recon_loss += (missing * (diff ** 2)).sum()
-        recon_loss = recon_loss / (mask.shape[0] + 1e-10)
+            missing_count += missing.sum()
+        recon_loss = recon_loss / (missing_count + 1e-10)
         l_usage = self.model.codebook.usage_loss(g)
         l_load = self.model.codebook.load_loss(g)
         total = (

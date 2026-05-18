@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.sparse as sp
-from rmr.data.graph_builder import build_user_item_graph, build_item_graph
+
+from rmr.data.graph_builder import build_item_graph, build_user_item_graph
 
 
 def test_build_item_graph():

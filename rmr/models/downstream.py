@@ -74,8 +74,8 @@ class LightGCN(nn.Module):
         d_inv_sqrt[rowsum > 0] = np.power(
             rowsum[rowsum > 0], -0.5
         )
-        D_inv_sqrt = sp.diags(d_inv_sqrt)
-        norm_adj = D_inv_sqrt @ adj @ D_inv_sqrt
+        d_inv_sqrt_mat = sp.diags(d_inv_sqrt)
+        norm_adj = d_inv_sqrt_mat @ adj @ d_inv_sqrt_mat
         norm_adj = sp.coo_matrix(norm_adj)
         indices = torch.from_numpy(
             np.vstack((norm_adj.row, norm_adj.col))
@@ -101,13 +101,13 @@ class LightGCN(nn.Module):
             Score matrix of shape (num_users, num_items) where each entry
             represents the predicted affinity between a user and an item.
         """
-        A = self._build_normalized_adj(ui_graph)
+        adj_norm = self._build_normalized_adj(ui_graph)
         all_emb = torch.cat(
             [self.user_emb.weight, self.item_emb.weight], dim=0
         )
         embs = [all_emb]
         for _ in range(self.num_layers):
-            all_emb = torch.sparse.mm(A, all_emb)
+            all_emb = torch.sparse.mm(adj_norm, all_emb)
             embs.append(all_emb)
         all_emb = torch.stack(embs, dim=0).mean(dim=0)
         u_emb = all_emb[: self.num_users]

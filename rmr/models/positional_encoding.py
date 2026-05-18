@@ -1,8 +1,6 @@
 """Positional encoding modules for graph structures."""
 
-from typing import Dict
 
-import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
@@ -29,7 +27,7 @@ class LaplacianPE(nn.Module):
         """
         super().__init__()
         self.k = k
-        self._cache: Dict[int, torch.Tensor] = {}
+        self._cache: dict[int, torch.Tensor] = {}
 
     def forward(self, adjacency: sp.spmatrix) -> torch.Tensor:
         """Compute or retrieve cached Laplacian positional encodings.

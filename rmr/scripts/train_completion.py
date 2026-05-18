@@ -62,6 +62,7 @@ def main() -> None:
         pe_dim=args.pe_dim,
         dropout=args.dropout,
     )
+    model.register_retrieval_buffers(features, mask)
     trainer = CompletionTrainer(
         model,
         adjacency=adj,

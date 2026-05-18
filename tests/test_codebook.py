@@ -1,4 +1,5 @@
 import torch
+
 from rmr.models.codebook import SparseRoutingCodebook
 
 
@@ -70,3 +71,13 @@ def test_gradient_flow():
     assert z.grad is not None
     assert cb.codebook.grad is not None
     assert cb.W.weight.grad is not None
+
+
+def test_load_loss_includes_codebook_size():
+    cb = SparseRoutingCodebook(input_dim=4, codebook_size=10, top_p=2, tau=0.5)
+    z = torch.randn(1, 4)
+    q, g = cb(z, training=False)
+    l_load = cb.load_loss(g)
+    bar_g = g.mean(dim=0)
+    expected = 10.0 * (bar_g ** 2).sum()
+    torch.testing.assert_close(l_load, expected, atol=1e-6, rtol=0)

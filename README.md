@@ -11,11 +11,13 @@ Reproduction of the paper **"Robust Multimodal Recommendation via Graph Retrieva
 
 RMR addresses missing modalities in multimodal recommender systems by:
 
-1. **Modality-Aware Subgraph Retrieval** (ACS + MAGE) — retrieves semantically relevant subgraphs from the item-item graph.
+1. **Modality-Aware Subgraph Retrieval** (anchor retrieval + ACS + MAGE) — retrieves semantically relevant subgraphs from the item-item graph.
 2. **Joint-Encoding Graph Transformer** — encodes query nodes with retrieved context and Laplacian positional encodings.
 3. **Sparse-Routing Codebook** — compresses latent representations via Gumbel-Softmax and Top-P selection.
 4. **Modality Completion** — reconstructs missing modalities using per-modality MLP decoders.
 5. **Downstream Recommendation** — LightGCN trained on the completed features.
+
+> **Fidelity**: See `docs/FIDELITY_REPORT.md` for a section-by-section audit of this reproduction versus the paper. Every component is labeled EXACT, APPROXIMATE, or UNKNOWN, with deviations documented.
 
 ## Installation
 
@@ -74,13 +76,13 @@ python demo.py
 rmr/
 ├── data/              # Data pipeline (download, features, graphs, masking)
 ├── models/            # Core model components
-│   ├── retrieval.py       # ACS + MAGE algorithms
+│   ├── retrieval.py       # Anchor retrieval + ACS + MAGE algorithms
 │   ├── positional_encoding.py  # Laplacian PE
 │   ├── transformer.py     # Joint-encoding graph transformer
 │   ├── codebook.py        # Sparse-routing codebook
 │   ├── decoder.py         # Modality-specific decoders
 │   ├── downstream.py      # LightGCN recommender
-│   └── gre_mc.py          # End-to-end GRE-MC model
+│   └── gre_mc.py          # End-to-end GRE-MC model (retrieval + transformer + codebook + decoders)
 ├── training/          # Training loops
 ├── evaluation/        # Metrics (Recall@K, NDCG@K)
 ├── scripts/           # CLI training and evaluation scripts
@@ -115,6 +117,14 @@ If you use this code, please cite the original paper:
   year={2026}
 }
 ```
+
+## Documentation
+
+- [Setup & Data Preparation](docs/SETUP.md)
+- [Usage & Inference](docs/USAGE.md)
+- [Architecture Overview](docs/ARCHITECTURE.md)
+- [Fidelity Report](docs/FIDELITY_REPORT.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 

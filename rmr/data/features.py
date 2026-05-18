@@ -1,16 +1,15 @@
 """Feature extraction helpers for text and visual modalities."""
 
 import os
-from typing import List
 
 import numpy as np
 import torch
-import torchvision.transforms as T
+import torchvision.transforms as transforms
 from PIL import Image
 
 
 def extract_text_features_dummy(
-    texts: List[str], dim: int = 384
+    texts: list[str], dim: int = 384
 ) -> np.ndarray:
     """Return random normalized vectors as placeholder text features.
 
@@ -29,7 +28,7 @@ def extract_text_features_dummy(
 
 
 def extract_visual_features_dummy(
-    image_paths: List[str], dim: int = 4096
+    image_paths: list[str], dim: int = 4096
 ) -> np.ndarray:
     """Return random normalized vectors as placeholder visual features.
 
@@ -48,7 +47,7 @@ def extract_visual_features_dummy(
 
 
 def extract_text_features_st(
-    texts: List[str],
+    texts: list[str],
     model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
 ) -> np.ndarray:
     """Extract text features using sentence-transformers.
@@ -70,7 +69,7 @@ def extract_text_features_st(
 
 
 def extract_visual_features_resnet(
-    image_paths: List[str],
+    image_paths: list[str],
 ) -> np.ndarray:
     """Extract visual features using a pretrained ResNet-50.
 
@@ -83,18 +82,18 @@ def extract_visual_features_resnet(
     Returns:
         An array of shape (len(image_paths), 2048) with dtype float32.
     """
-    from torchvision.models import resnet50, ResNet50_Weights
+    from torchvision.models import ResNet50_Weights, resnet50
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = resnet50(weights=ResNet50_Weights.DEFAULT)
     model.fc = torch.nn.Identity()
     model = model.to(device).eval()
-    transform = T.Compose(
+    transform = transforms.Compose(
         [
-            T.Resize(256),
-            T.CenterCrop(224),
-            T.ToTensor(),
-            T.Normalize(
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(
                 mean=[0.485, 0.456, 0.406],
                 std=[0.229, 0.224, 0.225],
             ),

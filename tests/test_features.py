@@ -2,12 +2,12 @@ import os
 import tempfile
 
 import numpy as np
-import torch
+
 from rmr.data.features import (
     extract_text_features_dummy,
     extract_visual_features_dummy,
-    save_features,
     load_features,
+    save_features,
 )
 
 

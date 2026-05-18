@@ -48,7 +48,7 @@ def test_compute_loss_all_present():
 
 
 def test_compute_loss_all_missing():
-    """When all modalities are missing, recon loss should be MSE."""
+    """When all modalities are missing, recon loss should be MSE over missing."""
     adj = sp.csr_matrix(np.eye(3), dtype=np.float32)
     model = GREMC(
         input_dims={"visual": 4, "text": 2},
@@ -75,7 +75,9 @@ def test_compute_loss_all_missing():
     total, recon, usage, load = trainer.compute_loss(
         predictions, features, mask, g
     )
-    expected_recon = (4 + 2) * 3 / 3  # MSE per element summed, divided by batch
+    # MSE summed over all missing elements, divided by missing count.
+    # 3 items * (4 + 2) dims = 18 total error; missing_count = 3*2 = 6.
+    expected_recon = 18.0 / 6.0
     assert abs(recon.item() - expected_recon) < 1e-4
 
 
@@ -110,7 +112,8 @@ def test_compute_loss_mixed_mask():
         predictions, features, mask, g
     )
     # Only the first item's visual modality is missing -> 2 errors.
-    expected_recon = 2.0 / 2.0  # 2 errors / batch size
+    # Normalized by missing count (1 missing modality-item pair).
+    expected_recon = 2.0 / 1.0
     assert abs(recon.item() - expected_recon) < 1e-4
 
 

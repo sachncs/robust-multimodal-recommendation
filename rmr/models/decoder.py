@@ -1,6 +1,5 @@
 """Per-modality decoder modules for multi-modal representation learning."""
 
-from typing import Dict
 
 import torch
 import torch.nn as nn
@@ -18,7 +17,7 @@ class ModalityDecoders(nn.Module):
     def __init__(
         self,
         latent_dim: int,
-        output_dims: Dict[str, int],
+        output_dims: dict[str, int],
         hidden_dim: int = None,
     ) -> None:
         """Initialize the modality decoders.
@@ -41,7 +40,7 @@ class ModalityDecoders(nn.Module):
                 nn.Linear(hidden_dim, dim),
             )
 
-    def forward(self, q: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def forward(self, q: torch.Tensor) -> dict[str, torch.Tensor]:
         """Decode a latent code into per-modality reconstructions.
 
         Args:

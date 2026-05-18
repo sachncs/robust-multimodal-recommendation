@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.sparse as sp
-import torch
+
 from rmr.data.dataset import GREMCGraphDataset
 
 

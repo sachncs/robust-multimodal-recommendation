@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.sparse as sp
-from rmr.models.utils import normalize_adjacency, compute_laplacian_pe
+
+from rmr.models.utils import compute_laplacian_pe, normalize_adjacency
 
 
 def test_normalize_adjacency():

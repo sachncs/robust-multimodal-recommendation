@@ -1,15 +1,14 @@
-import torch
 import numpy as np
 import scipy.sparse as sp
+import torch
 from torch.utils.data import DataLoader
 
 from rmr.data.dataset import GREMCGraphDataset
 from rmr.data.graph_builder import build_item_graph, build_user_item_graph
 from rmr.data.masking import apply_modality_mask
 from rmr.evaluation.metrics import recall_at_k
-from rmr.models.gre_mc import GREMC
 from rmr.models.downstream import LightGCN
-from rmr.models.retrieval import mage
+from rmr.models.gre_mc import GREMC
 from rmr.training.completion_trainer import CompletionTrainer
 
 

@@ -1,4 +1,5 @@
 import numpy as np
+
 from rmr.data.masking import apply_modality_mask
 
 

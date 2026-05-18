@@ -1,14 +1,15 @@
 import gzip
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
-from rmr.data.download import download_file, download_amazon_dataset
+from unittest.mock import MagicMock, patch
+
+from rmr.data.download import download_amazon_dataset, download_file
 
 
 def test_download_file():
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Mock urllib to avoid network
-        with patch("rmr.data.download.urllib.request.urlopen") as mock_urlopen:
+    with tempfile.TemporaryDirectory() as tmpdir, patch(
+        "rmr.data.download.urllib.request.urlopen"
+    ) as mock_urlopen:
             mock_resp = MagicMock()
             mock_resp.read.side_effect = [b"fake data", b""]
             mock_resp.__enter__.return_value = mock_resp
@@ -19,8 +20,9 @@ def test_download_file():
 
 
 def test_download_amazon_dataset_mocked():
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with patch("rmr.data.download.download_file") as mock_download:
+    with tempfile.TemporaryDirectory() as tmpdir, patch(
+        "rmr.data.download.download_file"
+    ) as mock_download:
             category = "FakeCategory"
             review_file = f"{category}_5.json.gz"
             meta_file = f"{category}_metadata.json.gz"
@@ -42,8 +44,9 @@ def test_download_amazon_dataset_mocked():
 
 
 def test_download_amazon_dataset_skips_if_exists():
-    with tempfile.TemporaryDirectory() as tmpdir:
-        with patch("rmr.data.download.download_file") as mock_download:
+    with tempfile.TemporaryDirectory() as tmpdir, patch(
+        "rmr.data.download.download_file"
+    ) as mock_download:
             category = "FakeCategory"
             review_file = f"{category}_5.json.gz"
             meta_file = f"{category}_metadata.json.gz"

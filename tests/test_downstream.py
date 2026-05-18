@@ -1,6 +1,7 @@
-import torch
-import scipy.sparse as sp
 import numpy as np
+import scipy.sparse as sp
+import torch
+
 from rmr.models.downstream import LightGCN
 
 

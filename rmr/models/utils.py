@@ -22,8 +22,8 @@ def normalize_adjacency(adj: sp.csr_matrix) -> sp.csr_matrix:
     rowsum = np.array(adj.sum(1)).flatten()
     d_inv_sqrt = np.zeros_like(rowsum)
     d_inv_sqrt[rowsum > 0] = np.power(rowsum[rowsum > 0], -0.5)
-    D_inv_sqrt = sp.diags(d_inv_sqrt)
-    return sp.eye(adj.shape[0]) - D_inv_sqrt @ adj @ D_inv_sqrt
+    d_inv_sqrt_mat = sp.diags(d_inv_sqrt)
+    return sp.eye(adj.shape[0]) - d_inv_sqrt_mat @ adj @ d_inv_sqrt_mat
 
 
 def compute_laplacian_pe(
@@ -39,10 +39,13 @@ def compute_laplacian_pe(
         Array of shape (n_nodes, k) containing the bottom-k nontrivial
         eigenvectors of the normalized Laplacian.
     """
-    L = normalize_adjacency(adj)
-    n = L.shape[0]
+    laplacian = normalize_adjacency(adj)
+    n = laplacian.shape[0]
     if k + 1 >= n:
-        eigvals, eigvecs = eigh(L.toarray())
+        eigvals, eigvecs = eigh(laplacian.toarray())
     else:
-        eigvals, eigvecs = eigsh(L, k=k + 1, which="SM")
+        try:
+            eigvals, eigvecs = eigsh(laplacian, k=k + 1, which="SM")
+        except Exception:
+            eigvals, eigvecs = eigh(laplacian.toarray())
     return eigvecs[:, 1 : k + 1]

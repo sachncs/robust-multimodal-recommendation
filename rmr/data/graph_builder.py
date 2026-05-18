@@ -1,8 +1,7 @@
 """Graph construction utilities for user-item and item-item adjacency."""
 
 import json
-from collections import Counter, defaultdict
-from typing import Tuple
+from collections import Counter
 
 import numpy as np
 import scipy.sparse as sp
@@ -54,7 +53,7 @@ def load_interactions_from_json(
     review_path: str,
     meta_path: str,
     min_interactions: int = 5,
-) -> Tuple[np.ndarray, np.ndarray, int, int, dict]:
+) -> tuple[np.ndarray, np.ndarray, int, int, dict]:
     """Load user-item interactions and item metadata from Amazon JSON.
 
     Applies k-core filtering so that every remaining user and item has at
@@ -74,7 +73,7 @@ def load_interactions_from_json(
     item_counts = Counter()
     user_item_pairs = []
     item_meta = {}
-    with open(review_path, "r", encoding="utf-8") as f:
+    with open(review_path, encoding="utf-8") as f:
         for line in f:
             obj = json.loads(line)
             user = obj["reviewerID"]
@@ -96,7 +95,7 @@ def load_interactions_from_json(
     iids = np.array(
         [item2id[i] for u, i in filtered_pairs], dtype=np.int64
     )
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, encoding="utf-8") as f:
         for line in f:
             obj = json.loads(line)
             asin = obj.get("asin")

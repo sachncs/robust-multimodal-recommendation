@@ -1,6 +1,6 @@
 """PyTorch Dataset definition for GRE-MC graph training."""
 
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -16,7 +16,7 @@ class GREMCGraphDataset(Dataset):
 
     def __init__(
         self,
-        features: Dict[str, np.ndarray],
+        features: dict[str, np.ndarray],
         mask: np.ndarray,
         adjacency: sp.spmatrix,
     ) -> None:
@@ -42,7 +42,7 @@ class GREMCGraphDataset(Dataset):
         """
         return self.n_items
 
-    def __getitem__(self, idx: int) -> Dict[str, Any]:
+    def __getitem__(self, idx: int) -> dict[str, Any]:
         """Retrieve a single sample by index.
 
         Args:

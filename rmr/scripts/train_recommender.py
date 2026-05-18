@@ -6,13 +6,14 @@ import os
 import numpy as np
 import scipy.sparse as sp
 import torch
-import torch.nn as nn
 from tqdm import tqdm
 
 from rmr.models.downstream import LightGCN
 
 
-def bpr_loss(pos_scores: torch.Tensor, neg_scores: torch.Tensor) -> torch.Tensor:
+def bpr_loss(
+    pos_scores: torch.Tensor, neg_scores: torch.Tensor
+) -> torch.Tensor:
     """Computes Bayesian Personalized Ranking loss.
 
     Args:
@@ -41,7 +42,11 @@ def sample_negatives(
     """
     negatives = np.zeros((n_users, num_negatives), dtype=np.int64)
     for u in range(n_users):
-        pos_items = set(interactions.indices[interactions.indptr[u] : interactions.indptr[u + 1]])
+        pos_items = set(
+            interactions.indices[
+                interactions.indptr[u]:interactions.indptr[u + 1]
+            ]
+        )
         neg_candidates = list(set(range(n_items)) - pos_items)
         if len(neg_candidates) < num_negatives:
             neg_candidates = list(range(n_items))
@@ -71,7 +76,10 @@ def main() -> None:
     ui = sp.load_npz(os.path.join(args.data_dir, "user_item_graph.npz"))
     n_users, n_items = ui.shape
     model = LightGCN(
-        n_users, n_items, embedding_dim=args.embedding_dim, num_layers=args.num_layers
+        n_users,
+        n_items,
+        embedding_dim=args.embedding_dim,
+        num_layers=args.num_layers,
     )
     model = model.to(args.device)
     optimizer = torch.optim.Adam(
@@ -109,7 +117,9 @@ def main() -> None:
             pos_t = torch.tensor(batch_pos, device=args.device)
             neg_t = torch.tensor(batch_neg, device=args.device)
 
-            scores = model(users_t, torch.arange(n_items).to(args.device), ui)
+            scores = model(
+                users_t, torch.arange(n_items).to(args.device), ui
+            )
             pos_scores = scores[torch.arange(len(users_t)), pos_t]
             neg_scores = scores[torch.arange(len(users_t)), neg_t]
 

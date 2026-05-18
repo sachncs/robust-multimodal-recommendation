@@ -2,7 +2,6 @@
 """End-to-end demo of GRE-MC on synthetic data."""
 
 import numpy as np
-import scipy.sparse as sp
 import torch
 
 from rmr.data.graph_builder import build_item_graph, build_user_item_graph
@@ -51,6 +50,7 @@ def main() -> None:
         tau=0.5,
         pe_dim=4,
     )
+    model.register_retrieval_buffers(features, mask)
     feats_torch = {k: torch.from_numpy(v) for k, v in features.items()}
     mask_torch = torch.from_numpy(mask)
     x_hat, g = model(feats_torch, mask_torch, ii, training=True)

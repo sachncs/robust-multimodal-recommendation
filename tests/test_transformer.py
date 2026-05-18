@@ -1,7 +1,8 @@
 import torch
+
 from rmr.models.transformer import (
-    InputEmbedding,
     GraphTransformerLayer,
+    InputEmbedding,
     JointEncodingGraphTransformer,
 )
 
@@ -86,4 +87,54 @@ def test_joint_encoding_query_pool_correctness():
     # Since seq_len is 1 after unsqueeze, the weighted sum is just the single token.
     # We verify by checking that with identical inputs we get deterministic results.
     out2 = model(features, mask, pe)
+    torch.testing.assert_close(out, out2, atol=1e-6, rtol=0)
+
+
+def test_transformer_sequence_forward_shape():
+    """Transformer should accept batched sequences (subgraph tokens)."""
+    model = JointEncodingGraphTransformer(
+        input_dims={"visual": 4, "text": 3},
+        pe_dim=2,
+        hidden_dim=8,
+        num_layers=1,
+        num_heads=2,
+        dropout=0.0,
+    )
+    B, S = 2, 5
+    features = {
+        "visual": torch.randn(B, S, 4),
+        "text": torch.randn(B, S, 3),
+    }
+    mask = torch.ones(B, S, 2)
+    pe = torch.randn(B, S, 2)
+    out = model(features, mask, pe)
+    assert out.shape == (B, 8)
+
+
+def test_input_embedding_sequence_masking():
+    """InputEmbedding should broadcast per-node masks over sequences."""
+    embed = InputEmbedding(
+        input_dims={"v": 2, "t": 2},
+        pe_dim=2,
+        hidden_dim=4,
+        dropout=0.0,
+    )
+    B, S = 2, 3
+    features = {
+        "v": torch.ones(B, S, 2),
+        "t": torch.ones(B, S, 2) * 2.0,
+    }
+    # Mask out modality v for all nodes
+    mask = torch.zeros(B, S, 2)
+    mask[:, :, 1] = 1.0
+    pe = torch.zeros(B, S, 2)
+    out = embed(features, mask, pe)
+    assert out.shape == (B, S, 4)
+    # Verify v is zeroed by comparing with explicit zeros
+    features_zeroed = {
+        "v": torch.zeros(B, S, 2),
+        "t": features["t"],
+    }
+    mask_ones = torch.ones(B, S, 2)
+    out2 = embed(features_zeroed, mask_ones, pe)
     torch.testing.assert_close(out, out2, atol=1e-6, rtol=0)
