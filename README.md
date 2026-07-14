@@ -2,7 +2,7 @@
   <h1 align="center">RMR</h1>
   <p align="center">Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion.</p>
   <p align="center">
-    <a href="#installation"><img src="https://img.shields.io/badge/python-3.12%20%7C%203.13-blue" alt="Python"></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://github.com/sachncs/robust-multimodal-recommendation/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/robust-multimodal-recommendation/ci.yml?branch=master" alt="CI"></a>
     <a href="https://pypi.org/project/rmr/"><img src="https://img.shields.io/pypi/v/rmr" alt="PyPI"></a>
