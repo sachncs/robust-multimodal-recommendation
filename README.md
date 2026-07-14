@@ -1,318 +1,221 @@
-# RMR: Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion
+<p align="center">
+  <h1 align="center">RMR</h1>
+  <p align="center">Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion.</p>
+  <p align="center">
+    <a href="#installation"><img src="https://img.shields.io/badge/python-3.12%20%7C%203.13-blue" alt="Python"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+    <a href="https://github.com/sachncs/robust-multimodal-recommendation/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/robust-multimodal-recommendation/ci.yml?branch=master" alt="CI"></a>
+    <a href="https://pypi.org/project/rmr/"><img src="https://img.shields.io/pypi/v/rmr" alt="PyPI"></a>
+    <a href="https://github.com/sachncs/robust-multimodal-recommendation/stargazers"><img src="https://img.shields.io/github/stars/sachncs/robust-multimodal-recommendation" alt="Stars"></a>
+  </p>
+</p>
 
-[![CI](https://github.com/sachncs/robust-multimodal-recommendation/actions/workflows/ci.yml/badge.svg)](https://github.com/sachncs/robust-multimodal-recommendation/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/sachncs/robust-multimodal-recommendation/branch/main/graph/badge.svg)](https://codecov.io/gh/sachncs/robust-multimodal-recommendation)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+**Reproduction of "Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion" (GRE-MC) — Li et al., NUS, 2026.**
 
-Reproduction of the paper **"Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion"** (GRE-MC) by Li et al. (NUS, 2026).
-
-## Features
-
-- **Modality-Aware Subgraph Retrieval** — Retrieves semantically relevant subgraphs from the item-item graph using anchor retrieval, ACS, and MAGE algorithms
-- **Joint-Encoding Graph Transformer** — Encodes query nodes with retrieved context and Laplacian positional encodings
-- **Sparse-Routing Codebook** — Compresses latent representations via Gumbel-Softmax and Top-P selection
-- **Modality Completion** — Reconstructs missing modalities using per-modality MLP decoders
-- **Downstream Recommendation** — LightGCN trained on the completed features
-- **Comprehensive Test Suite** — Full test coverage with pytest and continuous integration
-- **Modular Design** — Clean, maintainable codebase with clear separation of concerns
-
-## Overview
-
-RMR addresses missing modalities in multimodal recommender systems by:
-
-1. **Modality-Aware Subgraph Retrieval** (anchor retrieval + ACS + MAGE) — retrieves semantically relevant subgraphs from the item-item graph.
-2. **Joint-Encoding Graph Transformer** — encodes query nodes with retrieved context and Laplacian positional encodings.
-3. **Sparse-Routing Codebook** — compresses latent representations via Gumbel-Softmax and Top-P selection.
-4. **Modality Completion** — reconstructs missing modalities using per-modality MLP decoders.
-5. **Downstream Recommendation** — LightGCN trained on the completed features.
+RMR addresses missing modalities in multimodal recommender systems through five stages: (1) modality-aware subgraph retrieval from the item-item graph (anchor retrieval + ACS + MAGE), (2) joint-encoding graph transformer with Laplacian positional encodings, (3) sparse-routing codebook (Gumbel-Softmax + Top-P selection), (4) per-modality MLP completion of missing modalities, and (5) downstream LightGCN trained on the completed features.
 
 > **Fidelity**: See `docs/FIDELITY_REPORT.md` for a section-by-section audit of this reproduction versus the paper. Every component is labeled EXACT, APPROXIMATE, or UNKNOWN, with deviations documented.
 
+## Features
+
+- **Modality-aware subgraph retrieval** — Retrieves semantically relevant subgraphs from the item-item graph using anchor retrieval, ACS, and MAGE algorithms
+- **Joint-encoding graph transformer** — Encodes query nodes with retrieved context and Laplacian positional encodings
+- **Sparse-routing codebook** — Compresses latent representations via Gumbel-Softmax and Top-P selection
+- **Modality completion** — Reconstructs missing modalities using per-modality MLP decoders
+- **Downstream recommendation** — LightGCN trained on the completed features
+- **Comprehensive test suite** — Full test coverage with pytest and continuous integration
+- **Modular design** — Clean, maintainable codebase with clear separation of concerns
+
 ## Installation
 
-### Prerequisites
-
-- Python 3.10 or higher
-- pip or poetry for package management
-
-### Quick Start
+### From PyPI
 
 ```bash
-# Clone the repository
-git clone https://github.com/sachncs/robust-multimodal-recommendation.git
-cd rmr
+pip install rmr
+```
 
-# Install in editable mode with dev dependencies
+### From source
+
+```bash
+git clone https://github.com/sachncs/robust-multimodal-recommendation.git
+cd robust-multimodal-recommendation
 pip install -e ".[dev]"
 ```
 
-### Alternative Installation
+For a minimal install without dev tooling: `pip install .`
+
+## Quick Start
+
+### CLI
 
 ```bash
-# Install without dev dependencies
-pip install .
-
-# Install with specific Python version
-python3.10 -m pip install -e ".[dev]"
+python demo.py                                # end-to-end pipeline on synthetic data
+python -m rmr.data.download                   # Amazon 5-core review + metadata
+python -m rmr.data.features                   # text + visual feature extraction
+python -m rmr.data.graph_builder              # user-item + item-item graphs
+python -m rmr.data.masking                    # random modality masking (40%)
+python -m rmr.scripts.train_completion --data-dir data/processed --epochs 100
+python -m rmr.scripts.train_recommender --data-dir data/processed --epochs 100
+python -m rmr.scripts.evaluate --predictions results/scores.npy --labels results/labels.npy
 ```
 
-## Usage
+### Python API
 
-### Quick Demo
+```python
+import torch
+from rmr.models import GREMC, ModalityConfig
+from rmr.training import CompletionTrainer, RecommendationTrainer
 
-Run a complete end-to-end pipeline on synthetic data:
+# Stage 1 — modality completion
+model = GREMC(modality_config=ModalityConfig.from_env())
+completion_trainer = CompletionTrainer(model, data_dir="data/processed")
+completion_trainer.train(epochs=100)
+
+# Stage 2 — downstream recommender on the completed features
+rec_trainer = RecommendationTrainer(model.recommender, data_dir="data/processed")
+rec_trainer.train(epochs=100)
+```
+
+## Configuration
+
+| Setting | Env Variable | Default | Description |
+|---------|--------------|---------|-------------|
+| `DEVICE` | yes | `cpu` | Training device (`cpu` / `cuda`) |
+| `DATA_PROCESSED_DIR` | yes | `data/processed` | Path to processed data |
+| `LOG_LEVEL` | yes | `INFO` | Logging level |
+
+Copy `.env.example` to `.env` and edit; `pyproject.toml` and `.editorconfig` carry tool configuration.
+
+## API
+
+| Symbol | Type | Description |
+|--------|------|-------------|
+| `rmr.models.GREMC` | class | End-to-end GRE-MC model |
+| `rmr.models.retrieval` | module | Anchor retrieval, ACS, MAGE algorithms |
+| `rmr.models.positional_encoding` | module | Laplacian PE |
+| `rmr.models.transformer` | module | Joint-encoding graph transformer |
+| `rmr.models.codebook` | module | Sparse-routing codebook |
+| `rmr.models.decoder` | module | Per-modality decoders |
+| `rmr.models.downstream` | module | LightGCN recommender |
+| `rmr.data.download` / `features` / `graph_builder` / `masking` | modules | Data pipeline |
+| `rmr.training.CompletionTrainer` | class | Stage-1 trainer |
+| `rmr.training.RecommendationTrainer` | class | Stage-2 trainer |
+| `rmr.evaluation` | module | Recall@K, NDCG@K metrics |
+| `rmr.scripts.train_completion` / `train_recommender` / `evaluate` | CLIs | Pipeline entry points |
+
+## Examples
+
+A complete end-to-end pipeline (synthetic data, no Amazon download):
 
 ```bash
 python demo.py
 ```
 
-### Data Pipeline
+Stage 1 + Stage 2 on real Amazon data:
 
 ```bash
-# Download Amazon 5-core review and metadata
 python -m rmr.data.download
-
-# Extract text and visual features
 python -m rmr.data.features
-
-# Build user-item and item-item graphs
 python -m rmr.data.graph_builder
-
-# Apply random modality masking (40%)
 python -m rmr.data.masking
-```
-
-### Training
-
-```bash
-# Stage 1: Train the modality completion model
 python -m rmr.scripts.train_completion --data-dir data/processed --epochs 100
-
-# Stage 2: Train the downstream recommender
 python -m rmr.scripts.train_recommender --data-dir data/processed --epochs 100
-```
-
-### Evaluation
-
-```bash
 python -m rmr.scripts.evaluate --predictions results/scores.npy --labels results/labels.npy
 ```
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file based on `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Key environment variables:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `DEVICE` | Device for training (cpu, cuda) | `cpu` |
-| `DATA_PROCESSED_DIR` | Path to processed data | `data/processed` |
-| `LOG_LEVEL` | Logging level | `INFO` |
-
-### Configuration Files
-
-- `pyproject.toml` — Project configuration, dependencies, and tool settings
-- `.editorconfig` — Editor configuration for consistent formatting
-- `.gitattributes` — Git line ending normalization
 
 ## Project Structure
 
 ```
 rmr/
-├── data/              # Data pipeline (download, features, graphs, masking)
-├── models/            # Core model components
-│   ├── retrieval.py       # Anchor retrieval + ACS + MAGE algorithms
-│   ├── positional_encoding.py  # Laplacian PE
-│   ├── transformer.py     # Joint-encoding graph transformer
-│   ├── codebook.py        # Sparse-routing codebook
-│   ├── decoder.py         # Modality-specific decoders
-│   ├── downstream.py      # LightGCN recommender
-│   └── gre_mc.py          # End-to-end GRE-MC model
-├── training/          # Training loops
-├── evaluation/        # Metrics (Recall@K, NDCG@K)
-├── scripts/           # CLI training and evaluation scripts
-└── tests/             # Comprehensive test suite
+├── data/                       # Data pipeline (download, features, graphs, masking)
+├── models/                     # Core model components
+│   ├── retrieval.py            #   - Anchor retrieval + ACS + MAGE algorithms
+│   ├── positional_encoding.py  #   - Laplacian PE
+│   ├── transformer.py          #   - Joint-encoding graph transformer
+│   ├── codebook.py             #   - Sparse-routing codebook
+│   ├── decoder.py              #   - Modality-specific decoders
+│   ├── downstream.py           #   - LightGCN recommender
+│   └── gre_mc.py               #   - End-to-end GRE-MC model
+├── training/                   # Training loops
+├── evaluation/                 # Metrics (Recall@K, NDCG@K)
+├── scripts/                    # CLI training and evaluation scripts
+├── tests/                      # Comprehensive test suite (one file per module)
+├── docs/                       # SETUP, USAGE, ARCHITECTURE, FIDELITY_REPORT
+├── demo.py                     # End-to-end pipeline on synthetic data
+└── pyproject.toml
 ```
 
 ## Development
 
-### Available Commands
-
 ```bash
-# Install dependencies
 pip install -e ".[dev]"
-
-# Run development server (if applicable)
-python demo.py
-
-# Build the package
-python -m build
-
-# Run tests
 pytest tests/ -v --cov=rmr --cov-report=term-missing
-
-# Run linter
 ruff check .
-
-# Format code
 ruff format .
-
-# Run type checker (if configured)
 mypy rmr/
+pre-commit install
 ```
 
-### Pre-commit Hooks
-
-This project uses pre-commit hooks for code quality. Install them with:
+## Testing
 
 ```bash
-pip install pre-commit
-pre-commit install
+pytest tests/ -v                                      # full suite with coverage
+pytest tests/test_codebook.py -v                      # one module
+pytest tests/test_codebook.py::TestCodebook::test_forward -v  # one test
+```
+
+Test suite covers: codebook, completion trainer, dataset, decoder, downstream recommender, download, end-to-end, evaluator, features, GRE-MC model, graph builder, masking, metrics, Laplacian PE, retrieval, graph transformer, and utility helpers.
+
+## Build
+
+```bash
+pip install build
+python -m build
+```
+
+## Release
+
+```bash
+pytest && ruff check . && mypy rmr/
+git tag vX.Y.Z && git push origin vX.Y.Z
+# .github/workflows/release.yml publishes to PyPI via trusted publishing
 ```
 
 ## Tech Stack
 
-### Core Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| Python | >= 3.10 | Programming language |
-| PyTorch | >= 2.0.0 | Deep learning framework |
-| NumPy | >= 1.24.0 | Numerical computing |
-| SciPy | >= 1.10.0 | Sparse matrices, scientific computing |
-| scikit-learn | >= 1.3.0 | ML utilities |
-| sentence-transformers | >= 2.2.0 | Text embedding extraction |
-| torchvision | >= 0.15.0 | Image features (ResNet) |
-| pandas | >= 2.0.0 | Data manipulation |
-| tqdm | >= 4.65.0 | Progress bars |
-
-### Development Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| pytest | >= 7.4.0 | Test framework |
-| pytest-cov | >= 4.1.0 | Coverage reporting |
-| ruff | >= 0.1.0 | Linter and formatter |
-| pre-commit | Latest | Git hooks |
-
-### Tools & Infrastructure
-
-- **CI/CD**: GitHub Actions
-- **Code Coverage**: Codecov
-- **Package Management**: pip with pyproject.toml
-- **Version Control**: Git
-
-## Testing
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ -v --cov=rmr --cov-report=term-missing
-
-# Run specific test file
-pytest tests/test_codebook.py -v
-
-# Run specific test
-pytest tests/test_codebook.py::TestCodebook::test_forward -v
-```
-
-### Test Structure
-
-Tests are organized by module:
-
-- `test_codebook.py` — Tests for sparse-routing codebook
-- `test_completion_trainer.py` — Tests for completion training
-- `test_dataset.py` — Tests for dataset handling
-- `test_decoder.py` — Tests for modality decoders
-- `test_downstream.py` — Tests for downstream recommender
-- `test_download.py` — Tests for data download
-- `test_end_to_end.py` — End-to-end integration tests
-- `test_evaluator.py` — Tests for evaluation metrics
-- `test_features.py` — Tests for feature extraction
-- `test_gre_mc.py` — Tests for GRE-MC model
-- `test_graph_builder.py` — Tests for graph construction
-- `test_masking.py` — Tests for modality masking
-- `test_metrics.py` — Tests for evaluation metrics
-- `test_positional_encoding.py` — Tests for Laplacian PE
-- `test_retrieval.py` — Tests for retrieval algorithms
-- `test_transformer.py` — Tests for graph transformer
-- `test_utils.py` — Tests for utility functions
-
-## Code Style
-
-This project follows the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html). Linting is enforced with `ruff`:
-
-```bash
-# Check code style
-ruff check .
-
-# Auto-fix issues
-ruff check --fix .
-
-# Format code
-ruff format .
-```
-
-### Code Quality Tools
-
-- **ruff** — Fast Python linter and formatter
-- **pytest** — Testing framework with coverage
-- **pre-commit** — Git hooks for code quality
-- **mypy** — Static type checking (optional)
-
-## Documentation
-
-- [Setup & Data Preparation](docs/SETUP.md)
-- [Usage & Inference](docs/USAGE.md)
-- [Architecture Overview](docs/ARCHITECTURE.md)
-- [Fidelity Report](docs/FIDELITY_REPORT.md)
-- [Changelog](CHANGELOG.md)
+| Category | Technology |
+|----------|------------|
+| Language | Python ≥ 3.10 |
+| Deep learning | PyTorch ≥ 2.0 |
+| Numerical | NumPy ≥ 1.24, SciPy ≥ 1.10 |
+| ML utilities | scikit-learn ≥ 1.3 |
+| Text embeddings | sentence-transformers ≥ 2.2 |
+| Vision features | torchvision ≥ 0.15 (ResNet) |
+| Data | pandas ≥ 2.0, tqdm ≥ 4.65 |
+| Lint / format | ruff |
+| Tests | pytest, pytest-cov |
+| Hooks | pre-commit |
+| CI/CD | GitHub Actions |
+| Coverage | Codecov |
 
 ## Roadmap
 
-- [x] Initial GRE-MC reproduction baseline
-- [x] Comprehensive test suite
-- [x] CI/CD pipeline
-- [x] Documentation
-- [ ] Pre-commit hooks
-- [ ] Type hints coverage
-- [ ] Performance benchmarks
-- [ ] Additional datasets support
-- [ ] Model export/import utilities
-- [ ] Web demo interface
-- [ ] Docker support
-- [ ] Kubernetes deployment guides
+- **v0.3.0** — Current: GRE-MC reproduction baseline, comprehensive test suite, CI/CD, documentation.
+- **v0.4.0** — Planned: pre-commit hooks, expanded type-hint coverage, performance benchmarks.
+- **v0.5.0** — Planned: additional dataset support, model export/import utilities, web demo interface.
+- **v1.0.0** — Planned: Docker support, Kubernetes deployment guides.
 
 ## Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on:
-
-- How to fork and set up the project
-- Branch naming conventions
-- Commit message format
-- Pull request process
-- Coding standards
-- Testing requirements
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Code of Conduct
 
-This project follows our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you agree to uphold this code.
+This project follows the [Contributor Covenant v2.1](CODE_OF_CONDUCT.md).
 
 ## Security
 
-For security vulnerabilities, please see our [Security Policy](SECURITY.md).
+Report vulnerabilities to **sachncs@gmail.com** — see [SECURITY.md](SECURITY.md).
 
 ## Citation
 
@@ -329,7 +232,7 @@ If you use this code, please cite the original paper:
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+[MIT](LICENSE) © 2026 Sachin
 
 ## Acknowledgments
 
