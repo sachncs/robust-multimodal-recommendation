@@ -9,7 +9,7 @@ description = "Robust Multimodal Recommendation via Graph Retrieval-Enhanced Mod
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Sachin", email = "sachin@example.com"},
+    {name = "Sachin", email = "sachncs@gmail.com"},
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -42,8 +42,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sachn-cs/robust-multimodal-recommendation"
-Repository = "https://github.com/sachn-cs/robust-multimodal-recommendation"
+Homepage = "https://github.com/sachncs/robust-multimodal-recommendation"
+Repository = "https://github.com/sachncs/robust-multimodal-recommendation"
 
 [tool.setuptools.packages.find]
 where = ["."]

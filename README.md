@@ -1,7 +1,7 @@
 # RMR: Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion
 
-[![CI](https://github.com/sachin/rmr/actions/workflows/ci.yml/badge.svg)](https://github.com/sachin/rmr/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/sachin/rmr/branch/main/graph/badge.svg)](https://codecov.io/gh/sachin/rmr)
+[![CI](https://github.com/sachncs/robust-multimodal-recommendation/actions/workflows/ci.yml/badge.svg)](https://github.com/sachncs/robust-multimodal-recommendation/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/sachncs/robust-multimodal-recommendation/branch/main/graph/badge.svg)](https://codecov.io/gh/sachncs/robust-multimodal-recommendation)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -40,7 +40,7 @@ RMR addresses missing modalities in multimodal recommender systems by:
 
 ```bash
 # Clone the repository
-git clone https://github.com/sachin/rmr.git
+git clone https://github.com/sachncs/robust-multimodal-recommendation.git
 cd rmr
 
 # Install in editable mode with dev dependencies
