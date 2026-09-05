@@ -1,58 +1,74 @@
-# Architecture
+# morel — Architecture
 
-This document describes the high-level architecture of the GRE-MC reproduction.
+This document describes the package architecture and module layering.
 
-## Data Flow
+## Layering
+
+Strict, one-way dependencies enforced by `import-linter`:
 
 ```
-Raw Amazon Data
-      |
-      v
-[Data Pipeline]
-  - download.py      : fetch review & metadata JSON
-  - features.py      : extract text/visual embeddings
-  - graph_builder.py : build user-item & item-item graphs
-  - masking.py       : simulate missing modalities
-      |
-      v
-[Training Stage 1: Modality Completion]
-  GREMC Model
-    |-- retrieval.py   : anchor retrieval + ACS + MAGE
-    |-- positional_encoding.py : Laplacian PE
-    |-- transformer.py : joint-encoding graph transformer
-    |-- codebook.py    : sparse-routing codebook
-    |-- decoder.py     : per-modality MLP decoders
-    |-- gre_mc.py      : end-to-end composition
-  CompletionTrainer (completion_trainer.py)
-      |
-      v
-Completed Features
-      |
-      v
-[Training Stage 2: Downstream Recommendation]
-  LightGCN (downstream.py)
-      |
-      v
-[Evaluation]
-  Evaluator (evaluator.py) -> Recall@K, NDCG@K
+cli/        (argparse dispatch; thin shim to app/)
+  ↓
+app/        (orchestration services: experiment, benchmark, reproduce)
+  ↓
+train/  eval/    (training & evaluation)
+  ↓
+model/  pipeline/  (algorithms; pipeline composes the 5 stages)
+  ↓
+data/    graph/  retrieve/  encode/  route/  codebook/  complete/  recommend/
+  ↓
+core/    (config, seed, device, logging, errors, types, paths, fidelity)
 ```
 
-## Module Responsibilities
+`core/` imports nothing from the project. `data/` imports only `core/`. The model subpackages import only `data/` and `core/`. `train/` and `eval/` import `model/`, `data/`, and `core/`. `app/` orchestrates `train/` and `eval/`. `cli/` is pure dispatch.
 
-| Module | Purpose |
-|--------|---------|
-| `rmr.data.download` | Fetch Amazon 5-core review & metadata. |
-| `rmr.data.features` | Extract SentenceTransformer & ResNet embeddings. |
-| `rmr.data.graph_builder` | Build sparse user-item & item-item adjacency. |
-| `rmr.data.masking` | Random modality masking with guaranteed retention. |
-| `rmr.data.dataset` | PyTorch Dataset yielding per-item batches. |
-| `rmr.models.retrieval` | Anchor retrieval, ACS (Algorithm 1), MAGE (Algorithm 2). |
-| `rmr.models.positional_encoding` | Cached Laplacian eigenvector PE. |
-| `rmr.models.transformer` | Input embedding + transformer layers + query pooling. |
-| `rmr.models.codebook` | Gumbel-Softmax sparse-routing codebook with regularizers. |
-| `rmr.models.decoder` | Per-modality MLP decoders. |
-| `rmr.models.downstream` | LightGCN for final recommendation. |
-| `rmr.models.gre_mc` | End-to-end GRE-MC model wiring retrieval to decoders. |
-| `rmr.training.completion_trainer` | Training loop with masked reconstruction loss. |
-| `rmr.evaluation.metrics` | Recall@K & NDCG@K implementations. |
-| `rmr.evaluation.evaluator` | Batch metric computation across cutoffs. |
+## Module map
+
+| Package | Responsibility |
+|---------|---------------|
+| `morel.core` | Configuration, seeding, device, logging, errors, types, paths, fidelity registry |
+| `morel.data` | Lifecycle: acquire → validate → extract → build → mask → store |
+| `morel.graph` | `Graph` Protocol, `Bipartite`, `Item`, `Subgraph`, `Laplace` PE |
+| `morel.retrieve` | `Retriever` Protocol, `Anchor`, `ACS`, `MAGE`, `Pipeline` |
+| `morel.encode` | `Encoder` Protocol, `Transformer`, attention/mean/token pools, baselines |
+| `morel.route` | `Router` Protocol, `Dense`, `Top` (top-k), `Gumbel`, `Fixed` |
+| `morel.codebook` | `Codebook` Protocol, `VQ`, `GumbelVQ`, `usage`, `balance` losses |
+| `morel.complete` | `Decoder` Protocol, `Decoders` with learned [MASK] token, per-modality heads |
+| `morel.recommend` | `Recommender` Protocol, `Light` (LightGCN), `MF`, `Pop`, `BPR` |
+| `morel.pipeline` | End-to-end `Pipeline` composing the 5 stages |
+| `morel.train` | `Trainer` ABC, `Completion`, `Recommendation`, `Checkpoint`, `Monitor`, losses |
+| `morel.eval` | `Metric` Protocol, ranking metrics, completion metrics, robustness/ablation protocols |
+| `morel.app` | `Experiment`, `Benchmark`, `Reproduce` services |
+| `morel.cli` | Top-level `morel` entry point dispatching to subcommands |
+| `morel.serve` | FastAPI inference server with bearer-token auth |
+
+## Data flow
+
+```
+raw text + images
+  → morel.data.acquire.fetch   (HTTPS, retries, SHA256)
+  → morel.data.extract         (Sentence-Transformers, ResNet-50)
+  → morel.data.build           (bipartite + item-item cooccurrence; iterative k-core)
+  → morel.data.mask            (Bernoulli, Block, Structured)
+  → morel.data.store           (npz + manifest sidecar)
+  → morel.retrieve             (Anchor + ACS + MAGE)
+  → morel.graph.Laplace        (bottom-k eigenvectors)
+  → morel.encode.Transformer   (joint graph transformer)
+  → morel.route.Top            (top-k sparse routing)
+  → morel.codebook.GumbelVQ    (Gumbel-Softmax + lookup)
+  → morel.complete.Decoders    (per-modality MLP)
+  → morel.recommend.Light      (LightGCN ranking)
+  → morel.eval.*               (Recall@K, NDCG@K, robustness sweep)
+```
+
+## Configuration
+
+A single `Config` dataclass tree at `morel.core.config.Config` is the source of truth. Precedence is `CLI > env > YAML > default`. Every experiment produces a `Manifest` sidecar carrying dataset, version, code hash, seed, extractor, and config hash. Resuming a run requires the config hash to match.
+
+## Determinism
+
+`morel.core.seed.seed(value)` is the single entry point that sets `torch`, `torch.cuda`, `numpy`, `random`, `PYTHONHASHSEED`, `cudnn.deterministic`, and `cudnn.benchmark`. Every CLI calls it at startup. `state()` and `restore()` snapshot RNG state for resume.
+
+## Observability
+
+`morel.core.log.configure(...)` initializes structured JSON logging. `Monitor` writes JSONL metric lines to `runs/<run_id>/metrics.jsonl`. The `Fidelity` registry renders `FIDELITY.md` and `FIDELITY.json` from component-level entries.

@@ -1,0 +1,40 @@
+site_name: morel
+site_description: Modality-aware recommendation via graph retrieval-enhanced completion.
+repo_url: https://github.com/sachncs/robust-multimodal-recommendation
+repo_name: sachncs/robust-multimodal-recommendation
+docs_dir: docs
+site_dir: site
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - content.tabs.link
+    - navigation.top
+    - search.suggest
+    - toc.follow
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            docstring_style: numpy
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+nav:
+  - Home: README.md
+  - Architecture: ARCHITECTURE.md
+  - Method: METHOD.md
+  - API: API.md
+  - Reproduction: REPRODUCE.md
+  - Install: INSTALL.md
+  - Deployment: DEPLOY.md
+  - Benchmarks: BENCHMARKS.md
+  - Paper fidelity: FIDELITY.md
+  - Limitations: LIMITATIONS.md
