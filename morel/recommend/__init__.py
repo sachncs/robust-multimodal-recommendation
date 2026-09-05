@@ -3,5 +3,6 @@
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, negatives
 from morel.recommend.light import Light
+from morel.recommend.protocol import Recommender
 
-__all__ = ["Light", "MF", "Pop", "bpr", "negatives"]
+__all__ = ["Light", "MF", "Pop", "Recommender", "bpr", "negatives"]
