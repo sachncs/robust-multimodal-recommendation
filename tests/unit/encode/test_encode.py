@@ -109,6 +109,31 @@ def test_pool_attention_sums_to_one() -> None:
     assert out.shape == (2, 8)
 
 
+def test_attention_pool_no_nan_on_all_masked() -> None:
+    """All-masked rows must not produce NaN."""
+    pool = Attention(dim=8)
+    h = torch.randn(2, 5, 8)
+    mask = torch.zeros(2, 5, dtype=torch.bool)
+    out = pool(h, mask)
+    assert torch.isfinite(out).all()
+    assert out.shape == (2, 8)
+
+
+def test_attention_pool_partial_mask_finite() -> None:
+    pool = Attention(dim=4)
+    h = torch.randn(3, 6, 4)
+    mask = torch.tensor(
+        [
+            [True, True, False, False, False, False],
+            [True, False, True, False, False, False],
+            [False, False, False, False, False, False],
+        ]
+    )
+    out = pool(h, mask)
+    assert torch.isfinite(out).all()
+    assert out.shape == (3, 4)
+
+
 def test_pool_mean_masked() -> None:
     pool = Mean()
     h = torch.randn(2, 4, 3)

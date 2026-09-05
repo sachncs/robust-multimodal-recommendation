@@ -13,6 +13,11 @@ class Attention(nn.Module):
     """Scaled dot-product attention pooling over a sequence dim.
 
     ``weight = softmax(w^T h / sqrt(d))``; output is ``sum weight * h``.
+
+    NaN-safe: masked positions are filled with a large negative finite value
+    rather than ``-inf`` so that rows with all-masked tokens still produce
+    a finite softmax (a uniform-weight fallback is applied when no token is
+    valid in a row).
     """
 
     def __init__(self, dim: int) -> None:
@@ -31,11 +36,19 @@ class Attention(nn.Module):
         Returns:
             ``(B, dim)`` pooled embedding.
         """
+        scores = self.score(hidden).squeeze(-1)
         if mask is not None:
-            scores = self.score(hidden).squeeze(-1)
-            scores = scores.masked_fill(~mask, float("-inf"))
-        else:
-            scores = self.score(hidden).squeeze(-1)
+            scores = scores.masked_fill(~mask, -1e9)
+            row_valid = mask.any(dim=1)
+            uniform = torch.ones_like(scores) / max(scores.shape[1], 1)
+            scores = torch.where(
+                row_valid.unsqueeze(-1) & ~mask.any(dim=1, keepdim=True),
+                uniform,
+                scores,
+            )
+            all_masked = ~row_valid
+            if all_masked.any():
+                scores = scores.masked_fill(all_masked.unsqueeze(-1), 0.0)
         weights = F.softmax(scores * self.scale, dim=1)
         return (weights.unsqueeze(-1) * hidden).sum(dim=1)
 
