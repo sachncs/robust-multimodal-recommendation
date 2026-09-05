@@ -34,6 +34,8 @@ class Completion(Trainer):
         weight_decay: float = 1e-5,
         monitor: Monitor | None = None,
         checkpoint_dir=None,
+        device: str | torch.device | None = None,
+        amp: bool = False,
     ) -> None:
         optimizer = torch.optim.Adam(
             model.parameters(), lr=lr, weight_decay=weight_decay
@@ -47,6 +49,8 @@ class Completion(Trainer):
             monitor=monitor,
             checkpoint_dir=checkpoint_dir,
             grad_clip=config.grad_clip if hasattr(config, "grad_clip") else 1.0,
+            device=device,
+            amp=amp,
         )
         self.completion_config = config
 
@@ -58,18 +62,30 @@ class Completion(Trainer):
         if index is not None:
             index = index.to(self.device)
         self.optimizer.zero_grad()
-        output = self.model(
-            features, mask, batch["adjacency"], index=index, training=True
-        )
-        predictions = output.completed
-        probs = output.routing
-        recon = self.loss.forward(predictions, features, mask)
-        usage_term = usage(probs)
-        balance_term = balance(probs)
-        total = recon + self.completion_config.lambda_usage * usage_term + self.completion_config.lambda_balance * balance_term
-        total.backward()
-        self.clip(list(self.model.parameters()))
-        self.optimizer.step()
+        with self.autocast():
+            output = self.model(
+                features, mask, batch["adjacency"], index=index, training=True
+            )
+            predictions = output.completed
+            probs = output.routing
+            recon = self.loss.forward(predictions, features, mask)
+            usage_term = usage(probs)
+            balance_term = balance(probs)
+            total = (
+                recon
+                + self.completion_config.lambda_usage * usage_term
+                + self.completion_config.lambda_balance * balance_term
+            )
+        if self._scaler is not None:
+            self._scaler.scale(total).backward()
+            self._scaler.unscale_(self.optimizer)
+            self.clip(list(self.model.parameters()))
+            self._scaler.step(self.optimizer)
+            self._scaler.update()
+        else:
+            total.backward()
+            self.clip(list(self.model.parameters()))
+            self.optimizer.step()
         return {"loss": float(total.item()), "recon": float(recon.item())}
 
     def validate(self, loader: DataLoader) -> float:

@@ -120,3 +120,78 @@ def test_recommendation_trainer_runs(tmp_path: Path) -> None:
     trainer = Recommendation(model, cfg, ui_graph=ui, monitor=_NoOpMonitor(), checkpoint_dir=tmp_path)
     trainer.fit(loader, loader, epochs=2, patience=1)
     assert True
+
+
+def test_trainer_honours_config_device(tmp_path: Path) -> None:
+    """Trainer accepts a device argument and resolves via morel.core.device.device()."""
+    from morel.recommend import Light
+
+    users, items = 4, 6
+    rng = np.random.default_rng(0)
+    user_indices = rng.integers(0, users, size=8)
+    item_indices = rng.integers(0, items, size=8)
+    ui = sp.csr_matrix(
+        (np.ones(8, dtype=np.float32), (user_indices, item_indices)),
+        shape=(users, items),
+    )
+
+    class _Ds(Dataset):
+        def __len__(self) -> int:
+            return 4
+
+        def __getitem__(self, idx: int) -> dict:
+            return {
+                "users": idx % users,
+                "positive": idx % items,
+                "negative": (idx + 1) % items,
+            }
+
+    model = Light(users=users, items=items, embed=4, layers=1)
+    trainer = Recommendation(
+        model,
+        RecommendationConfig(),
+        ui_graph=ui,
+        monitor=_NoOpMonitor(),
+        checkpoint_dir=tmp_path,
+        device="cpu",
+    )
+    assert trainer.device == torch.device("cpu")
+
+
+def test_trainer_amp_cpu_runs(tmp_path: Path) -> None:
+    """AMP=true on CPU must not crash; AMP path is exercised without device promotion."""
+    from morel.recommend import Light
+
+    users, items = 4, 6
+    rng = np.random.default_rng(0)
+    user_indices = rng.integers(0, users, size=8)
+    item_indices = rng.integers(0, items, size=8)
+    ui = sp.csr_matrix(
+        (np.ones(8, dtype=np.float32), (user_indices, item_indices)),
+        shape=(users, items),
+    )
+
+    class _Ds(Dataset):
+        def __len__(self) -> int:
+            return 4
+
+        def __getitem__(self, idx: int) -> dict:
+            return {
+                "users": idx % users,
+                "positive": idx % items,
+                "negative": (idx + 1) % items,
+            }
+
+    model = Light(users=users, items=items, embed=4, layers=1)
+    trainer = Recommendation(
+        model,
+        RecommendationConfig(),
+        ui_graph=ui,
+        monitor=_NoOpMonitor(),
+        checkpoint_dir=tmp_path,
+        device="cpu",
+        amp=True,
+    )
+    loader = DataLoader(_Ds(), batch_size=2)
+    trainer.fit(loader, None, epochs=1, patience=2)
+    assert trainer._scaler is not None

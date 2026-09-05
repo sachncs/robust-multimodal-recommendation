@@ -46,6 +46,8 @@ class Recommendation(Trainer):
         weight_decay: float = 1e-5,
         monitor: Monitor | None = None,
         checkpoint_dir=None,
+        device: str | torch.device | None = None,
+        amp: bool = False,
     ) -> None:
         optimizer = torch.optim.Adam(
             model.parameters(), lr=lr, weight_decay=weight_decay
@@ -58,6 +60,8 @@ class Recommendation(Trainer):
             monitor=monitor,
             checkpoint_dir=checkpoint_dir,
             grad_clip=config.grad_clip if hasattr(config, "grad_clip") else 1.0,
+            device=device,
+            amp=amp,
         )
         self.ui_graph = ui_graph
         self.users = ui_graph.shape[0]

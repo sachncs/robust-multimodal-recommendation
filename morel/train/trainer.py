@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from morel.core.errors import TrainError
+from morel.core.device import device as resolve_device
 from morel.train.checkpoint import State, hash_config
 from morel.train.monitor import Monitor
 
@@ -29,6 +29,7 @@ class Trainer(ABC):
         checkpoint_dir: Path | str | None = None,
         grad_clip: float | None = None,
         amp: bool = False,
+        device: str | torch.device | None = None,
     ) -> None:
         self.model = model
         self.optimizer = optimizer
@@ -37,7 +38,7 @@ class Trainer(ABC):
         self.config = config
         self.grad_clip = grad_clip
         self.amp = amp
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = resolve_device(device)
         self.model.to(self.device)
         self.monitor = monitor or Monitor(Path("runs") / "default")
         self.checkpoint_dir: Path | None = (
@@ -45,6 +46,11 @@ class Trainer(ABC):
         )
         self.best_metric: float = float("inf")
         self.config_hash = hash_config(config)
+        self._scaler = (
+            torch.amp.GradScaler(self.device.type)
+            if amp and self.device.type in {"cuda", "cpu"}
+            else None
+        )
 
     @abstractmethod
     def step(self, batch: dict) -> dict:
@@ -55,6 +61,14 @@ class Trainer(ABC):
     def validate(self, loader: DataLoader) -> float:
         """Return the validation metric (lower = better)."""
         ...
+
+    def autocast(self) -> torch.amp.autocast | contextlib.nullcontext:  # type: ignore[name-defined]
+        """Return an autocast context for the current device, when AMP is on."""
+        import contextlib
+
+        if self.amp:
+            return torch.amp.autocast(device_type=self.device.type)
+        return contextlib.nullcontext()
 
     def fit(
         self,
@@ -86,7 +100,7 @@ class Trainer(ABC):
             start_epoch = state.epoch
             self.best_metric = state.metric
         no_improve = 0
-        for epoch in range(start_epoch, epochs):
+        for epoch in range(start_epoch, start_epoch + epochs):
             self.model.train()
             epoch_metrics = self._run_epoch(train_loader, epoch)
             self.monitor.log(epoch=epoch, phase="train", **epoch_metrics)

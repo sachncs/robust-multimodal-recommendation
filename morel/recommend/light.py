@@ -71,7 +71,11 @@ class Light(nn.Module):
 
     def _adjacency(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
         if ui_graph is None and self._adj_cache is not None:
-            return self._adj_cache[1]
+            cached = self._adj_cache[1]
+            if cached.device != self.user_emb.weight.device:
+                cached = cached.to(self.user_emb.weight.device)
+                self._adj_cache = (self._adj_cache[0], cached)
+            return cached
         if ui_graph is None:
             raise ValueError("ui_graph is required on the first call")
         total = self.users + self.items
@@ -89,6 +93,9 @@ class Light(nn.Module):
         values = torch.from_numpy(normalized.data).float()
         shape = torch.Size(normalized.shape)
         tensor = torch.sparse_coo_tensor(indices, values, shape).coalesce()
+        target_device = self.user_emb.weight.device
+        if tensor.device != target_device:
+            tensor = tensor.to(target_device)
         self._adj_cache = (id(ui_graph), tensor)
         return tensor
 
