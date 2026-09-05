@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import torch
 
-from morel.encode import Attention, Baseline, Identity, Layer, Mean, Token, Transformer
+from morel.encode import Attention, Identity, Layer, Mean, Token, Transformer
 
 
 def test_input_embedding_shape() -> None:
@@ -79,7 +79,9 @@ def test_transformer_rejects_invalid_pool() -> None:
 
 
 def test_baseline_identity() -> None:
-    base = Baseline("identity", dims={"v": 4}, pe_dim=2, hidden=8)
+    from morel.encode import GraphEncoderBaseline
+
+    base = GraphEncoderBaseline("identity", dims={"v": 4}, pe_dim=2, hidden=8)
     feats = {"v": torch.randn(3, 4)}
     mask = torch.ones(3, 1)
     pe = torch.randn(3, 2)
@@ -87,7 +89,9 @@ def test_baseline_identity() -> None:
 
 
 def test_baseline_sum() -> None:
-    base = Baseline("sum", dims={"v": 4, "t": 2}, pe_dim=2, hidden=8)
+    from morel.encode import GraphEncoderBaseline
+
+    base = GraphEncoderBaseline("sum", dims={"v": 4, "t": 2}, pe_dim=2, hidden=8)
     feats = {"v": torch.randn(3, 4), "t": torch.randn(3, 2)}
     mask = torch.ones(3, 2)
     pe = torch.randn(3, 2)
@@ -97,8 +101,10 @@ def test_baseline_sum() -> None:
 def test_baseline_unknown_kind() -> None:
     import pytest
 
+    from morel.encode import GraphEncoderBaseline
+
     with pytest.raises(ValueError):
-        Baseline("nope", dims={"v": 4}, pe_dim=2, hidden=8)
+        GraphEncoderBaseline("nope", dims={"v": 4}, pe_dim=2, hidden=8)
 
 
 def test_pool_attention_sums_to_one() -> None:

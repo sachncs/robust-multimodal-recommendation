@@ -1,4 +1,4 @@
-"""Encoder Protocols and simple baselines."""
+"""GraphEncoder Protocol and simple baselines."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ import torch
 import torch.nn as nn
 
 
-class Encoder(Protocol):
-    """Encoder turns modality features into a hidden embedding."""
+class GraphEncoder(Protocol):
+    """Graph encoder turns modality features into a hidden embedding."""
 
     def forward(
         self,
@@ -63,8 +63,8 @@ class Sum(nn.Module):
         return torch.cat(parts, dim=-1)
 
 
-class Baseline(nn.Module):
-    """Multiplexer that builds the requested baseline encoder."""
+class GraphEncoderBaseline(nn.Module):
+    """Multiplexer that builds the requested graph encoder."""
 
     def __init__(
         self,
@@ -90,4 +90,4 @@ class Baseline(nn.Module):
         return self.inner(features, mask, pe)
 
 
-__all__ = ["Encoder", "Identity", "Sum", "Baseline"]
+__all__ = ["GraphEncoder", "Identity", "Sum", "GraphEncoderBaseline"]
