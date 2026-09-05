@@ -11,46 +11,46 @@ class MorelError(Exception):
     """Base class for every exception raised by morel."""
 
 
-class Data(MorelError):
+class DataError(MorelError):
     """Data acquisition, validation, or loading failures."""
 
 
-class Config(MorelError):
+class ConfigError(MorelError):
     """Invalid or inconsistent configuration."""
 
 
-class Model(MorelError):
+class ModelError(MorelError):
     """Model construction, forward, or parameter validation failures."""
 
 
-class Graph(MorelError):
+class GraphError(MorelError):
     """Graph construction, invariant violation, or retrieval failures."""
 
 
-class Train(MorelError):
+class TrainError(MorelError):
     """Training loop failures (NaN loss, missing checkpoint, etc.)."""
 
 
-class Eval(MorelError):
+class EvalError(MorelError):
     """Evaluation failures (empty score matrix, etc.)."""
 
 
-class Shape(MorelError):
+class ShapeError(MorelError):
     """Tensor shape mismatch."""
 
 
-class Determinism(MorelError):
+class DeterminismError(MorelError):
     """Reproducibility invariant violated."""
 
 
 __all__ = [
     "MorelError",
-    "Data",
-    "Config",
-    "Model",
-    "Graph",
-    "Train",
-    "Eval",
-    "Shape",
-    "Determinism",
+    "DataError",
+    "ConfigError",
+    "ModelError",
+    "GraphError",
+    "TrainError",
+    "EvalError",
+    "ShapeError",
+    "DeterminismError",
 ]

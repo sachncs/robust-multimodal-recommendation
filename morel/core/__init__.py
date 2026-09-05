@@ -3,15 +3,15 @@
 from morel.core.config import Config
 from morel.core.device import Device, device, to
 from morel.core.errors import (
-    Config as ConfigError,
-    Data as DataError,
-    Determinism,
-    Eval as EvalError,
-    Graph as GraphError,
-    Model as ModelError,
+    ConfigError,
+    DataError,
+    DeterminismError,
+    EvalError,
+    GraphError,
+    ModelError,
     MorelError,
-    Shape as ShapeError,
-    Train as TrainError,
+    ShapeError,
+    TrainError,
 )
 from morel.core.fidelity import (
     Entry as FidelityEntry,
@@ -35,10 +35,10 @@ from morel.core.path import (
     root,
     runs,
 )
-from morel.core.seed import seed as seed_everything
-from morel.core.seed import restore as seed_restore
-from morel.core.seed import state as seed_state
 from morel.core.seed import State as SeedState
+from morel.core.seed import restore as seed_restore
+from morel.core.seed import seed as seed_everything
+from morel.core.seed import state as seed_state
 from morel.core.types import Embedding, Graph, Mask, Modality
 
 __all__ = [
@@ -46,7 +46,7 @@ __all__ = [
     "ConfigError",
     "DataError",
     "Device",
-    "Determinism",
+    "DeterminismError",
     "Embedding",
     "EvalError",
     "FidelityEntry",

@@ -14,7 +14,7 @@ from typing import Any
 
 import yaml
 
-from morel.core.errors import Config as ConfigError
+from morel.core.errors import ConfigError
 
 
 @dataclass(frozen=True)

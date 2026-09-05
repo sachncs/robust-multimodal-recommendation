@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from morel.core.errors import Config as ConfigError
+from morel.core.errors import ConfigError
 
 
 def root() -> Path:
