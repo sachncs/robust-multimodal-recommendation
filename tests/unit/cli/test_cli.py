@@ -32,7 +32,7 @@ def test_cli_data_mask(tmp_path, monkeypatch) -> None:
 
 
 def test_cli_train_stub() -> None:
-    assert main(["train"]) == 0
+    assert main(["train", "completion"]) == 0
 
 
 def test_cli_serve_help() -> None:
