@@ -4,9 +4,9 @@ Lifecycle: acquire -> validate -> extract -> build -> mask -> store.
 Every stage produces artifacts with manifests.
 """
 
-from morel.data.acquire import download, fetch
+from morel.data.acquire import download, fetch, download_legacy
 from morel.data.build import bipartite, interactions, item_cooccurrence, kcore
-from morel.data.extract import Encoder, fingerprint, random, text, visual
+from morel.data.extract import FeatureEncoder, fingerprint, random, text, visual
 from morel.data.manifest import (
     Manifest,
     checksum,
@@ -19,7 +19,7 @@ from morel.data.store import load_graph, load_npz, save_graph, save_npz
 from morel.data.validate import features, graph, interactions as validate_interactions, mask as validate_mask
 
 __all__ = [
-    "Encoder",
+    "FeatureEncoder",
     "Manifest",
     "Mask",
     "bernoulli",
@@ -27,6 +27,7 @@ __all__ = [
     "block",
     "checksum",
     "download",
+    "download_legacy",
     "features",
     "fetch",
     "fingerprint",

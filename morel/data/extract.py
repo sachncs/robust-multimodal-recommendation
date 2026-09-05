@@ -1,8 +1,8 @@
 """Modality-agnostic feature extractors.
 
-A single ``Encoder`` Protocol covers text and visual encoders. Implementations
-are responsible for producing L2-normalized ``float32`` arrays of shape
-``(items, dim)``.
+A single ``FeatureEncoder`` Protocol covers text and visual encoders.
+Implementations are responsible for producing L2-normalized ``float32``
+arrays of shape ``(items, dim)``.
 """
 
 from __future__ import annotations
@@ -19,8 +19,8 @@ from morel.core.log import get as get_logger
 log = get_logger("data.extract")
 
 
-class Encoder(Protocol):
-    """One feature extractor."""
+class FeatureEncoder(Protocol):
+    """One feature extractor for raw modality inputs."""
 
     name: str
     dim: int
@@ -39,12 +39,12 @@ def _l2_normalize(array: np.ndarray) -> np.ndarray:
 
 def text(
     inputs: list[str],
-    encoder: Encoder,
+    encoder: FeatureEncoder,
     *,
     batch: int = 64,
     device: str | torch.device | None = None,
 ) -> np.ndarray:
-    """Encode text inputs through any Encoder implementation.
+    """Encode text inputs through any FeatureEncoder implementation.
 
     Args:
         inputs: List of strings.
@@ -62,12 +62,12 @@ def text(
 
 def visual(
     paths: list[str],
-    encoder: Encoder,
+    encoder: FeatureEncoder,
     *,
     batch: int = 32,
     device: str | torch.device | None = None,
 ) -> tuple[np.ndarray, list[int]]:
-    """Encode image paths through any Encoder implementation.
+    """Encode image paths through any FeatureEncoder implementation.
 
     Args:
         paths: List of filesystem paths to images.
@@ -105,7 +105,7 @@ def fingerprint(payload: np.ndarray) -> str:
 
 
 __all__ = [
-    "Encoder",
+    "FeatureEncoder",
     "text",
     "visual",
     "random",
