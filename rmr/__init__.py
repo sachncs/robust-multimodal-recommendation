@@ -1,8 +1,18 @@
-"""RMR: Robust Multimodal Recommendation package.
+# rmr
 
-This package provides graph retrieval-enhanced modality completion
-for robust multimodal recommender systems.
-"""
+Legacy stub — the package has been renamed to `morel`.
 
-__version__ = "0.1.0"
-__all__ = ["data", "models", "training", "evaluation", "scripts"]
+Please install `morel` instead:
+
+```bash
+pip install morel
+```
+
+Or, from source:
+
+```bash
+pip install -e .
+import morel
+```
+
+This directory is intentionally empty and will be removed in a future release.

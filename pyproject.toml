@@ -1,18 +1,20 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm>=8.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "rmr"
-version = "0.1.0"
-description = "Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion"
+name = "morel"
+description = "Modality-aware recommendation via graph retrieval-enhanced completion"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "Sachin", email = "sachncs@gmail.com"},
 ]
+maintainers = [
+    {name = "Sachin", email = "sachncs@gmail.com"},
+]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
@@ -20,60 +22,192 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Framework :: PyTorch",
+    "Typing :: Typed",
 ]
 requires-python = ">=3.10"
+dynamic = ["version"]
 dependencies = [
-    "torch>=2.0.0",
-    "numpy>=1.24.0",
-    "scipy>=1.10.0",
-    "scikit-learn>=1.3.0",
-    "sentence-transformers>=2.2.0",
-    "torchvision>=0.15.0",
-    "pandas>=2.0.0",
-    "tqdm>=4.65.0",
+    "torch>=2.0,<3",
+    "numpy>=1.24,<3",
+    "scipy>=1.10,<2",
+    "scikit-learn>=1.3,<2",
+    "sentence-transformers>=2.2,<3",
+    "torchvision>=0.15,<1",
+    "Pillow>=10.0,<12",
+    "pandas>=2.0,<3",
+    "tqdm>=4.65,<5",
+    "pyyaml>=6.0,<7",
+    "pydantic>=2.0,<3",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
-    "ruff>=0.1.0",
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "pytest-xdist>=3.3",
+    "pytest-timeout>=2.2",
+    "pytest-benchmark>=4.0",
+    "hypothesis>=6.90",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "import-linter>=2.0",
+    "mkdocstrings>=0.24",
+    "mkdocstrings-python>=1.10",
+    "mkdocs-material>=9.5",
+    "pip-audit>=2.7",
+    "build>=1.0",
+    "twine>=5.0",
+    "cyclonedx-py>=1.0",
+    "types-tqdm",
 ]
+serve = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "prometheus-client>=0.20",
+    "httpx>=0.27",
+]
+bench = ["pytest-benchmark>=4.0"]
+text = ["sentence-transformers>=2.2"]
+vision = ["torchvision>=0.15"]
 
 [project.urls]
 Homepage = "https://github.com/sachncs/robust-multimodal-recommendation"
 Repository = "https://github.com/sachncs/robust-multimodal-recommendation"
+Issues = "https://github.com/sachncs/robust-multimodal-recommendation/issues"
+Documentation = "https://sachncs.github.io/robust-multimodal-recommendation/"
+
+[project.scripts]
+morel = "morel.cli:main"
+
+[tool.setuptools_scm]
+write_to = "morel/_version.py"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["rmr*"]
+include = ["morel*"]
+
+[tool.setuptools.package-data]
+morel = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --cov=rmr --cov-report=term-missing"
+addopts = "-v --strict-markers --strict-config --tb=short -W error::DeprecationWarning --cov=morel --cov-report=term-missing --cov-report=xml --cov-fail-under=85"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "gpu: marks tests as requiring GPU (deselect with '-m \"not gpu\"')",
+    "property: marks property-based tests",
+    "research: marks paper-validation tests",
+    "integration: marks integration tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["morel"]
+omit = [
+    "morel/_version.py",
+    "morel/serve/*",
+    "examples/*",
+    "benchmarks/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
 
 [tool.ruff]
-line-length = 80
+line-length = 100
+target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM"]
-ignore = ["D100", "D104"]
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
+select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM", "ICN", "TID", "RUF", "PIE", "PT", "RET"]
+ignore = ["D100", "D104", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["D103", "N806", "N803", "E501"]
+"tests/**/*.py" = ["D103", "N806", "N803", "E501", "B011"]
+"benchmarks/**/*.py" = ["D", "N", "E501"]
+"examples/**/*.py" = ["D", "N", "E501"]
+"morel/serve/**/*.py" = ["B008"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.mypy]
 python_version = "3.10"
+mypy_path = "morel"
+strict = true
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
 check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+exclude = ["tests/", "docs/", "benchmarks/", "examples/", "build/"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
 disallow_untyped_defs = false
-exclude = ["tests/", "docs/", "benchmarks/"]
+
+[tool.importlinter]
+root_package = "morel"
+include_external_packages = false
+
+[[tool.importlinter.contracts]]
+name = "cli depends only on app and core"
+type = "forbidden"
+source_modules = ["morel.cli"]
+forbidden_modules = ["morel.data", "morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend", "morel.train", "morel.eval"]
+
+[[tool.importlinter.contracts]]
+name = "app does not depend on cli"
+type = "forbidden"
+source_modules = ["morel.app"]
+forbidden_modules = ["morel.cli"]
+
+[[tool.importlinter.contracts]]
+name = "train does not depend on app or cli"
+type = "forbidden"
+source_modules = ["morel.train"]
+forbidden_modules = ["morel.app", "morel.cli"]
+
+[[tool.importlinter.contracts]]
+name = "eval does not depend on app or cli"
+type = "forbidden"
+source_modules = ["morel.eval"]
+forbidden_modules = ["morel.app", "morel.cli"]
+
+[[tool.importlinter.contracts]]
+name = "model depends only on core and data"
+type = "forbidden"
+source_modules = ["morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend"]
+forbidden_modules = ["morel.train", "morel.eval", "morel.app", "morel.cli"]
+
+[[tool.importlinter.contracts]]
+name = "data depends only on core"
+type = "forbidden"
+source_modules = ["morel.data"]
+forbidden_modules = ["morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend", "morel.train", "morel.eval", "morel.app", "morel.cli"]
+
+[[tool.importlinter.contracts]]
+name = "core depends on nothing in morel"
+type = "forbidden"
+source_modules = ["morel.core"]
+forbidden_modules = ["morel.data", "morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend", "morel.train", "morel.eval", "morel.app", "morel.cli", "morel.pipeline"]
