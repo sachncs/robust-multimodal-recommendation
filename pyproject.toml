@@ -94,10 +94,10 @@ include = ["morel*"]
 morel = ["py.typed"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
+testpaths = ["tests", "benchmarks"]
+python_files = ["test_*.py", "bench_*.py"]
 python_classes = ["Test*"]
-python_functions = ["test_*"]
+python_functions = ["test_*", "bench_*"]
 addopts = "-v --strict-markers --strict-config --tb=short -W error::DeprecationWarning --cov=morel --cov-report=term-missing --cov-report=xml --cov-fail-under=80"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
