@@ -42,7 +42,7 @@ def main() -> None:
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 16, "text": 8})
-    pipeline.register_buffers(features, mask, adjacency)
+    pipeline.attach_corpus(features, mask, adjacency)
 
     features_t = {k: torch.from_numpy(v) for k, v in features.items()}
     mask_t = torch.from_numpy(mask)

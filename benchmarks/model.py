@@ -17,7 +17,7 @@ def _make_pipeline(items: int, dims: dict[str, int]) -> Pipeline:
     adjacency = sp.csr_matrix(np.eye(items, dtype=np.float32))
     config = Config()
     pipeline = Pipeline(config, dims=dims)
-    pipeline.register_buffers(features, mask, adjacency)
+    pipeline.attach_corpus(features, mask, adjacency)
     return pipeline
 
 

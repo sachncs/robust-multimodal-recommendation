@@ -35,7 +35,7 @@ def test_end_to_end_synthetic(tmp_path) -> None:
 
     config = Config(encode=Config.__dataclass_fields__["encode"].default_factory())  # type: ignore[misc]
     pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
-    pipeline.register_buffers(features_np, mask_np, item_graph)
+    pipeline.attach_corpus(features_np, mask_np, item_graph)
 
     features = {k: torch.from_numpy(v) for k, v in features_np.items()}
     mask = torch.from_numpy(mask_np)
@@ -47,29 +47,24 @@ def test_end_to_end_synthetic(tmp_path) -> None:
 
 def test_trainer_decreases_loss_on_synthetic(tmp_path) -> None:
     rng = np.random.default_rng(0)
+    n = 20
     features = {
-        "visual": rng.normal(size=(20, 4)).astype(np.float32),
-        "text": rng.normal(size=(20, 2)).astype(np.float32),
+        "visual": rng.normal(size=(n, 4)).astype(np.float32),
+        "text": rng.normal(size=(n, 2)).astype(np.float32),
     }
-    mask = np.ones((20, 2), dtype=np.float32)
-    adj = sp.csr_matrix(np.eye(20, dtype=np.float32))
-
-    class _Standin(torch.nn.Module):
-        def __init__(self) -> None:
-            super().__init__()
-            self.codebook = torch.nn.Module()
-            self.codebook.usage = lambda g: torch.tensor(0.0)
-            self.codebook.balance = lambda g: torch.tensor(0.0)
-            self.linear = torch.nn.Linear(6, 6)
-
-        def forward(self, features, mask, adjacency, index=None, training=True):  # noqa: ARG002
-            x = torch.cat([features["visual"], features["text"]], dim=-1)
-            x = self.linear(x)
-            return {"visual": x[:, :4], "text": x[:, 4:]}, torch.softmax(x[:, :8], dim=-1)
+    mask = np.ones((n, 2), dtype=np.float32)
+    rows, cols = [], []
+    for i in range(n - 1):
+        rows.extend([i, i + 1])
+        cols.extend([i + 1, i])
+    adj = sp.csr_matrix(
+        (np.ones(len(rows), dtype=np.float32), (rows, cols)),
+        shape=(n, n),
+    )
 
     class _Ds(torch.utils.data.Dataset):
         def __len__(self):
-            return 20
+            return n
 
         def __getitem__(self, idx):
             return {
@@ -93,5 +88,7 @@ def test_trainer_decreases_loss_on_synthetic(tmp_path) -> None:
         },
     )
     cfg = CompletionConfig()
-    trainer = Completion(_Standin(), cfg, monitor=_Monitor(), checkpoint_dir=tmp_path)
+    pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
+    pipeline.attach_corpus(features, mask, adj)
+    trainer = Completion(pipeline, cfg, monitor=_Monitor(), checkpoint_dir=tmp_path)
     trainer.fit(loader, loader, epochs=3, patience=5)

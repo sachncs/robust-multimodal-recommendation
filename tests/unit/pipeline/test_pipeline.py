@@ -42,7 +42,7 @@ def test_pipeline_with_retrieval() -> None:
         arr[i + 1, i] = 1
     adjacency = sp.csr_matrix(arr)
     pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
-    pipeline.register_buffers(features_np, mask_np, adjacency)
+    pipeline.attach_corpus(features_np, mask_np, adjacency)
     index = torch.tensor([0, 1, 2])
     features = {k: torch.from_numpy(v[index.numpy()]) for k, v in features_np.items()}
     mask = torch.from_numpy(mask_np[index.numpy()])

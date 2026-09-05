@@ -89,13 +89,18 @@ class Pipeline(nn.Module):
         )
         self.recommender.adjacency(ui_graph)
 
-    def register_buffers(
+    def attach_corpus(
         self,
         features: dict[str, np.ndarray],
         mask: np.ndarray,
         adjacency: sp.csr_matrix | None = None,
     ) -> None:
-        """Register full-graph data for on-the-fly retrieval."""
+        """Bind full-graph data for on-the-fly retrieval.
+
+        Unlike :meth:`torch.nn.Module.register_buffers`, this does not register
+        PyTorch tensors with the autograd engine. It only stores the corpus
+        attributes used by retrieval during :meth:`forward`.
+        """
         self._retrieval_features = features
         self._retrieval_mask = mask
         self._retrieval_adj = adjacency
