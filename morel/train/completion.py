@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import torch
 from torch.utils.data import DataLoader
 
-from morel.train.checkpoint import hash_config
+from morel.codebook.codebook import balance, usage
 from morel.train.loss import Reconstruction
 from morel.train.monitor import Monitor
 from morel.train.trainer import Trainer
@@ -20,15 +20,6 @@ class CompletionConfig:
     lambda_usage: float = 1.0
     lambda_balance: float = 1.0
     grad_clip: float = 1.0
-
-    def hash(self) -> str:
-        import hashlib
-        import json
-
-        from dataclasses import asdict
-
-        raw = json.dumps(asdict(self), sort_keys=True, default=str)
-        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 class Completion(Trainer):
@@ -67,12 +58,14 @@ class Completion(Trainer):
         if index is not None:
             index = index.to(self.device)
         self.optimizer.zero_grad()
-        predictions, probs = self.model(
+        output = self.model(
             features, mask, batch["adjacency"], index=index, training=True
         )
+        predictions = output.completed
+        probs = output.routing
         recon = self.loss.forward(predictions, features, mask)
-        usage_term = self.model.codebook.usage(probs)
-        balance_term = self.model.codebook.balance(probs)
+        usage_term = usage(probs)
+        balance_term = balance(probs)
         total = recon + self.completion_config.lambda_usage * usage_term + self.completion_config.lambda_balance * balance_term
         total.backward()
         self.clip(list(self.model.parameters()))
@@ -91,10 +84,10 @@ class Completion(Trainer):
                 index = batch.get("index")
                 if index is not None:
                     index = index.to(self.device)
-                predictions, _ = self.model(
+                output = self.model(
                     features, mask, batch["adjacency"], index=index, training=False
                 )
-                recon = self.loss.forward(predictions, features, mask)
+                recon = self.loss.forward(output.completed, features, mask)
                 total += float(recon.item())
                 count += 1
         return total / max(count, 1)

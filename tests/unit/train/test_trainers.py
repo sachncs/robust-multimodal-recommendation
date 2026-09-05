@@ -10,6 +10,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
+from morel.core.config import Config
+from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
 from morel.train.recommendation import Recommendation, RecommendationConfig
 
@@ -38,50 +40,47 @@ class _NoOpMonitor:
         return None
 
 
-class _Standin(nn.Module):
-    """Tiny module that emits (preds, probs) with matching shapes for the trainer."""
-
-    def __init__(self, dim: int = 4) -> None:
-        super().__init__()
-        self.codebook = nn.Module()
-        self.codebook.usage = lambda g: torch.tensor(0.0)
-        self.codebook.balance = lambda g: torch.tensor(0.0)
-        self.linear = nn.Linear(dim * 2, dim * 2)
-
-    def forward(self, features, mask, adjacency, index=None, training=True):  # noqa: ARG002
-        x = torch.cat([features["visual"], features["text"]], dim=-1)
-        x = self.linear(x)
-        # Split back into two modalities of equal dim.
-        half = x.shape[-1] // 2
-        v = x[:, :half]
-        t = x[:, half:]
-        return {"visual": v, "text": t}, torch.softmax(x[:, :max(half, 2)], dim=-1)
+def _build_path_graph(n: int) -> sp.csr_matrix:
+    """Build a simple path graph adjacency without self-loops."""
+    arr = np.zeros((n, n), dtype=np.float32)
+    for i in range(n - 1):
+        arr[i, i + 1] = 1
+        arr[i + 1, i] = 1
+    return sp.csr_matrix(arr)
 
 
-def test_completion_trainer_runs(tmp_path: Path) -> None:
+def _collate_features(batch, features):
+    return {
+        "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
+        "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
+        "features": {
+            k: torch.from_numpy(np.stack([b["features"][k] for b in batch]))
+            for k in features.keys()
+        },
+        "adjacency": batch[0]["adjacency"],
+    }
+
+
+def test_completion_trainer_runs_with_real_pipeline(tmp_path: Path) -> None:
     rng = np.random.default_rng(0)
+    n = 20
     dim = 4
     features = {
-        "visual": rng.normal(size=(20, dim)).astype(np.float32),
-        "text": rng.normal(size=(20, dim)).astype(np.float32),
+        "visual": rng.normal(size=(n, dim)).astype(np.float32),
+        "text": rng.normal(size=(n, dim)).astype(np.float32),
     }
-    mask = np.ones((20, 2), dtype=np.float32)
-    adj = sp.csr_matrix(np.eye(20, dtype=np.float32))
+    mask = np.ones((n, 2), dtype=np.float32)
+    adj = _build_path_graph(n)
 
-    model = _Standin(dim=dim)
+    config = Config()
+    model = Pipeline(config, dims={"visual": dim, "text": dim})
+    model.attach_corpus(features, mask, adj)
+
     dataset = _FeatureDataset(features, mask, adj)
     loader = DataLoader(
         dataset,
         batch_size=4,
-        collate_fn=lambda batch: {
-            "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
-            "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
-            "features": {
-                k: torch.from_numpy(np.stack([b["features"][k] for b in batch]))
-                for k in features.keys()
-            },
-            "adjacency": batch[0]["adjacency"],
-        },
+        collate_fn=lambda batch: _collate_features(batch, features),
     )
     cfg = CompletionConfig()
     trainer = Completion(model, cfg, monitor=_NoOpMonitor(), checkpoint_dir=tmp_path)
