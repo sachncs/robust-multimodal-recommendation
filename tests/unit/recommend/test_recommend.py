@@ -78,3 +78,39 @@ def test_pop_forward() -> None:
     pop(torch.arange(3), torch.arange(4), ui)
     out = pop(torch.arange(3), torch.arange(4))
     assert out.shape == (3, 4)
+
+
+def test_light_gcn_cache_key_is_content_based() -> None:
+    """Two distinct CSR objects with identical content share the cache entry."""
+    users, items = 4, 5
+    arr = np.eye(users, items, dtype=np.float32)
+    ui1 = sp.csr_matrix(arr)
+    ui2 = sp.csr_matrix(arr.copy())
+    assert ui1 is not ui2
+    light = Light(users=users, items=items, embed=4, layers=1)
+    light(torch.arange(users), torch.arange(items), ui1)
+    first_key, first_tensor = light._adj_cache
+    light(torch.arange(users), torch.arange(items), ui2)
+    assert light._adj_cache[0] == first_key
+    assert light._adj_cache[1] is first_tensor
+
+
+def test_light_gcn_cache_invalidates_on_new_graph() -> None:
+    users, items = 4, 6
+    ui_a = sp.csr_matrix(np.eye(users, items, dtype=np.float32))
+    rng = np.random.default_rng(0)
+    ui_b = sp.csr_matrix(
+        (
+            np.ones(users * 2, dtype=np.float32),
+            (
+                np.concatenate([np.arange(users), np.arange(users)]),
+                rng.integers(0, items, size=users * 2),
+            ),
+        ),
+        shape=(users, items),
+    )
+    light = Light(users=users, items=items, embed=4, layers=1)
+    light(torch.arange(users), torch.arange(items), ui_a)
+    first_key = light._adj_cache[0]
+    light(torch.arange(users), torch.arange(items), ui_b)
+    assert light._adj_cache[0] != first_key
