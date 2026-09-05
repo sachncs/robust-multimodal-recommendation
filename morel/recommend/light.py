@@ -1,0 +1,96 @@
+"""LightGCN downstream recommender with cached normalized adjacency."""
+
+from __future__ import annotations
+
+import numpy as np
+import scipy.sparse as sp
+import torch
+import torch.nn as nn
+
+
+class Light(nn.Module):
+    """LightGCN: linear message passing with mean aggregation.
+
+    The normalized bipartite adjacency is built once on first forward and
+    cached, so ``ui_graph`` does not need to be passed at every call unless
+    it changes.
+    """
+
+    def __init__(
+        self, users: int, items: int, *, embed: int = 64, layers: int = 3
+    ) -> None:
+        super().__init__()
+        if users <= 0 or items <= 0:
+            raise ValueError("users and items must be positive")
+        if layers <= 0:
+            raise ValueError(f"layers must be positive, got {layers}")
+        self.users = users
+        self.items = items
+        self.layers = layers
+        self.embed = embed
+        self.user_emb = nn.Embedding(users, embed)
+        self.item_emb = nn.Embedding(items, embed)
+        nn.init.xavier_uniform_(self.user_emb.weight)
+        nn.init.xavier_uniform_(self.item_emb.weight)
+        self._adj_cache: tuple[int, torch.Tensor] | None = None
+
+    def forward(
+        self,
+        users: torch.Tensor,
+        items: torch.Tensor,
+        ui_graph: sp.csr_matrix | None = None,
+    ) -> torch.Tensor:
+        """Score ``users`` against ``items`` via L-step LightGCN propagation.
+
+        Args:
+            users: ``(B_u,)`` long tensor of user ids.
+            items: ``(B_i,)`` long tensor of item ids.
+            ui_graph: Optional new bipartite graph; uses cached one if None.
+
+        Returns:
+            ``(B_u, B_i)`` score matrix.
+        """
+        if users.max() >= self.users:
+            raise IndexError(f"user index {int(users.max())} >= {self.users}")
+        if items.max() >= self.items:
+            raise IndexError(f"item index {int(items.max())} >= {self.items}")
+        adj_norm = self._adjacency(ui_graph)
+        all_emb = torch.cat([self.user_emb.weight, self.item_emb.weight], dim=0)
+        stack = [all_emb]
+        for _ in range(self.layers):
+            all_emb = torch.sparse.mm(adj_norm, all_emb)
+            stack.append(all_emb)
+        final = torch.stack(stack, dim=0).mean(dim=0)
+        u_emb = final[: self.users]
+        i_emb = final[self.users :]
+        return u_emb[users] @ i_emb[items].t()
+
+    def adjacency(self, ui_graph: sp.csr_matrix) -> torch.Tensor:
+        """Return the cached normalized adjacency; rebuild if graph changes."""
+        return self._adjacency(ui_graph)
+
+    def _adjacency(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
+        if ui_graph is None and self._adj_cache is not None:
+            return self._adj_cache[1]
+        if ui_graph is None:
+            raise ValueError("ui_graph is required on the first call")
+        total = self.users + self.items
+        top = sp.hstack([sp.csr_matrix((self.users, self.users)), ui_graph])
+        bottom = sp.hstack([ui_graph.T, sp.csr_matrix((self.items, self.items))])
+        adj = sp.vstack([top, bottom]).tocoo()
+        rowsum = np.asarray(adj.sum(axis=1)).flatten()
+        with np.errstate(divide="ignore"):
+            d_inv_sqrt = np.where(rowsum > 0, np.power(rowsum, -0.5), 0.0)
+        d_mat = sp.diags(d_inv_sqrt.astype(np.float32))
+        normalized = (d_mat @ adj @ d_mat).tocoo()
+        indices = torch.from_numpy(
+            np.vstack((normalized.row, normalized.col))
+        ).long()
+        values = torch.from_numpy(normalized.data).float()
+        shape = torch.Size(normalized.shape)
+        tensor = torch.sparse_coo_tensor(indices, values, shape).coalesce()
+        self._adj_cache = (id(ui_graph), tensor)
+        return tensor
+
+
+__all__ = ["Light"]
