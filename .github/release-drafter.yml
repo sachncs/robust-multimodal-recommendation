@@ -1,0 +1,30 @@
+# Release Drafter configuration
+
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+version-resolver:
+  major:
+    labels: ["breaking"]
+  minor:
+    labels: ["feature", "enhancement"]
+  patch:
+    labels: ["bug", "fix", "chore", "dependencies", "documentation"]
+  default: patch
+categories:
+  - title: "Breaking Changes"
+    labels: ["breaking"]
+  - title: "Features"
+    labels: ["feature"]
+  - title: "Bug Fixes"
+    labels: ["bug", "fix"]
+  - title: "Performance"
+    labels: ["performance"]
+  - title: "Documentation"
+    labels: ["documentation"]
+  - title: "Maintenance"
+    labels: ["chore", "dependencies"]
+change-template: "- $TITLE (#$NUMBER) @$AUTHOR"
+template: |
+  # Changes
+
+  $CHANGES

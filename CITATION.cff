@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the original paper as below."
+title: "morel"
+abstract: "Modality-aware recommendation via graph retrieval-enhanced completion."
+authors:
+  - family-names: "Sachin"
+    given-names: ""
+type: software
+version: "0.1.0"
+date-released: "2026-09-05"
+license: MIT
+repository-code: "https://github.com/sachncs/robust-multimodal-recommendation"
+keywords:
+  - multimodal
+  - recommendation
+  - graph-retrieval
+  - modality-completion
+  - lightgcn
+preferred-citation:
+  type: article
+  title: "Robust Multimodal Recommendation via Graph Retrieval-Enhanced Modality Completion"
+  authors:
+    - family-names: "Li"
+      given-names: "Yuan"
+    - family-names: "Hu"
+      given-names: "Jun"
+    - family-names: "Jiang"
+      given-names: "Jiaxin"
+    - family-names: "Hooi"
+      given-names: "Bryan"
+    - family-names: "He"
+      given-names: "Bingsheng"
+  journal: "arXiv preprint arXiv:2605.00670"
+  year: 2026
