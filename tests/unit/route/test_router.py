@@ -63,6 +63,6 @@ def test_weights_dataclass_shape() -> None:
 
 
 def test_fixed_router_raises_without_index() -> None:
-    r = Fixed(dim=8, k=5)
+    r = Fixed(k=5)
     with pytest.raises(NotImplementedError):
         r(torch.randn(2, 8))

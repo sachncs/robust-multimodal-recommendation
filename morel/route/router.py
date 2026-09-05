@@ -90,13 +90,11 @@ class Top(Router):
 class Fixed(Router):
     """A non-trainable router that returns one-hot vectors from an index tensor."""
 
-    def __init__(self, dim: int, k: int) -> None:
+    def __init__(self, k: int) -> None:
         super().__init__()
-        del dim  # unused
         self.k = k
 
     def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:
-        del hidden  # unused
         raise NotImplementedError("Fixed router requires explicit index input")
 
 
@@ -130,7 +128,7 @@ def build(kind: str, dim: int, k: int, *, p: int, tau: float) -> Router:
     if kind == "gumbel":
         return Gumbel(dim, k, tau=tau)
     if kind == "fixed":
-        return Fixed(dim, k)
+        return Fixed(k)
     raise ValueError(f"unknown router kind: {kind!r}")
 
 
