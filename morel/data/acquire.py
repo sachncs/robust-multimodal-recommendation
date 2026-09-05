@@ -18,6 +18,11 @@ DEFAULT_RETRIES = 3
 DEFAULT_BACKOFF = 1.5
 USER_AGENT = "morel/0.1"
 
+DEFAULT_BASE = (
+    "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFilesSmall/"
+)
+LEGACY_BASE = "https://jmcauley.ucsd.edu/data/amazon_v2/categoryFilesSmall/"
+
 
 def fetch(
     url: str,
@@ -82,28 +87,16 @@ def fetch(
     raise DataError(f"failed to fetch {url} after {retries + 1} attempts: {last_error}")
 
 
-def download(category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOUT) -> list[Path]:
-    """Download Amazon 5-core review and metadata for a category.
-
-    Files are downloaded as ``.json.gz``, decompressed to ``.json``, and the
-    archive is removed. Idempotent: existing decompressed files are skipped.
-
-    Args:
-        category: Amazon category slug (e.g. ``"Beauty"``).
-        dest: Destination directory.
-        timeout: Per-attempt download timeout.
-
-    Returns:
-        The list of decompressed file paths.
-    """
-    base = "https://jmcauley.ucsd.edu/data/amazon_v2/categoryFilesSmall/"
+def _download_from_base(
+    base: str, category: str, dest: Path | str, *, timeout: float
+) -> list[Path]:
     files = [f"{category}_5.json.gz", f"{category}_metadata.json.gz"]
     root = Path(dest).resolve()
     root.mkdir(parents=True, exist_ok=True)
     decompressed: list[Path] = []
     for fname in files:
         archive = root / fname
-        final = archive.with_suffix("")  # strip .gz
+        final = archive.with_suffix("")
         if final.exists():
             decompressed.append(final)
             continue
@@ -115,10 +108,50 @@ def download(category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOU
     return decompressed
 
 
+def download(category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOUT) -> list[Path]:
+    """Download Amazon 5-core review and metadata for a category.
+
+    Defaults to the Amazon-Reviews-2023 mirror. Raises an actionable
+    :class:`DataError` if the mirror is unreachable.
+
+    Args:
+        category: Amazon category slug (e.g. ``"Beauty"``).
+        dest: Destination directory.
+        timeout: Per-attempt download timeout.
+
+    Returns:
+        The list of decompressed file paths.
+
+    Raises:
+        DataError: When neither the default nor legacy URL responds.
+    """
+    try:
+        return _download_from_base(DEFAULT_BASE, category, dest, timeout=timeout)
+    except DataError as primary:
+        try:
+            return _download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
+        except DataError as legacy:
+            raise DataError(
+                f"failed to fetch {category} from {DEFAULT_BASE} ({primary}) "
+                f"and from {LEGACY_BASE} ({legacy}); "
+                "check network access or use download_legacy directly"
+            ) from legacy
+
+
+def download_legacy(
+    category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOUT
+) -> list[Path]:
+    """Download Amazon 5-core review and metadata from the legacy McAuley URL."""
+    return _download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
+
+
 __all__ = [
     "DEFAULT_TIMEOUT",
     "DEFAULT_RETRIES",
     "DEFAULT_BACKOFF",
+    "DEFAULT_BASE",
+    "LEGACY_BASE",
     "fetch",
     "download",
+    "download_legacy",
 ]
