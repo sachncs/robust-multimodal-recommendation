@@ -33,7 +33,7 @@ def test_invalid_seed_raises() -> None:
 def test_invalid_mask_ratio_raises() -> None:
     from dataclasses import replace
 
-    bad = replace(Config(), mask=replace(Config().mask, ratio=2.0))
+    bad = replace(Config(), masking=replace(Config().masking, ratio=2.0))
     with pytest.raises(ConfigError):
         bad.validate()
 

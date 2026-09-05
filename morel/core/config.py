@@ -40,7 +40,7 @@ class Encoder:
 
 
 @dataclass(frozen=True)
-class Mask:
+class Masking:
     """Masking configuration."""
 
     kind: str = "bernoulli"
@@ -170,7 +170,7 @@ class Config:
     device: str = "auto"
     data: Data = field(default_factory=Data)
     encoder: Encoder = field(default_factory=Encoder)
-    mask: Mask = field(default_factory=Mask)
+    masking: Masking = field(default_factory=Masking)
     retrieve: Retrieve = field(default_factory=Retrieve)
     encode: Encode = field(default_factory=Encode)
     route: Route = field(default_factory=Route)
@@ -187,8 +187,8 @@ class Config:
         """Raise ConfigError on invalid values."""
         if self.seed < 0:
             raise ConfigError(f"seed must be non-negative, got {self.seed}")
-        if not 0.0 <= self.mask.ratio <= 1.0:
-            raise ConfigError(f"mask.ratio must be in [0, 1], got {self.mask.ratio}")
+        if not 0.0 <= self.masking.ratio <= 1.0:
+            raise ConfigError(f"masking.ratio must be in [0, 1], got {self.masking.ratio}")
         if self.route.p <= 0:
             raise ConfigError(f"route.p must be positive, got {self.route.p}")
         if self.codebook.size <= 0:
@@ -312,7 +312,7 @@ def _resolve_dataclass(annotation: Any) -> type:
 __all__ = [
     "Data",
     "Encoder",
-    "Mask",
+    "Masking",
     "Retrieve",
     "Encode",
     "Route",
