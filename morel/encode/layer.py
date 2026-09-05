@@ -30,7 +30,9 @@ class Layer(nn.Module):
     def forward(
         self, hidden: torch.Tensor, attention_mask: torch.Tensor | None = None
     ) -> torch.Tensor:
-        """Apply self-attention then FFN.
+        """Apply Pre-LN self-attention then FFN.
+
+        Order: ``x = x + attn(norm1(x))`` then ``x = x + ffn(norm2(x))``.
 
         Args:
             hidden: ``(B, S, dim)`` token embeddings.
@@ -42,14 +44,14 @@ class Layer(nn.Module):
         key_padding: torch.Tensor | None = None
         if attention_mask is not None:
             key_padding = ~attention_mask
+        normed = self.norm1(hidden)
         attn_out, _ = self.attn(
-            hidden, hidden, hidden, key_padding_mask=key_padding, need_weights=False
+            normed, normed, normed, key_padding_mask=key_padding, need_weights=False
         )
         hidden = hidden + attn_out
-        hidden = self.norm1(hidden)
-        ffn_out = self.ffn(hidden)
+        normed = self.norm2(hidden)
+        ffn_out = self.ffn(normed)
         hidden = hidden + ffn_out
-        hidden = self.norm2(hidden)
         return hidden
 
 

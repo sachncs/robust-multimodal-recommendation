@@ -26,6 +26,26 @@ def test_layer_with_attention_mask() -> None:
     assert out.shape == (2, 5, 8)
 
 
+def test_layer_is_preln() -> None:
+    """When norm1 is zeroed, the residual term dominates and output equals input + ffn(norm2(input))."""
+    layer = Layer(dim=8, heads=2, dropout=0.0)
+    torch.manual_seed(0)
+    layer.eval()
+    layer.norm1.weight.data.zero_()
+    layer.norm1.bias.data.zero_()
+    layer.norm2.weight.data.zero_()
+    layer.norm2.bias.data.zero_()
+    x = torch.randn(1, 3, 8)
+    out = layer(x)
+    expected_normed1 = torch.zeros_like(x)
+    expected_attn, _ = layer.attn(expected_normed1, expected_normed1, expected_normed1, need_weights=False)
+    expected_after_attn = x + expected_attn
+    expected_normed2 = torch.zeros_like(expected_after_attn)
+    expected_ffn = layer.ffn(expected_normed2)
+    expected = expected_after_attn + expected_ffn
+    assert torch.allclose(out, expected, atol=1e-5)
+
+
 def test_transformer_pool_attention() -> None:
     tf = Transformer(dims={"v": 4, "t": 2}, pe_dim=2, hidden=8, layers=2, heads=2, pool="attention")
     feats = {"v": torch.randn(3, 4), "t": torch.randn(3, 2)}
