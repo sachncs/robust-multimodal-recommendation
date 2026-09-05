@@ -7,7 +7,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class VQ(nn.Module):
+class Codebook(nn.Module):
+    """Abstract base class for vector-quantization codebooks.
+
+    Subclasses implement :meth:`forward` to map a hidden representation to
+    a tuple ``(quantized, probs)`` where ``quantized`` has the same shape as
+    the input and ``probs`` is a routing distribution of shape ``(B, K)``.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(  # pragma: no cover - abstract
+        self, hidden: torch.Tensor, *, training: bool = True
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        raise NotImplementedError
+
+
+class VQ(Codebook):
     """Vector-quantizing codebook with straight-through gradient."""
 
     def __init__(self, dim: int, size: int, *, commitment: float = 0.25) -> None:
@@ -22,16 +39,20 @@ class VQ(nn.Module):
         self.embeddings = nn.Embedding(size, dim)
         nn.init.xavier_uniform_(self.embeddings.weight)
 
-    def forward(self, hidden: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self, hidden: torch.Tensor, *, training: bool = True
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Quantize ``hidden`` to the nearest codebook entry.
 
         Args:
             hidden: ``(B, dim)`` input.
+            training: Ignored; VQ is deterministic.
 
         Returns:
             Tuple of ``(quantized, indices)`` where ``quantized`` has straight-through
             gradient and ``indices`` are the chosen codebook indices.
         """
+        del training
         flat = hidden.view(-1, self.dim)
         distances = (
             flat.pow(2).sum(dim=-1, keepdim=True)
@@ -43,10 +64,11 @@ class VQ(nn.Module):
         commitment_loss = F.mse_loss(hidden, quantized.detach())
         codebook_loss = F.mse_loss(quantized, hidden.detach())
         quantized_st = hidden + (quantized - hidden).detach()
-        return quantized_st, indices.view(hidden.shape[:-1])
+        one_hot = F.one_hot(indices.view(-1), self.size).float().view(*hidden.shape[:-1], self.size)
+        return quantized_st, one_hot
 
 
-class GumbelVQ(nn.Module):
+class GumbelVQ(Codebook):
     """Codebook that uses a Router for the discrete selection.
 
     Returns ``(quantized, probs)`` where ``probs`` is the routing distribution
@@ -80,6 +102,27 @@ class GumbelVQ(nn.Module):
         return quantized, probs
 
 
+class IdentityCodebook(Codebook):
+    """No-op codebook used for ablations; returns the input and a uniform probs."""
+
+    def __init__(self, dim: int, size: int) -> None:
+        super().__init__()
+        if size <= 0:
+            raise ValueError(f"size must be positive, got {size}")
+        self.dim = dim
+        self.size = size
+
+    def forward(
+        self, hidden: torch.Tensor, *, training: bool = True
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        del training
+        batch_shape = hidden.shape[:-1]
+        probs = torch.full(
+            (*batch_shape, self.size), 1.0 / self.size, device=hidden.device, dtype=hidden.dtype
+        )
+        return hidden, probs
+
+
 def usage(probs: torch.Tensor, *, eps: float = 1e-10) -> torch.Tensor:
     """KL(bar_p || uniform) codebook usage loss.
 
@@ -100,4 +143,4 @@ def balance(probs: torch.Tensor) -> torch.Tensor:
     return probs.shape[1] * (bar_p**2).sum()
 
 
-__all__ = ["VQ", "GumbelVQ", "usage", "balance"]
+__all__ = ["Codebook", "VQ", "GumbelVQ", "IdentityCodebook", "usage", "balance"]
