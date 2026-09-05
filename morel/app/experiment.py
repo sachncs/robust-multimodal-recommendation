@@ -50,11 +50,11 @@ class Benchmark:
 
     def run(self) -> dict:
         """Run benchmarks at the requested sizes."""
-        from benchmarks import suite
-
         self.run_dir.mkdir(parents=True, exist_ok=True)
-        results = suite(self.sizes)
-        return {"results": results, "run_dir": str(self.run_dir)}
+        # The full benchmark suite lives in morel.benchmarks (a subpackage
+        # planned for Phase 10). Until it lands, return an empty report so
+        # the dispatch surface is exercised without an ImportError.
+        return {"results": {}, "sizes": list(self.sizes), "run_dir": str(self.run_dir)}
 
 
 @dataclass

@@ -48,7 +48,8 @@ class Sum(nn.Module):
 
     def __init__(self, dims: dict[str, int], pe_dim: int, hidden: int) -> None:
         super().__init__()
-        del dims, pe_dim, hidden  # unused
+        self.dims = dims
+        self.pe_dim = pe_dim
         self.dim = hidden
 
     def forward(
@@ -57,7 +58,7 @@ class Sum(nn.Module):
         mask: torch.Tensor,
         pe: torch.Tensor,
     ) -> torch.Tensor:
-        parts = [features[name] * mask[..., idx : idx + 1] for idx, name in enumerate(features.keys())]
+        parts = [features[name] * mask[..., idx : idx + 1] for idx, name in enumerate(self.dims)]
         parts.append(pe)
         return torch.cat(parts, dim=-1)
 

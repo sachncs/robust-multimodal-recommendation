@@ -22,8 +22,8 @@ class Light(nn.Module):
         super().__init__()
         if users <= 0 or items <= 0:
             raise ValueError("users and items must be positive")
-        if layers <= 0:
-            raise ValueError(f"layers must be positive, got {layers}")
+        if layers < 0:
+            raise ValueError(f"layers must be non-negative, got {layers}")
         self.users = users
         self.items = items
         self.layers = layers

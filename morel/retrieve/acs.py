@@ -120,22 +120,26 @@ def compute(
             return set(anchors_int)
         raise GraphError(f"unknown fallback strategy: {fallback!r}")
 
-    subgraph: set[int] = set()
-    stack: list[tuple[int, int]] = [(collision, idx) for idx in range(k)]
-    while stack:
-        node, anchor_idx = stack.pop()
-        if node in subgraph:
+    subgraph: set[int] = {int(collision)}
+    for anchor_idx, target in enumerate(anchors_int):
+        if target == int(collision):
             continue
-        subgraph.add(node)
-        target = anchors_int[anchor_idx]
-        if node == target:
-            continue
-        nxt = previous.get(node, {}).get(anchor_idx)
-        if nxt is None:
-            raise GraphError(
-                f"backtrack failed at node {node} for anchor {target}"
-            )
-        stack.append((int(nxt), anchor_idx))
+        visited: set[int] = set()
+        stack: list[int] = [int(collision)]
+        while stack:
+            node = stack.pop()
+            if node in visited:
+                continue
+            visited.add(node)
+            if node == target:
+                continue
+            nxt = previous.get(node, {}).get(anchor_idx)
+            if nxt is None:
+                raise GraphError(
+                    f"backtrack failed at node {node} for anchor {target}"
+                )
+            stack.append(int(nxt))
+        subgraph.update(visited)
     return subgraph
 
 

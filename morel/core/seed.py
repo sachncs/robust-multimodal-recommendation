@@ -41,6 +41,8 @@ def seed(value: int) -> int:
     """
     if value < 0:
         raise ValueError(f"seed must be non-negative, got {value}")
+    if not isinstance(value, int):
+        raise TypeError(f"seed must be int, got {type(value).__name__}")
     random.seed(value)
     np.random.seed(value)
     torch.manual_seed(value)
@@ -72,9 +74,10 @@ def state() -> State:
     cuda_state: list[torch.Tensor] | None = None
     if torch.cuda.is_available():
         cuda_state = [torch.cuda.get_rng_state(device) for device in range(torch.cuda.device_count())]
+    np_state = np.random.get_state()
     return State(
         python=random.getstate(),
-        numpy=np.random.get_state(),
+        numpy=np_state,
         torch=torch_state,
         cuda=cuda_state,
     )

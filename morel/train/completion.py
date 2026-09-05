@@ -22,7 +22,13 @@ class CompletionConfig:
     grad_clip: float = 1.0
 
     def hash(self) -> str:
-        return hash_config(self)
+        import hashlib
+        import json
+
+        from dataclasses import asdict
+
+        raw = json.dumps(asdict(self), sort_keys=True, default=str)
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 class Completion(Trainer):
@@ -64,7 +70,7 @@ class Completion(Trainer):
         predictions, probs = self.model(
             features, mask, batch["adjacency"], index=index, training=True
         )
-        recon = self.loss(predictions, features, mask)
+        recon = self.loss.forward(predictions, features, mask)
         usage_term = self.model.codebook.usage(probs)
         balance_term = self.model.codebook.balance(probs)
         total = recon + self.completion_config.lambda_usage * usage_term + self.completion_config.lambda_balance * balance_term
@@ -88,7 +94,7 @@ class Completion(Trainer):
                 predictions, _ = self.model(
                     features, mask, batch["adjacency"], index=index, training=False
                 )
-                recon = self.loss(predictions, features, mask)
+                recon = self.loss.forward(predictions, features, mask)
                 total += float(recon.item())
                 count += 1
         return total / max(count, 1)

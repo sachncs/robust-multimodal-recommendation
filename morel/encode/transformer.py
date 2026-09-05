@@ -55,6 +55,7 @@ class Transformer(nn.Module):
         mask: torch.Tensor,
         pe: torch.Tensor,
         attention_mask: torch.Tensor | None = None,
+        sequence: bool | None = None,
     ) -> torch.Tensor:
         """Encode features and return a single embedding per batch item.
 
@@ -62,19 +63,30 @@ class Transformer(nn.Module):
             features: Dict of feature tensors.
             mask: Availability mask.
             pe: Positional encoding.
-            attention_mask: Optional ``(B, S)`` bool mask over the sequence
-                dimension (used when ``features`` have a sequence axis).
+            attention_mask: Optional ``(S,)`` or ``(B, S)`` bool mask over the
+                sequence dimension.
+            sequence: If True, ``features`` represents a sequence
+                ``(S, d_m)`` or ``(B, S, d_m)``. If False, ``features`` is
+                per-item ``(B, d_m)``. If None, inferred from ``features`` rank.
 
         Returns:
             ``(B, hidden)`` tensor.
         """
         hidden = self.input(features, mask, pe)
-        if hidden.dim() == 2:
+        is_sequence = sequence if sequence is not None else hidden.dim() == 3
+        if is_sequence and hidden.dim() == 2:
+            hidden = hidden.unsqueeze(0)
+        if not is_sequence:
             hidden = hidden.unsqueeze(1)
-            if attention_mask is None:
-                attention_mask = torch.ones(
-                    hidden.shape[:2], dtype=torch.bool, device=hidden.device
-                )
+            attention_mask = torch.ones(
+                (hidden.shape[0], 1), dtype=torch.bool, device=hidden.device
+            )
+        elif attention_mask is None:
+            attention_mask = torch.ones(
+                hidden.shape[:2], dtype=torch.bool, device=hidden.device
+            )
+        elif attention_mask.dim() == 1:
+            attention_mask = attention_mask.unsqueeze(0).expand(hidden.shape[0], -1)
         for layer in self.layers:
             hidden = layer(hidden, attention_mask)
         return self.pool(hidden, attention_mask)

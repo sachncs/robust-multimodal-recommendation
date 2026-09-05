@@ -22,7 +22,13 @@ class RecommendationConfig:
     grad_clip: float = 1.0
 
     def hash(self) -> str:
-        return hash_config(self)
+        import hashlib
+        import json
+
+        from dataclasses import asdict
+
+        raw = json.dumps(asdict(self), sort_keys=True, default=str)
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 class Recommendation(Trainer):

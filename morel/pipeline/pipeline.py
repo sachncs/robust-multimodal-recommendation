@@ -205,7 +205,7 @@ class Pipeline(nn.Module):
                 }
                 node_mask = torch.from_numpy(self._retrieval_mask[node_ids_np]).to(device).float()
                 pe = pe_full[node_ids]
-            token = self.transformer(node_features, node_mask, pe, attention_mask=attention)
+            token = self.transformer(node_features, node_mask, pe, attention_mask=attention, sequence=True)
             embeddings.append(token)
         return torch.cat(embeddings, dim=0)
 

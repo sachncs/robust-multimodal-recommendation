@@ -1,0 +1,62 @@
+"""Property-based tests using Hypothesis."""
+
+from __future__ import annotations
+
+import numpy as np
+import scipy.sparse as sp
+import torch
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
+from morel.data.mask import bernoulli
+from morel.retrieve.acs import compute
+from morel.retrieve.bfs import path
+from morel.route import Top
+
+
+@st.composite
+def _path_graphs(draw: st.DrawFn) -> sp.csr_matrix:
+    n = draw(st.integers(min_value=2, max_value=12))
+    arr = np.zeros((n, n), dtype=np.float32)
+    for i in range(n - 1):
+        if draw(st.booleans()):
+            arr[i, i + 1] = 1
+            arr[i + 1, i] = 1
+    return sp.csr_matrix(arr)
+
+
+@given(_path_graphs(), st.integers(min_value=0, max_value=10))
+@settings(max_examples=10, deadline=None)
+def test_acs_contains_anchors(graph: sp.csr_matrix, anchor: int) -> None:
+    if graph.shape[0] == 0:
+        return
+    anchor = anchor % graph.shape[0]
+    sub = compute(graph, [anchor], fallback="empty")
+    assert anchor in sub
+
+
+@given(st.integers(min_value=2, max_value=20))
+@settings(max_examples=5, deadline=None)
+def test_bernoulli_invariant(items: int) -> None:
+    mask = bernoulli(items, 3, 0.4, seed=0).to_numpy()
+    assert (mask.sum(axis=1) >= 1).all()
+
+
+def test_top_router_sums_to_one() -> None:
+    r = Top(dim=8, k=10, p=3, tau=0.5)
+    torch.manual_seed(0)
+    for _ in range(5):
+        x = torch.randn(4, 8)
+        out = r(x, training=True)
+        assert torch.allclose(out.probs.sum(-1), torch.ones(4), atol=1e-5)
+
+
+@given(_path_graphs(), st.integers(min_value=0, max_value=10), st.integers(min_value=0, max_value=10))
+@settings(max_examples=10, deadline=None)
+def test_bfs_path_matches_path_function(graph: sp.csr_matrix, start: int, end: int) -> None:
+    if graph.shape[0] == 0:
+        return
+    start = start % graph.shape[0]
+    end = end % graph.shape[0]
+    p = path(graph, start, end)
+    assert all(0 <= n < graph.shape[0] for n in p)
