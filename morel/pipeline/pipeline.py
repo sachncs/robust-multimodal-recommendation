@@ -123,6 +123,16 @@ class Pipeline(nn.Module):
         """
         device = features[next(iter(features))].device
         pe_full = self.pe_encoder(adjacency).to(device)
+        # Pad PE up to configured pe_dim if the graph is too small to provide
+        # the requested number of nontrivial eigenvectors.
+        if pe_full.shape[-1] < self.config.encode.pe:
+            pad = torch.zeros(
+                *pe_full.shape[:-1],
+                self.config.encode.pe - pe_full.shape[-1],
+                device=device,
+                dtype=pe_full.dtype,
+            )
+            pe_full = torch.cat([pe_full, pad], dim=-1)
         subgraph_indices: np.ndarray | None = None
         subgraph_mask: np.ndarray | None = None
 

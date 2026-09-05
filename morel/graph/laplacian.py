@@ -56,8 +56,8 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
         k: Number of nontrivial eigenvectors.
 
     Returns:
-        Array of shape ``(nodes, k)`` with the bottom-k eigenvectors excluding
-        the trivial constant eigenvector.
+        Array of shape ``(nodes, min(k, n-1))`` with the bottom eigenvectors
+        excluding the trivial constant one. ``k`` is clamped to ``n - 1``.
     """
     if k <= 0:
         raise GraphError(f"k must be positive, got {k}")
@@ -65,19 +65,22 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
     nodes = lap.shape[0]
     if nodes <= 1:
         return np.zeros((nodes, k), dtype=np.float64)
-    if k + 1 >= nodes:
+    effective_k = min(k, nodes - 1)
+    if effective_k <= 0:
+        return np.zeros((nodes, 0), dtype=np.float64)
+    if effective_k + 1 >= nodes:
         dense = lap.toarray()
         _, eigvecs = np.linalg.eigh(dense)
-        return eigvecs[:, 1 : k + 1].astype(np.float64)
+        return eigvecs[:, 1 : effective_k + 1].astype(np.float64)
     try:
-        _, eigvecs = spla.eigsh(lap, k=k + 1, which="SM")
+        _, eigvecs = spla.eigsh(lap, k=effective_k + 1, which="SM")
     except spla.ArpackNoConvergence as exc:
         log.warning(
             "eigsh did not converge; falling back to dense eigh",
             extra={"k": k, "nodes": nodes, "reason": str(exc)},
         )
         _, eigvecs = np.linalg.eigh(lap.toarray())
-    return eigvecs[:, 1 : k + 1].astype(np.float64)
+    return eigvecs[:, 1 : effective_k + 1].astype(np.float64)
 
 
 class Laplace(nn.Module):
