@@ -225,7 +225,16 @@ class Config:
             if key not in cls_fields:
                 raise ConfigError(f"unknown top-level config key: {key!r}")
             clean_top[key] = value
-        return cls(**_coerce(cls, clean_top))
+        coerced = _coerce(cls, clean_top)
+        result: dict[str, Any] = {}
+        for f in fields(cls):
+            if f.name in coerced:
+                f_type = _resolve_dataclass(f.type)
+                if is_dataclass(f_type) and isinstance(coerced[f.name], dict):
+                    result[f.name] = f_type(**coerced[f.name])
+                else:
+                    result[f.name] = coerced[f.name]
+        return cls(**result)
 
     @classmethod
     def from_yaml(cls, path: Path | str) -> "Config":
@@ -260,27 +269,43 @@ class Config:
 
 
 def _coerce(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
-    """Recursively coerce nested dicts into nested dataclass instances."""
+    """Recursively coerce nested dicts into nested dataclass instances.
+
+    Returns a dict suitable for ``cls(**result)``. Nested dataclass fields are
+    replaced with their ``_coerce``d dicts so that ``cls(**...)`` constructs
+    them in turn.
+    """
     out: dict[str, Any] = {}
     for f in fields(cls):
         if f.name not in payload:
             continue
         value = payload[f.name]
-        if is_dataclass(f.type) and isinstance(value, dict):
-            nested_cls = _resolve_dataclass(f.type)
-            out[f.name] = _coerce(nested_cls, value)
+        f_type = _resolve_dataclass(f.type)
+        if is_dataclass(f_type) and isinstance(value, dict):
+            out[f.name] = _coerce(f_type, value)
         else:
             out[f.name] = value
     return out
 
 
 def _resolve_dataclass(annotation: Any) -> type:
-    """Return the dataclass type from a string annotation or class."""
+    """Return the dataclass type from a string annotation or class.
+
+    Returns the annotation unchanged if it is not a string and not a dataclass
+    (e.g. ``int``, ``str``, ``tuple``).
+    """
+    import dataclasses
+
     if isinstance(annotation, str):
-        resolved = getattr(__import__("morel.core.config", fromlist=[annotation]), annotation, None)
+        import importlib
+
+        module = importlib.import_module("morel.core.config")
+        resolved = getattr(module, annotation, None)
         if resolved is None:
-            raise ConfigError(f"unknown dataclass annotation: {annotation}")
+            return annotation
         return resolved
+    if dataclasses.is_dataclass(annotation):
+        return annotation
     return annotation
 
 
