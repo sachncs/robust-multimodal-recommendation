@@ -32,7 +32,8 @@ def processed(name: str) -> Path:
     Args:
         name: Dataset identifier.
 
-    Returns:
+    Returns
+    -------
         Path under ``<root>/processed/<name>``.
     """
     if not name or not name.replace("_", "").replace("-", "").isalnum():
@@ -56,7 +57,8 @@ def checkpoints(run: str) -> Path:
     Args:
         run: Run identifier.
 
-    Returns:
+    Returns
+    -------
         Path under ``<root>/checkpoints/<run>``.
     """
     if not run:

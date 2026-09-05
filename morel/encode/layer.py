@@ -38,7 +38,8 @@ class Layer(nn.Module):
             hidden: ``(B, S, dim)`` token embeddings.
             attention_mask: Optional ``(B, S)`` bool with True = keep.
 
-        Returns:
+        Returns
+        -------
             Updated ``(B, S, dim)`` tensor.
         """
         key_padding: torch.Tensor | None = None

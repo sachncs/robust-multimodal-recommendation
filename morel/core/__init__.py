@@ -15,11 +15,23 @@ from morel.core.errors import (
 )
 from morel.core.fidelity import (
     Entry as FidelityEntry,
+)
+from morel.core.fidelity import (
     Status as FidelityStatus,
+)
+from morel.core.fidelity import (
     all as fidelity_all,
+)
+from morel.core.fidelity import (
     clear as fidelity_clear,
+)
+from morel.core.fidelity import (
     register as fidelity_register,
+)
+from morel.core.fidelity import (
     render_json as fidelity_render_json,
+)
+from morel.core.fidelity import (
     render_markdown as fidelity_render_markdown,
 )
 from morel.core.log import configure as configure_log

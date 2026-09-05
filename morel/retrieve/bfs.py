@@ -18,7 +18,8 @@ def bfs(adj: sp.csr_matrix, sources: list[int]) -> dict[int, int]:
         adj: Symmetric adjacency matrix.
         sources: Source node ids.
 
-    Returns:
+    Returns
+    -------
         Dict mapping visited node id to its shortest distance from the
         nearest source.
     """
@@ -45,7 +46,8 @@ def path(adj: sp.csr_matrix, start: int, end: int) -> list[int]:
         start: Source node id.
         end: Target node id.
 
-    Returns:
+    Returns
+    -------
         List of node ids on a shortest path. Empty if unreachable.
         Single-element list ``[start]`` if ``start == end``.
     """

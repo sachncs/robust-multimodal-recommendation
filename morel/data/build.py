@@ -25,7 +25,8 @@ def bipartite(user: np.ndarray, item: np.ndarray, users: int, items: int) -> sp.
         users: Total number of users.
         items: Total number of items.
 
-    Returns:
+    Returns
+    -------
         Sparse CSR matrix of shape ``(users, items)`` with float32 ones.
     """
     if user.shape != item.shape:
@@ -44,7 +45,8 @@ def item_cooccurrence(graph: sp.csr_matrix) -> sp.csr_matrix:
     Args:
         graph: User-item adjacency of shape ``(users, items)``.
 
-    Returns:
+    Returns
+    -------
         Symmetric item-item CSR matrix with no self-loops.
     """
     if graph.ndim != 2:
@@ -57,7 +59,7 @@ def item_cooccurrence(graph: sp.csr_matrix) -> sp.csr_matrix:
 
 
 def kcore(graph: sp.csr_matrix, min_edges: int) -> sp.csr_matrix:
-    """Iteratively peel nodes below ``min_edges`` until stable.
+    """Peel nodes below ``min_edges`` until stable.
 
     Implements strict k-core: every node in the returned graph has at least
     ``min_edges`` surviving neighbors.
@@ -66,7 +68,8 @@ def kcore(graph: sp.csr_matrix, min_edges: int) -> sp.csr_matrix:
         graph: Symmetric item-item CSR.
         min_edges: Minimum number of neighbors per node.
 
-    Returns:
+    Returns
+    -------
         The largest subgraph satisfying the k-core invariant.
     """
     if min_edges <= 0:
@@ -106,7 +109,8 @@ def interactions(
         metadata: Path to the Amazon metadata ``.json`` file.
         min_edges: K-core threshold.
 
-    Returns:
+    Returns
+    -------
         Tuple of ``(ui_graph, item_meta, users, items)``.
     """
     review_path = Path(review)
@@ -145,9 +149,7 @@ def interactions(
         u_counts = Counter(u for u, _ in filtered)
         i_counts = Counter(i for _, i in filtered)
         new_filtered = [
-            (u, i)
-            for u, i in filtered
-            if u_counts[u] >= min_edges and i_counts[i] >= min_edges
+            (u, i) for u, i in filtered if u_counts[u] >= min_edges and i_counts[i] >= min_edges
         ]
         if len(new_filtered) == len(filtered):
             break

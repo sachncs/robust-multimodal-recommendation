@@ -17,7 +17,7 @@ def no_self_loops(adj: sp.spmatrix) -> None:
 
 def symmetric(adj: sp.spmatrix, *, atol: float = 1e-6) -> None:
     """Raise if the adjacency is not symmetric up to ``atol``."""
-    diff = (adj - adj.T)
+    diff = adj - adj.T
     if isinstance(diff, sp.spmatrix):
         diff = diff.tocsr()
     if abs(diff).max() > atol:

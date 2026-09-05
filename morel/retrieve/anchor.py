@@ -23,13 +23,9 @@ def _validate(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
         raise ShapeError("feature arrays have inconsistent row counts")
     items = next(iter(items_seen))
     if mask.shape[0] != items:
-        raise ShapeError(
-            f"mask rows {mask.shape[0]} != feature rows {items}"
-        )
+        raise ShapeError(f"mask rows {mask.shape[0]} != feature rows {items}")
     if mask.ndim != 2 or mask.shape[1] != len(features):
-        raise ShapeError(
-            f"mask shape {mask.shape} incompatible with {len(features)} modalities"
-        )
+        raise ShapeError(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
     return items
 
 
@@ -73,7 +69,8 @@ def query(
         mask: Modality availability mask.
         top: Maximum number of anchors to return.
 
-    Returns:
+    Returns
+    -------
         Array of anchor indices, sorted by descending similarity, excluding
         the query item.
     """
@@ -107,7 +104,8 @@ def batch(
 ) -> list[np.ndarray]:
     """Anchor retrieval for a batch of query items.
 
-    Returns:
+    Returns
+    -------
         List of anchor arrays aligned with ``queries``.
     """
     return [query(q, query_modality, features, mask, top=top) for q in queries]

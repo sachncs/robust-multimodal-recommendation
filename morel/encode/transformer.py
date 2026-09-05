@@ -33,9 +33,7 @@ class Transformer(nn.Module):
         if heads <= 0:
             raise ValueError(f"heads must be positive, got {heads}")
         self.input = Input(dims, pe_dim, hidden, dropout)
-        self.layers = nn.ModuleList(
-            [Layer(hidden, heads, dropout) for _ in range(layers)]
-        )
+        self.layers = nn.ModuleList([Layer(hidden, heads, dropout) for _ in range(layers)])
         if pool == "attention":
             self.pool = Attention(hidden)
         elif pool == "mean":
@@ -69,7 +67,8 @@ class Transformer(nn.Module):
                 ``(S, d_m)`` or ``(B, S, d_m)``. If False, ``features`` is
                 per-item ``(B, d_m)``. If None, inferred from ``features`` rank.
 
-        Returns:
+        Returns
+        -------
             ``(B, hidden)`` tensor.
         """
         hidden = self.input(features, mask, pe)
@@ -82,9 +81,7 @@ class Transformer(nn.Module):
                 (hidden.shape[0], 1), dtype=torch.bool, device=hidden.device
             )
         elif attention_mask is None:
-            attention_mask = torch.ones(
-                hidden.shape[:2], dtype=torch.bool, device=hidden.device
-            )
+            attention_mask = torch.ones(hidden.shape[:2], dtype=torch.bool, device=hidden.device)
         elif attention_mask.dim() == 1:
             attention_mask = attention_mask.unsqueeze(0).expand(hidden.shape[0], -1)
         for layer in self.layers:

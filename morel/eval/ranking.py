@@ -13,7 +13,8 @@ def recall_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float
         labels: ``(users, items)`` binary relevance.
         k: Cutoff.
 
-    Returns:
+    Returns
+    -------
         Scalar Recall@K in ``[0, 1]``.
     """
     if k <= 0:
@@ -37,7 +38,8 @@ def ndcg_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
         labels: ``(users, items)`` binary relevance.
         k: Cutoff.
 
-    Returns:
+    Returns
+    -------
         Scalar NDCG@K in ``[0, 1]``.
     """
     if k <= 0:

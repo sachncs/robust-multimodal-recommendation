@@ -9,17 +9,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
-import scipy.sparse as sp
 
 from morel.core.config import Config
 from morel.core.fidelity import render_json, render_markdown
 from morel.core.log import get as get_logger
 from morel.core.seed import seed as seed_everything
-from morel.core.types import Embedding
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import item_cooccurrence
-from morel.data.mask import bernoulli
 from morel.data.manifest import Manifest
+from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
 
@@ -62,7 +60,8 @@ class Experiment:
     def run(self) -> dict:
         """Run a full experiment and write artifacts under ``run_dir``.
 
-        Returns:
+        Returns
+        -------
             Dict with status, duration, metrics, and config_hash.
         """
         self.run_dir.mkdir(parents=True, exist_ok=True)
@@ -83,8 +82,6 @@ class Experiment:
         )
         pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
 
-        features_t = {k: Embedding(name=k, tensor=_to_torch(v)) for k, v in dataset["features"].items()}
-        mask_t = _to_torch(dataset["mask"])
         from torch.utils.data import DataLoader, Dataset
 
         items_count = self.items
@@ -184,8 +181,7 @@ def _collate(batch):  # type: ignore[no-untyped-def]
         "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
         "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
         "features": {
-            k: torch.from_numpy(np.stack([b["features"][k] for b in batch]))
-            for k in features_keys
+            k: torch.from_numpy(np.stack([b["features"][k] for b in batch])) for k in features_keys
         },
         "adjacency": batch[0]["adjacency"],
     }

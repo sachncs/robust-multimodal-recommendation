@@ -9,8 +9,6 @@ import torch
 from torch.utils.data import DataLoader
 
 from morel.recommend.bpr import bpr as bpr_loss
-from morel.recommend.bpr import negatives as sample_negatives
-from morel.train.checkpoint import hash_config
 from morel.train.monitor import Monitor
 from morel.train.trainer import Trainer
 
@@ -40,9 +38,7 @@ class Recommendation(Trainer):
         device: str | torch.device | None = None,
         amp: bool = False,
     ) -> None:
-        optimizer = torch.optim.Adam(
-            model.parameters(), lr=lr, weight_decay=weight_decay
-        )
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         super().__init__(
             model=model,
             optimizer=optimizer,
@@ -86,7 +82,9 @@ class Recommendation(Trainer):
                 users = batch["users"].to(self.device)
                 pos = batch["positive"].to(self.device)
                 neg = batch["negative"].to(self.device)
-                scores = self.model(users, torch.arange(self.items, device=self.device), self.ui_graph)
+                scores = self.model(
+                    users, torch.arange(self.items, device=self.device), self.ui_graph
+                )
                 pos_scores = scores[torch.arange(users.shape[0], device=self.device), pos]
                 neg_scores = scores[torch.arange(users.shape[0], device=self.device), neg]
                 loss = bpr_loss(pos_scores, neg_scores)

@@ -33,7 +33,8 @@ class Attention(nn.Module):
             hidden: ``(B, S, dim)`` token embeddings.
             mask: Optional ``(B, S)`` bool tensor; True = valid token.
 
-        Returns:
+        Returns
+        -------
             ``(B, dim)`` pooled embedding.
         """
         scores = self.score(hidden).squeeze(-1)

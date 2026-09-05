@@ -73,7 +73,9 @@ class Config:
     directory: Path | None = None
 
 
-def configure(level: str = "INFO", directory: Path | str | None = None, structured: bool = True) -> None:
+def configure(
+    level: str = "INFO", directory: Path | str | None = None, structured: bool = True
+) -> None:
     """Configure the root morel logger.
 
     Args:
@@ -108,7 +110,8 @@ def get(name: str) -> logging.Logger:
     Args:
         name: Dotted module path.
 
-    Returns:
+    Returns
+    -------
         A logger configured at the morel root.
     """
     return logging.getLogger(f"morel.{name}")

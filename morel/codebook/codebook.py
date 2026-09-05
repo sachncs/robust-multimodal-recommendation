@@ -48,7 +48,8 @@ class VQ(Codebook):
             hidden: ``(B, dim)`` input.
             training: Ignored; VQ is deterministic.
 
-        Returns:
+        Returns
+        -------
             Tuple of ``(quantized, indices)`` where ``quantized`` has straight-through
             gradient and ``indices`` are the chosen codebook indices.
         """
@@ -61,8 +62,6 @@ class VQ(Codebook):
         )
         indices = distances.argmin(dim=-1)
         quantized = self.embeddings(indices).view_as(hidden)
-        commitment_loss = F.mse_loss(hidden, quantized.detach())
-        codebook_loss = F.mse_loss(quantized, hidden.detach())
         quantized_st = hidden + (quantized - hidden).detach()
         one_hot = F.one_hot(indices.view(-1), self.size).float().view(*hidden.shape[:-1], self.size)
         return quantized_st, one_hot
@@ -93,7 +92,8 @@ class GumbelVQ(Codebook):
             hidden: ``(B, dim)`` input.
             training: Whether to add Gumbel noise (forwarded to the router).
 
-        Returns:
+        Returns
+        -------
             Tuple of ``(quantized, probs)``.
         """
         weights = self.router(hidden, training=training)
@@ -129,7 +129,8 @@ def usage(probs: torch.Tensor, *, eps: float = 1e-10) -> torch.Tensor:
     Args:
         probs: ``(B, K)`` routing distribution.
 
-    Returns:
+    Returns
+    -------
         Scalar tensor.
     """
     bar_p = probs.mean(dim=0)

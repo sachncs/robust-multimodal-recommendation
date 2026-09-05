@@ -25,7 +25,8 @@ def create(loader: Loader | None = None) -> FastAPI:
         loader: Optional pre-configured ``Loader``; a default one is created
             if not provided.
 
-    Returns:
+    Returns
+    -------
         Configured ``FastAPI`` instance.
     """
     app = FastAPI(title="morel inference", version="0.1.0")
@@ -93,7 +94,9 @@ def _run_complete(pipeline: object, payload: CompleteRequest) -> dict:
     adjacency = sp.csr_matrix(np.zeros((len(items), len(items)), dtype=np.float32))
     output = pipeline_obj(features, mask_t, adjacency=adjacency, training=False)
     if payload.modalities:
-        return {name: tensor for name, tensor in output.completed.items() if name in payload.modalities}
+        return {
+            name: tensor for name, tensor in output.completed.items() if name in payload.modalities
+        }
     return output.completed
 
 

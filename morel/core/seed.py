@@ -33,10 +33,12 @@ def seed(value: int) -> int:
     Args:
         value: Non-negative integer seed.
 
-    Returns:
+    Returns
+    -------
         The seed used.
 
-    Raises:
+    Raises
+    ------
         ValueError: If the seed is negative.
     """
     if value < 0:
@@ -73,7 +75,9 @@ def state() -> State:
     torch_state = torch.get_rng_state()
     cuda_state: list[torch.Tensor] | None = None
     if torch.cuda.is_available():
-        cuda_state = [torch.cuda.get_rng_state(device) for device in range(torch.cuda.device_count())]
+        cuda_state = [
+            torch.cuda.get_rng_state(device) for device in range(torch.cuda.device_count())
+        ]
     np_state = np.random.get_state()
     return State(
         python=random.getstate(),

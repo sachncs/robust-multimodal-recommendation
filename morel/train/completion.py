@@ -37,9 +37,7 @@ class Completion(Trainer):
         device: str | torch.device | None = None,
         amp: bool = False,
     ) -> None:
-        optimizer = torch.optim.Adam(
-            model.parameters(), lr=lr, weight_decay=weight_decay
-        )
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         loss = Reconstruction()
         super().__init__(
             model=model,
@@ -63,9 +61,7 @@ class Completion(Trainer):
             index = index.to(self.device)
         self.optimizer.zero_grad()
         with self.autocast():
-            output = self.model(
-                features, mask, batch["adjacency"], index=index, training=True
-            )
+            output = self.model(features, mask, batch["adjacency"], index=index, training=True)
             predictions = output.completed
             probs = output.routing
             recon = self.loss.forward(predictions, features, mask)
@@ -100,9 +96,7 @@ class Completion(Trainer):
                 index = batch.get("index")
                 if index is not None:
                     index = index.to(self.device)
-                output = self.model(
-                    features, mask, batch["adjacency"], index=index, training=False
-                )
+                output = self.model(features, mask, batch["adjacency"], index=index, training=False)
                 recon = self.loss.forward(output.completed, features, mask)
                 total += float(recon.item())
                 count += 1

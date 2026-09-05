@@ -38,7 +38,9 @@ class Identity(nn.Module):
         mask: torch.Tensor,
         pe: torch.Tensor,
     ) -> torch.Tensor:
-        parts = [features[name] * mask[..., idx : idx + 1] for idx, name in enumerate(features.keys())]
+        parts = [
+            features[name] * mask[..., idx : idx + 1] for idx, name in enumerate(features.keys())
+        ]
         parts.append(pe)
         return self.project(torch.cat(parts, dim=-1))
 

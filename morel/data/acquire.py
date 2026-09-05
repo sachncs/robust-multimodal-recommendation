@@ -18,9 +18,7 @@ DEFAULT_RETRIES = 3
 DEFAULT_BACKOFF = 1.5
 USER_AGENT = "morel/0.1"
 
-DEFAULT_BASE = (
-    "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFilesSmall/"
-)
+DEFAULT_BASE = "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFilesSmall/"
 LEGACY_BASE = "https://jmcauley.ucsd.edu/data/amazon_v2/categoryFilesSmall/"
 
 
@@ -45,10 +43,12 @@ def fetch(
         sha: Optional SHA256 expected digest; raises DataError on mismatch.
         progress: Optional callback ``(bytes_done, total_bytes_or_None)``.
 
-    Returns:
+    Returns
+    -------
         The destination path.
 
-    Raises:
+    Raises
+    ------
         DataError: If the URL cannot be fetched, or the checksum mismatches.
     """
     target = Path(dest).resolve()
@@ -58,7 +58,10 @@ def fetch(
     while attempt <= retries:
         try:
             request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(request, timeout=timeout) as response, target.open("wb") as out:
+            with (
+                urllib.request.urlopen(request, timeout=timeout) as response,
+                target.open("wb") as out,
+            ):
                 total = response.length
                 done = 0
                 while True:
@@ -74,8 +77,7 @@ def fetch(
 
                 if checksum(target) != sha:
                     raise DataError(
-                        f"checksum mismatch for {target}: expected {sha}, "
-                        f"got {checksum(target)}"
+                        f"checksum mismatch for {target}: expected {sha}, got {checksum(target)}"
                     )
             return target
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
@@ -119,10 +121,12 @@ def download(category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOU
         dest: Destination directory.
         timeout: Per-attempt download timeout.
 
-    Returns:
+    Returns
+    -------
         The list of decompressed file paths.
 
-    Raises:
+    Raises
+    ------
         DataError: When neither the default nor legacy URL responds.
     """
     try:

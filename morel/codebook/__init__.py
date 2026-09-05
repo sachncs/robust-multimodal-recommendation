@@ -1,10 +1,10 @@
 """Public API for the morel.codebook package."""
 
 from morel.codebook.codebook import (
+    VQ,
     Codebook,
     GumbelVQ,
     IdentityCodebook,
-    VQ,
     balance,
     usage,
 )

@@ -19,7 +19,7 @@ from morel.core.config import Config
 from morel.encode import Transformer
 from morel.graph import Laplace
 from morel.recommend import Light
-from morel.retrieve import Result, retrieve, retrieve_batch
+from morel.retrieve import Result, retrieve_batch
 from morel.route import Top
 
 
@@ -122,11 +122,13 @@ class Pipeline(nn.Module):
             index: Optional ``(B,)`` item ids for retrieval.
             training: Whether to apply Gumbel noise.
 
-        Returns:
+        Returns
+        -------
             Output with completed modalities, routing weights, and (when
             retrieval buffers are set) the subgraph indices used.
 
-        Raises:
+        Raises
+        ------
             GraphError: If the adjacency has self-loops. Build the item graph
                 once with ``morel.data.build.item_cooccurrence``; that
                 builder removes self-loops before persisting.
@@ -165,7 +167,9 @@ class Pipeline(nn.Module):
                 queries,
                 self._retrieval_features,
                 self._retrieval_mask,
-                self._retrieval_adj if self._retrieval_adj is not None else sp.csr_matrix(adjacency),
+                self._retrieval_adj
+                if self._retrieval_adj is not None
+                else sp.csr_matrix(adjacency),
                 anchors=self.config.retrieve.anchors,
                 iters=self.config.retrieve.iters,
             )
@@ -211,7 +215,9 @@ class Pipeline(nn.Module):
             if size == 0:
                 node_ids = torch.zeros(1, dtype=torch.long, device=device)
                 attention = torch.ones(1, dtype=torch.bool, device=device)
-                node_features = {name: torch.zeros(1, d, device=device) for name, d in self.dims.items()}
+                node_features = {
+                    name: torch.zeros(1, d, device=device) for name, d in self.dims.items()
+                }
                 node_mask = torch.ones(1, len(self.dims), device=device)
                 pe = torch.zeros(1, pe_full.shape[-1], device=device)
             else:
@@ -219,12 +225,16 @@ class Pipeline(nn.Module):
                 node_ids = torch.from_numpy(node_ids_np).long().to(device)
                 attention = torch.from_numpy(result.mask[b, :size]).bool().to(device)
                 node_features = {
-                    name: torch.from_numpy(self._retrieval_features[name][node_ids_np]).to(device).float()
+                    name: torch.from_numpy(self._retrieval_features[name][node_ids_np])
+                    .to(device)
+                    .float()
                     for name in self.dims
                 }
                 node_mask = torch.from_numpy(self._retrieval_mask[node_ids_np]).to(device).float()
                 pe = pe_full[node_ids]
-            token = self.transformer(node_features, node_mask, pe, attention_mask=attention, sequence=True)
+            token = self.transformer(
+                node_features, node_mask, pe, attention_mask=attention, sequence=True
+            )
             embeddings.append(token)
         return torch.cat(embeddings, dim=0)
 

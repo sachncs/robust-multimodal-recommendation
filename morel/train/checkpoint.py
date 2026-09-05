@@ -12,7 +12,6 @@ import torch
 
 from morel.core.errors import ConfigError, ModelError
 
-
 _ALLOWED_KEYS = {"model", "optimizer", "epoch", "metric", "rng", "config_hash", "extras"}
 
 
@@ -25,10 +24,12 @@ def safe_load(target: Path | str) -> dict[str, Any]:
     Args:
         target: Path to the checkpoint file.
 
-    Returns:
+    Returns
+    -------
         The validated payload dict.
 
-    Raises:
+    Raises
+    ------
         FileNotFoundError: If the file does not exist.
         ModelError: If the payload shape does not match the morel checkpoint contract.
     """
@@ -38,18 +39,12 @@ def safe_load(target: Path | str) -> dict[str, Any]:
     try:
         payload = torch.load(path, map_location="cpu", weights_only=True)
     except Exception as exc:
-        raise ModelError(
-            f"checkpoint at {path} could not be loaded safely: {exc}"
-        ) from exc
+        raise ModelError(f"checkpoint at {path} could not be loaded safely: {exc}") from exc
     if not isinstance(payload, dict):
-        raise ModelError(
-            f"checkpoint at {path} must be a dict, got {type(payload).__name__}"
-        )
+        raise ModelError(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
     unknown = set(payload.keys()) - _ALLOWED_KEYS
     if unknown:
-        raise ModelError(
-            f"checkpoint at {path} has unknown keys: {sorted(unknown)}"
-        )
+        raise ModelError(f"checkpoint at {path} has unknown keys: {sorted(unknown)}")
     return payload
 
 
@@ -64,9 +59,7 @@ def unsafe_load(target: Path | str) -> dict[str, Any]:
         raise FileNotFoundError(path)
     payload = torch.load(path, map_location="cpu", weights_only=False)
     if not isinstance(payload, dict):
-        raise ModelError(
-            f"checkpoint at {path} must be a dict, got {type(payload).__name__}"
-        )
+        raise ModelError(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
     return payload
 
 

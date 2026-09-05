@@ -8,9 +8,7 @@ import scipy.sparse as sp
 from morel.core.errors import DataError, ShapeError
 
 
-def interactions(
-    user: np.ndarray, item: np.ndarray, users: int, items: int
-) -> None:
+def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> None:
     """Validate a user-item interaction pair array.
 
     Args:
@@ -19,7 +17,8 @@ def interactions(
         users: Expected total number of users.
         items: Expected total number of items.
 
-    Raises:
+    Raises
+    ------
         DataError: On shape, dtype, or range violations.
     """
     if user.ndim != 1 or item.ndim != 1:
@@ -43,7 +42,8 @@ def features(payload: dict[str, np.ndarray], *, items: int) -> None:
         payload: Dict mapping modality name to ``(items, dim)`` float array.
         items: Expected number of items.
 
-    Raises:
+    Raises
+    ------
         DataError: On shape, dtype, or value-range violations.
     """
     if not payload:
@@ -52,15 +52,11 @@ def features(payload: dict[str, np.ndarray], *, items: int) -> None:
         if array.ndim != 2:
             raise ShapeError(f"feature {name!r} must be 2-D, got {array.ndim}-D")
         if array.shape[0] != items:
-            raise ShapeError(
-                f"feature {name!r} row count {array.shape[0]} != items ({items})"
-            )
+            raise ShapeError(f"feature {name!r} row count {array.shape[0]} != items ({items})")
         if not np.isfinite(array).all():
             raise DataError(f"feature {name!r} contains NaN or Inf")
         if array.dtype != np.float32:
-            raise DataError(
-                f"feature {name!r} dtype {array.dtype} != float32"
-            )
+            raise DataError(f"feature {name!r} dtype {array.dtype} != float32")
 
 
 def graph(adj: sp.spmatrix) -> None:
@@ -69,7 +65,8 @@ def graph(adj: sp.spmatrix) -> None:
     Args:
         adj: A scipy sparse matrix.
 
-    Raises:
+    Raises
+    ------
         DataError: On invariant violations.
     """
     if adj.ndim != 2:
@@ -91,7 +88,8 @@ def mask(mask: np.ndarray) -> None:
     Args:
         mask: 2-D binary array of shape ``(items, modalities)``.
 
-    Raises:
+    Raises
+    ------
         DataError: On shape, dtype, or value-range violations.
     """
     if mask.ndim != 2:

@@ -11,9 +11,7 @@ import numpy as np
 from morel.core.errors import ShapeError
 
 
-def relevance(
-    i: int, v: int, features: dict[str, np.ndarray], mask: np.ndarray
-) -> float:
+def relevance(i: int, v: int, features: dict[str, np.ndarray], mask: np.ndarray) -> float:
     """Cosine relevance r(i, v) over jointly observed modalities.
 
     Args:
@@ -22,7 +20,8 @@ def relevance(
         features: Dict mapping modality name to ``(items, dim)`` float32 arrays.
         mask: Binary availability mask of shape ``(items, modalities)``.
 
-    Returns:
+    Returns
+    -------
         Mean cosine similarity in ``[0, 1]``. Returns 0.0 when no modality is
         jointly observed.
     """
@@ -60,16 +59,13 @@ def mean_relevance(
         features: Dict of feature arrays.
         mask: Modality availability mask.
 
-    Returns:
+    Returns
+    -------
         Mean relevance. Returns 0.0 if no candidates.
     """
     if nodes.size == 0:
         return 0.0
-    scores = [
-        relevance(i, int(v), features, mask)
-        for v in nodes
-        if int(v) != i
-    ]
+    scores = [relevance(i, int(v), features, mask) for v in nodes if int(v) != i]
     if not scores:
         return 0.0
     return float(np.mean(scores))

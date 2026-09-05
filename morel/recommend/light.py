@@ -30,9 +30,7 @@ class Light(nn.Module):
     ``id()`` (which can be reused after GC).
     """
 
-    def __init__(
-        self, users: int, items: int, *, embed: int = 64, layers: int = 3
-    ) -> None:
+    def __init__(self, users: int, items: int, *, embed: int = 64, layers: int = 3) -> None:
         super().__init__()
         if users <= 0 or items <= 0:
             raise ValueError("users and items must be positive")
@@ -61,7 +59,8 @@ class Light(nn.Module):
             items: ``(B_i,)`` long tensor of item ids.
             ui_graph: Optional new bipartite graph; uses cached one if None.
 
-        Returns:
+        Returns
+        -------
             ``(B_u, B_i)`` score matrix.
         """
         if users.max() >= self.users:
@@ -99,7 +98,6 @@ class Light(nn.Module):
                 cached = cached.to(self.user_emb.weight.device)
                 self._adj_cache = (key, cached)
             return cached
-        total = self.users + self.items
         top = sp.hstack([sp.csr_matrix((self.users, self.users)), ui_graph])
         bottom = sp.hstack([ui_graph.T, sp.csr_matrix((self.items, self.items))])
         adj = sp.vstack([top, bottom]).tocoo()
@@ -108,9 +106,7 @@ class Light(nn.Module):
             d_inv_sqrt = np.where(rowsum > 0, np.power(rowsum, -0.5), 0.0)
         d_mat = sp.diags(d_inv_sqrt.astype(np.float32))
         normalized = (d_mat @ adj @ d_mat).tocoo()
-        indices = torch.from_numpy(
-            np.vstack((normalized.row, normalized.col))
-        ).long()
+        indices = torch.from_numpy(np.vstack((normalized.row, normalized.col))).long()
         values = torch.from_numpy(normalized.data).float()
         shape = torch.Size(normalized.shape)
         tensor = torch.sparse_coo_tensor(indices, values, shape).coalesce()

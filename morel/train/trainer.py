@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -62,10 +63,8 @@ class Trainer(ABC):
         """Return the validation metric (lower = better)."""
         ...
 
-    def autocast(self) -> torch.amp.autocast | contextlib.nullcontext:  # type: ignore[name-defined]
+    def autocast(self) -> torch.amp.autocast | contextlib.nullcontext:
         """Return an autocast context for the current device, when AMP is on."""
-        import contextlib
-
         if self.amp:
             return torch.amp.autocast(device_type=self.device.type)
         return contextlib.nullcontext()
@@ -88,7 +87,8 @@ class Trainer(ABC):
             patience: Epochs without improvement before stopping.
             resume: Optional checkpoint to resume from.
 
-        Returns:
+        Returns
+        -------
             Dict with final metrics.
         """
         start_epoch = 0

@@ -60,7 +60,8 @@ def save(artifact: Path | str, manifest: Manifest) -> Path:
         artifact: Path to the artifact the manifest describes.
         manifest: Manifest payload.
 
-    Returns:
+    Returns
+    -------
         The manifest path that was written.
     """
     target = Path(artifact).resolve()
@@ -79,10 +80,12 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
         artifact: Path to the artifact whose manifest to load.
         expected_config_hash: If provided, raise DataError on mismatch.
 
-    Returns:
+    Returns
+    -------
         The loaded Manifest.
 
-    Raises:
+    Raises
+    ------
         DataError: If the sidecar is missing or its config hash mismatches.
     """
     sidecar = path_for(artifact)

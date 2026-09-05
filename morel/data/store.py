@@ -47,7 +47,8 @@ def save_npz(
         manifest_obj: Optional manifest to save as a sidecar.
         **arrays: Named arrays to include.
 
-    Returns:
+    Returns
+    -------
         The destination path.
     """
     if not arrays:
@@ -59,14 +60,17 @@ def save_npz(
     return final
 
 
-def load_npz(target: Path | str, *, expected_config_hash: str | None = None) -> dict[str, np.ndarray]:
+def load_npz(
+    target: Path | str, *, expected_config_hash: str | None = None
+) -> dict[str, np.ndarray]:
     """Load a ``.npz`` artifact and verify the manifest if present.
 
     Args:
         target: Path to the ``.npz`` file.
         expected_config_hash: If set, raise on manifest mismatch.
 
-    Returns:
+    Returns
+    -------
         Dict mapping array names to numpy arrays.
     """
     path = Path(target)

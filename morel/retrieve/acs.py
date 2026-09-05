@@ -43,9 +43,7 @@ def _validate(adj: sp.csr_matrix, anchors: list[int]) -> None:
         seen.add(idx)
 
 
-def compute(
-    adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
-) -> set[int]:
+def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors") -> set[int]:
     """Compute the Anchor Connecting Subgraph.
 
     Args:
@@ -55,10 +53,12 @@ def compute(
             returns the anchor set (default); ``"empty"`` returns an empty
             set.
 
-    Returns:
+    Returns
+    -------
         Set of node ids in the ACS.
 
-    Raises:
+    Raises
+    ------
         GraphError: On bad input.
     """
     if adj.ndim != 2 or adj.shape[0] != adj.shape[1]:
@@ -135,9 +135,7 @@ def compute(
                 continue
             nxt = previous.get(node, {}).get(anchor_idx)
             if nxt is None:
-                raise GraphError(
-                    f"backtrack failed at node {node} for anchor {target}"
-                )
+                raise GraphError(f"backtrack failed at node {node} for anchor {target}")
             stack.append(int(nxt))
         subgraph.update(visited)
     return subgraph

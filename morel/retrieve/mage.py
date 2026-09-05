@@ -35,7 +35,9 @@ def _boundary(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]
     return sorted(boundary)
 
 
-def _subgraph_neighbors(subgraph_nodes: np.ndarray, neighbors: dict[int, np.ndarray]) -> dict[int, np.ndarray]:
+def _subgraph_neighbors(
+    subgraph_nodes: np.ndarray, neighbors: dict[int, np.ndarray]
+) -> dict[int, np.ndarray]:
     """Build a neighbor lookup restricted to ``subgraph_nodes``."""
     set_nodes = set(subgraph_nodes.tolist())
     return {
@@ -68,7 +70,8 @@ def expand(
         iters: Maximum greedy iterations.
         fallback: ACS fallback strategy.
 
-    Returns:
+    Returns
+    -------
         Set of node ids in the expanded subgraph.
     """
     if iters <= 0:
@@ -150,7 +153,7 @@ def batch(
     """Run MAGE for a batch of queries and anchor sets."""
     return [
         expand(adj, anchors, query, features, mask, iters=iters, fallback=fallback)
-        for anchors, query in zip(anchor_sets, queries)
+        for anchors, query in zip(anchor_sets, queries, strict=True)
     ]
 
 

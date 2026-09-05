@@ -18,7 +18,8 @@ def enabled() -> bool:
 def require(request: Request) -> None:
     """Validate the bearer token if auth is enabled.
 
-    Raises:
+    Raises
+    ------
         HTTPException: 401 if the token is missing or wrong.
     """
     token = os.environ.get("MOREL_AUTH_TOKEN", "").strip()

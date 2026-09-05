@@ -27,7 +27,9 @@ class Router(nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
-    def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:  # pragma: no cover - abstract
+    def forward(
+        self, hidden: torch.Tensor, *, training: bool = True
+    ) -> Weights:  # pragma: no cover - abstract
         raise NotImplementedError
 
 

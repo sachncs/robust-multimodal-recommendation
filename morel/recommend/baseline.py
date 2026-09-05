@@ -35,7 +35,8 @@ class MF(nn.Module):
             items: ``(B_i,)`` long tensor.
             ui_graph: Unused; accepted for Protocol compatibility.
 
-        Returns:
+        Returns
+        -------
             ``(B_u, B_i)`` scores.
         """
         return self.user_emb(users) @ self.item_emb(items).t()

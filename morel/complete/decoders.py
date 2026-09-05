@@ -56,7 +56,8 @@ class Decoders(nn.Module):
             mask: Optional ``(B, M)`` availability. Missing positions are
                 augmented with the learned mask token before decoding.
 
-        Returns:
+        Returns
+        -------
             Dict mapping modality name to ``(B, dim)`` reconstruction.
         """
         outputs: dict[str, torch.Tensor] = {}

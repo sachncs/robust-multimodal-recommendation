@@ -17,7 +17,9 @@ log = get_logger("cli")
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="morel", description="morel: graph retrieval-enhanced multimodal recommendation")
+    parser = argparse.ArgumentParser(
+        prog="morel", description="morel: graph retrieval-enhanced multimodal recommendation"
+    )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("data", help="data lifecycle commands", add_help=False)
@@ -131,9 +133,9 @@ def _run_eval(argv: list[str]) -> int:
             scores_by_ratio,
             labels,
             metrics={
-                "recall@10": lambda s, l: __import__(
+                "recall@10": lambda s, lst: __import__(
                     "morel.eval", fromlist=["recall_at_k"]
-                ).recall_at_k(s, l, k=10),
+                ).recall_at_k(s, lst, k=10),
             },
         )
         print(result)

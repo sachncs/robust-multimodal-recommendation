@@ -16,7 +16,8 @@ def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-1
         pos_scores: ``(B,)`` scores for positive items.
         neg_scores: ``(B,)`` scores for negative items.
 
-    Returns:
+    Returns
+    -------
         Scalar loss.
     """
     return -torch.log(torch.sigmoid(pos_scores - neg_scores) + eps).mean()
@@ -38,7 +39,8 @@ def negatives(
         count: Number of negatives per user.
         seed: RNG seed.
 
-    Returns:
+    Returns
+    -------
         Array of shape ``(users, count)`` of int64 item ids.
     """
     users, items = ui.shape

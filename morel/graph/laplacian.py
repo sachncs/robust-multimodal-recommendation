@@ -55,7 +55,8 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
         adj: Symmetric item-item CSR adjacency.
         k: Number of nontrivial eigenvectors.
 
-    Returns:
+    Returns
+    -------
         Array of shape ``(nodes, min(k, n-1))`` with the bottom eigenvectors
         excluding the trivial constant one. ``k`` is clamped to ``n - 1``.
     """

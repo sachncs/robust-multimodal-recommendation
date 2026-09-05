@@ -72,7 +72,8 @@ def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> Mask:
         ratio: Probability of masking per (item, modality) pair.
         seed: Random seed.
 
-    Returns:
+    Returns
+    -------
         A ``Mask`` with shape ``(items, modalities)``.
     """
     if not 0.0 <= ratio <= 1.0:
@@ -87,16 +88,14 @@ def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> Mask:
     if needs_repair.any():
         first_keep = np.argmax(base[needs_repair] == 1, axis=1)
         # If a row is entirely zero, force-keep modality 0.
-        no_kept = (base[needs_repair].sum(axis=1) == 0)
+        no_kept = base[needs_repair].sum(axis=1) == 0
         first_keep = np.where(no_kept, 0, first_keep)
         rows = np.where(needs_repair)[0]
         base[rows, first_keep] = 1.0
     return Mask(data=base)
 
 
-def block(
-    items: int, modalities: int, block_size: int, *, seed: int
-) -> Mask:
+def block(items: int, modalities: int, block_size: int, *, seed: int) -> Mask:
     """Block masking: contiguous modality spans are masked together.
 
     Args:
@@ -105,13 +104,12 @@ def block(
         block_size: Length of each block.
         seed: Random seed.
 
-    Returns:
+    Returns
+    -------
         A ``Mask``.
     """
     if block_size <= 0 or block_size > modalities:
-        raise DataError(
-            f"block_size must be in [1, {modalities}], got {block_size}"
-        )
+        raise DataError(f"block_size must be in [1, {modalities}], got {block_size}")
     rng = np.random.default_rng(seed)
     base = np.ones((items, modalities), dtype=np.float32)
     for i in range(items):
@@ -126,7 +124,8 @@ def structured(pattern: np.ndarray) -> Mask:
     Args:
         pattern: 2-D binary array of shape ``(items, modalities)``.
 
-    Returns:
+    Returns
+    -------
         A ``Mask``.
     """
     pattern = pattern.astype(np.float32, copy=False)

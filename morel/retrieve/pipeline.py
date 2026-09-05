@@ -13,7 +13,6 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
-from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import query as anchor_query
 from morel.retrieve.mage import expand as mage_expand
 
@@ -95,7 +94,9 @@ def batch(
     return Result(nodes=nodes, sizes=sizes, mask=valid)
 
 
-def as_tensor(result: Result, *, device: str | torch.device | None = None) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def as_tensor(
+    result: Result, *, device: str | torch.device | None = None
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Convert a batched Result into (nodes, mask, sizes) torch tensors."""
     nodes = torch.from_numpy(result.nodes).long()
     mask_t = torch.from_numpy(result.mask).bool()

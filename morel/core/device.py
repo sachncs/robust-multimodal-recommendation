@@ -27,7 +27,8 @@ def device(prefer: str | torch.device | None = None) -> torch.device:
             ``"mps"``) or torch.device. If ``None``, uses CUDA if available
             else MPS if available else CPU.
 
-    Returns:
+    Returns
+    -------
         The resolved ``torch.device``.
     """
     if prefer is None:
@@ -51,7 +52,8 @@ def to(tensor: torch.Tensor, target: torch.device | str) -> torch.Tensor:
         tensor: Input tensor.
         target: Target device.
 
-    Returns:
+    Returns
+    -------
         Tensor on the target device.
     """
     return tensor.to(device(target))

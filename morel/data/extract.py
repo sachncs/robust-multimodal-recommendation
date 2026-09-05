@@ -52,7 +52,8 @@ def text(
         batch: Batch size.
         device: Device override.
 
-    Returns:
+    Returns
+    -------
         Array of shape ``(len(inputs), encoder.dim)``, L2-normalized, float32.
     """
     if not inputs:
@@ -75,7 +76,8 @@ def visual(
         batch: Batch size.
         device: Device override.
 
-    Returns:
+    Returns
+    -------
         Tuple of ``(features, kept_indices)`` where ``features`` is
         ``(len(kept), encoder.dim)`` L2-normalized float32 and ``kept_indices``
         are positions in the original ``paths`` that succeeded.
