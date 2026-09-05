@@ -55,13 +55,13 @@ class Loader:
             return list(self._cache.keys())
 
     def load_path(self, path: Path | str) -> Any:
-        """Load a torch checkpoint, returning the state dict."""
+        """Load a torch checkpoint safely, returning the payload dict."""
+        from morel.train.checkpoint import safe_load
+
         path = Path(path)
         if not path.exists():
             raise ModelError(f"checkpoint not found: {path}")
-        import torch
-
-        return torch.load(path, map_location="cpu", weights_only=False)
+        return safe_load(path)
 
 
 __all__ = ["Loader"]

@@ -5,12 +5,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 import torch
 import torch.nn as nn
 
-from morel.core.errors import ConfigError
-from morel.train.checkpoint import State, hash_config
+from morel.core.errors import ConfigError, ModelError
+from morel.train.checkpoint import State, hash_config, safe_load, unsafe_load
 from morel.train.monitor import Monitor
+
+
+class _CheckpointMarker:
+    """Module-level marker class used to verify unsafe_load roundtrips."""
 
 
 def test_state_roundtrip(tmp_path: Path) -> None:
@@ -62,3 +67,46 @@ def test_monitor_append_and_read(tmp_path: Path) -> None:
 def test_monitor_empty_returns_none(tmp_path: Path) -> None:
     mon = Monitor(tmp_path)
     assert mon.latest() is None
+
+
+def test_safe_load_rejects_exploit_payload(tmp_path: Path) -> None:
+    """safe_load refuses payloads that contain a __reduce__ exploit class."""
+
+    class Exploit:
+        def __reduce__(self):  # pragma: no cover - never executed
+            return (exec, ("print('pwned')",))
+
+    bad_path = tmp_path / "exploit.pt"
+    torch.save({"model": {"evil": Exploit()}}, bad_path)
+    with pytest.raises(ModelError):
+        safe_load(bad_path)
+
+
+def test_safe_load_rejects_unknown_keys(tmp_path: Path) -> None:
+    bad_path = tmp_path / "bad.pt"
+    torch.save({"model": {}, "unexpected": True}, bad_path)
+    with pytest.raises(ModelError):
+        safe_load(bad_path)
+
+
+def test_unsafe_load_returns_exploit_payload(tmp_path: Path) -> None:
+    """unsafe_load is the explicit opt-in for non-tensor payloads."""
+    payload_path = tmp_path / "ok.pt"
+    torch.save(
+        {"model": {"x": torch.zeros(1)}, "obj": _CheckpointMarker},
+        payload_path,
+    )
+    payload = unsafe_load(payload_path)
+    assert "obj" in payload
+
+
+def test_safe_load_rejects_non_dict(tmp_path: Path) -> None:
+    p = tmp_path / "scalar.pt"
+    torch.save(42, p)
+    with pytest.raises(ModelError):
+        safe_load(p)
+
+
+def test_safe_load_missing_file_raises(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError):
+        safe_load(tmp_path / "nope.pt")
