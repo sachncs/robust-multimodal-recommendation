@@ -125,7 +125,21 @@ class Pipeline(nn.Module):
         Returns:
             Output with completed modalities, routing weights, and (when
             retrieval buffers are set) the subgraph indices used.
+
+        Raises:
+            GraphError: If the adjacency has self-loops. Build the item graph
+                once with ``morel.data.build.item_cooccurrence``; that
+                builder removes self-loops before persisting.
         """
+        from morel.core.errors import GraphError
+
+        if adjacency.diagonal().any():
+            raise GraphError(
+                "Pipeline.forward received an adjacency with self-loops; "
+                "build the item graph once with "
+                "morel.data.build.item_cooccurrence (which removes them) "
+                "and pass that adjacency here."
+            )
         device = features[next(iter(features))].device
         pe_full = self.pe_encoder(adjacency).to(device)
         # Pad PE up to configured pe_dim if the graph is too small to provide
