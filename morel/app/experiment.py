@@ -226,7 +226,7 @@ class Experiment:
 
 
 @dataclass
-class RecommendationExperiment:
+class Rank:
     """Train the downstream ranker with BPR and write artifacts.
 
     ``morel train recommendation`` previously ran the completion experiment
@@ -315,7 +315,7 @@ class RecommendationExperiment:
         manifest = Manifest(
             dataset="synthetic",
             version="0",
-            code="morel.app.RecommendationExperiment",
+            code="morel.app.Rank",
             seed=seed_value,
             extractor="synthetic",
             config_hash=config_hash,

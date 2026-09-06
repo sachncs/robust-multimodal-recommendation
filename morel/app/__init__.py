@@ -4,7 +4,7 @@ from morel.app.experiment import (
     Ablate,
     Benchmark,
     Experiment,
-    RecommendationExperiment,
+    Rank,
     Reproduce,
 )
 
@@ -12,6 +12,6 @@ __all__ = [
     "Ablate",
     "Benchmark",
     "Experiment",
-    "RecommendationExperiment",
+    "Rank",
     "Reproduce",
 ]

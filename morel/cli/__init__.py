@@ -103,11 +103,11 @@ def train(argv: list[str]) -> int:
         print(f"completion trained: {result}")
         return 0
     if args.sub == "recommendation":
-        from morel.app import RecommendationExperiment
+        from morel.app import Rank
 
         config = load_config_or_default(config_path)
         run_dir = Path("runs") / "recommendation"
-        rec = RecommendationExperiment(config=config, run_dir=run_dir, items=50, users=20)
+        rec = Rank(config=config, run_dir=run_dir, items=50, users=20)
         result = rec.run()
         print(f"recommendation trained: {result}")
         return 0

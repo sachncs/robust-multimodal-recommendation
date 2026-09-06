@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from morel.app import RecommendationExperiment
+from morel.app import Rank
 from morel.core.config import Config
 
 
@@ -34,7 +34,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     def run(self, tmp_path: Path) -> None:
-        result = RecommendationExperiment(
+        result = Rank(
             config=small(), run_dir=tmp_path, items=20, users=8
         ).run()
 
@@ -43,10 +43,10 @@ class Checker:
         assert set(result) >= {"duration", "run_dir", "config_hash", "best", "train_loss"}
 
     def it(self, tmp_path: Path) -> None:
-        RecommendationExperiment(config=small(), run_dir=tmp_path, items=20, users=8).run()
+        Rank(config=small(), run_dir=tmp_path, items=20, users=8).run()
 
         manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
-        assert manifest["code"] == "morel.app.RecommendationExperiment"
+        assert manifest["code"] == "morel.app.Rank"
         assert manifest["extras"]["recommender"] == "light"
 
         events = [
@@ -59,7 +59,7 @@ class Checker:
 
     def reported(self, tmp_path: Path) -> None:
         """Regression: fit() left best at infinity whenever no val loader was given."""
-        result = RecommendationExperiment(
+        result = Rank(
             config=small(), run_dir=tmp_path, items=20, users=8
         ).run()
         assert 0.0 < float(result["best"]) < 100.0
@@ -67,16 +67,16 @@ class Checker:
 
     def no(self, tmp_path: Path) -> None:
         """With val=0 there is no held-out set, so the train loss is what is tracked."""
-        result = RecommendationExperiment(
+        result = Rank(
             config=small(val=0.0), run_dir=tmp_path, items=20, users=8
         ).run()
         assert result["train_loss"] == pytest.approx(result["best"])
 
     def epochs(self, tmp_path: Path) -> None:
-        experiment = RecommendationExperiment(config=small(epochs=5), run_dir=tmp_path)
+        experiment = Rank(config=small(epochs=5), run_dir=tmp_path)
         assert experiment.resolved_epochs() == 5
         assert (
-            RecommendationExperiment(
+            Rank(
                 config=small(epochs=5), run_dir=tmp_path, epochs=1
             ).resolved_epochs()
             == 1
@@ -95,7 +95,7 @@ class Checker:
 
         monkeypatch.setattr(module, "Recommendation", capture)
         config = small(lr=4e-4, weight_decay=2e-6, negatives=3, grad_clip=1.5)
-        RecommendationExperiment(config=config, run_dir=tmp_path, items=20, users=8).run()
+        Rank(config=config, run_dir=tmp_path, items=20, users=8).run()
 
         assert captured["lr"] == pytest.approx(4e-4)
         assert captured["weight_decay"] == pytest.approx(2e-6)
@@ -111,7 +111,7 @@ class Checker:
                 "recommendation": {"epochs": 1, "batch": 16},
             }
         )
-        RecommendationExperiment(config=config, run_dir=tmp_path, items=20, users=8).run()
+        Rank(config=config, run_dir=tmp_path, items=20, users=8).run()
         manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
         assert manifest["extras"]["recommender"] == "mf"
 
@@ -123,14 +123,14 @@ class Checker:
         called: list[str] = []
         import morel.app.experiment as module
 
-        real = module.RecommendationExperiment.run
+        real = module.Rank.run
 
         def spy(self: Any) -> Any:
             called.append("recommendation")
             self.epochs = 1
             return real(self)
 
-        monkeypatch.setattr(module.RecommendationExperiment, "run", spy)
+        monkeypatch.setattr(module.Rank, "run", spy)
 
         from morel.cli import main
 
