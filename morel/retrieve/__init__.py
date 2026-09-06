@@ -7,11 +7,12 @@ from morel.retrieve.anchor import query as anchor
 from morel.retrieve.bfs import bfs, neighbor_array, neighbor_iter, path
 from morel.retrieve.mage import batch as mage_batch
 from morel.retrieve.mage import expand as mage
-from morel.retrieve.pipeline import Result, as_tensor, retrieve
+from morel.retrieve.pipeline import STRATEGIES, Result, as_tensor, retrieve
 from morel.retrieve.pipeline import batch as retrieve_batch
 from morel.retrieve.relevance import mean_relevance, relevance
 
 __all__ = [
+    "STRATEGIES",
     "Result",
     "acs",
     "acs_batch",

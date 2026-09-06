@@ -79,11 +79,13 @@ A single `Config` dataclass tree at `morel.core.config.Config` is the source of 
 
 Each pipeline stage is selected by a `kind` in the config and built through a
 registry. The registries are `morel.encode.ENCODERS`, `morel.route.ROUTERS`,
-`morel.codebook.CODEBOOKS`, `morel.complete.COMPLETERS` and
-`morel.recommend.RECOMMENDERS`; each is a `morel.core.registry.Registry`.
+`morel.codebook.CODEBOOKS`, `morel.complete.COMPLETERS`,
+`morel.recommend.RECOMMENDERS` and `morel.retrieve.STRATEGIES`; each is a
+`morel.core.registry.Registry`.
 
 | Config field | Registry | Shipped kinds |
 |---|---|---|
+| `retrieve.kind` | `STRATEGIES` | `mage`, `acs`, `anchor`, `bfs` |
 | `encode.kind` | `ENCODERS` | `transformer`, `identity` |
 | `route.kind` | `ROUTERS` | `top`, `dense`, `gumbel`, `fixed` |
 | `codebook.kind` | `CODEBOOKS` | `gumbel`, `vq`, `identity` |

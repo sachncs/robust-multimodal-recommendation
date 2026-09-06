@@ -13,8 +13,19 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
+from morel.core.registry import Registry
+from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import query as anchor_query
+from morel.retrieve.bfs import bfs as bfs_distances
 from morel.retrieve.mage import expand as mage_expand
+
+#: Selectable retrieval strategies, keyed by ``config.retrieve.kind``.
+#:
+#: A strategy takes ``(query, features, mask, adj)`` plus the keyword
+#: arguments below and returns the node ids of one query's subgraph. It takes
+#: the full argument set even if it ignores some, so strategies stay
+#: interchangeable.
+STRATEGIES: Registry[set[int]] = Registry("retrieval strategy")
 
 
 @dataclass(frozen=True)
@@ -36,6 +47,95 @@ class Result:
         return int(self.nodes.shape[1])
 
 
+def anchors_for(
+    query: int,
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    *,
+    anchors: int,
+) -> set[int]:
+    """Return the cosine-nearest anchors of ``query`` across observed modalities."""
+    observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
+    found: set[int] = set()
+    for name in observed:
+        found.update(int(a) for a in anchor_query(query, name, features, mask, top=anchors))
+    return found
+
+
+@STRATEGIES.register("mage")
+def strategy_mage(
+    query: int,
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    adj: sp.csr_matrix,
+    *,
+    anchors: int,
+    iters: int,
+    fallback: str,
+) -> set[int]:
+    """Anchor retrieval followed by MAGE expansion; the method's default."""
+    anchor_set = anchors_for(query, features, mask, anchors=anchors)
+    if not anchor_set:
+        return {int(query)}
+    return mage_expand(adj, list(anchor_set), query, features, mask, iters=iters, fallback=fallback)
+
+
+@STRATEGIES.register("acs")
+def strategy_acs(
+    query: int,
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    adj: sp.csr_matrix,
+    *,
+    anchors: int,
+    iters: int,
+    fallback: str,
+) -> set[int]:
+    """Anchor retrieval followed by the Anchor Connecting Subgraph, without MAGE."""
+    del iters
+    anchor_set = anchors_for(query, features, mask, anchors=anchors)
+    if not anchor_set:
+        return {int(query)}
+    return acs_compute(adj, sorted(anchor_set), fallback=fallback)
+
+
+@STRATEGIES.register("anchor")
+def strategy_anchor(
+    query: int,
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    adj: sp.csr_matrix,
+    *,
+    anchors: int,
+    iters: int,
+    fallback: str,
+) -> set[int]:
+    """Anchors only, with no graph expansion; the no-expansion ablation."""
+    del adj, iters, fallback
+    return anchors_for(query, features, mask, anchors=anchors)
+
+
+@STRATEGIES.register("bfs")
+def strategy_bfs(
+    query: int,
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    adj: sp.csr_matrix,
+    *,
+    anchors: int,
+    iters: int,
+    fallback: str,
+) -> set[int]:
+    """Graph neighbourhood of the query within ``iters`` hops, ignoring features.
+
+    The no-retrieval ablation: it uses only the graph, so subgraph selection
+    does not depend on the modality features at all.
+    """
+    del features, mask, anchors, fallback
+    distances = bfs_distances(adj, [int(query)])
+    return {int(node) for node, hops in distances.items() if hops <= max(int(iters), 1)}
+
+
 def retrieve(
     query: int,
     features: dict[str, np.ndarray],
@@ -45,25 +145,34 @@ def retrieve(
     anchors: int = 10,
     iters: int = 10,
     fallback: str = "anchors",
+    kind: str = "mage",
 ) -> set[int]:
-    """Retrieve and expand a subgraph for one query item."""
+    """Retrieve and expand a subgraph for one query item.
+
+    Args:
+        query: Item id to build a subgraph around.
+        features: Per-modality feature arrays.
+        mask: ``(items, modalities)`` availability.
+        adj: Symmetric item-item adjacency.
+        anchors: Number of cosine neighbours per observed modality.
+        iters: Expansion budget, interpreted by the strategy.
+        fallback: Behaviour when expansion finds no collision root.
+        kind: Registered retrieval strategy; see ``morel.retrieve.STRATEGIES``.
+
+    Returns
+    -------
+        Node ids of the retrieved subgraph, always including ``query``.
+
+    Raises
+    ------
+        ConfigError: If ``kind`` is not a registered strategy.
+    """
+    strategy = STRATEGIES.get(kind)
     observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
-    if not observed:
+    if not observed and kind != "bfs":
         return {int(query)}
-    anchor_set: set[int] = set()
-    for name in observed:
-        anchor_set.update(int(a) for a in anchor_query(query, name, features, mask, top=anchors))
-    if not anchor_set:
-        return {int(query)}
-    subgraph = mage_expand(
-        adj,
-        list(anchor_set),
-        query,
-        features,
-        mask,
-        iters=iters,
-        fallback=fallback,
-    )
+    subgraph = strategy(query, features, mask, adj, anchors=anchors, iters=iters, fallback=fallback)
+    subgraph = set(subgraph)
     subgraph.add(int(query))
     return subgraph
 
@@ -77,10 +186,11 @@ def batch(
     anchors: int = 10,
     iters: int = 10,
     fallback: str = "anchors",
+    kind: str = "mage",
 ) -> Result:
     """Batched retrieval that returns padded tensors for downstream models."""
     subgraphs = [
-        retrieve(q, features, mask, adj, anchors=anchors, iters=iters, fallback=fallback)
+        retrieve(q, features, mask, adj, anchors=anchors, iters=iters, fallback=fallback, kind=kind)
         for q in queries
     ]
     sizes = np.array([len(s) for s in subgraphs], dtype=np.int64)

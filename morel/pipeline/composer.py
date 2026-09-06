@@ -252,6 +252,7 @@ class Pipeline(nn.Module):
                     else sp.csr_matrix(adjacency),
                     anchors=self.config.retrieve.anchors,
                     iters=self.config.retrieve.iters,
+                    kind=self.config.retrieve.kind,
                 )
                 subgraph_indices = result.nodes
                 subgraph_mask = result.mask

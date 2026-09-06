@@ -155,9 +155,11 @@ def test_documented_extension_points_match_the_registries() -> None:
     from morel.complete import COMPLETERS
     from morel.encode import ENCODERS
     from morel.recommend import RECOMMENDERS
+    from morel.retrieve import STRATEGIES
     from morel.route import ROUTERS
 
     registries = {
+        "STRATEGIES": STRATEGIES,
         "ENCODERS": ENCODERS,
         "ROUTERS": ROUTERS,
         "CODEBOOKS": CODEBOOKS,
