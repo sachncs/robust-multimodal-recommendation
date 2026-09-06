@@ -45,7 +45,7 @@ class RecommendResponse(BaseModel):
     items: list[Pick]
 
 
-class HealthResponse(BaseModel):
+class Health(BaseModel):
     """Health probe response."""
 
     status: str = "ok"
@@ -60,7 +60,7 @@ def serialize(completed: dict[str, Any]) -> dict[str, list[list[float]]]:
 __all__ = [
     "CompleteRequest",
     "Done",
-    "HealthResponse",
+    "Health",
     "Pick",
     "RecommendRequest",
     "RecommendResponse",

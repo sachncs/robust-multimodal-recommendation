@@ -20,7 +20,7 @@ from morel.serve.lock import Read, RWLock, Write, reader, writer
 from morel.serve.schema import (
     CompleteRequest,
     Done,
-    HealthResponse,
+    Health,
     Pick,
     RecommendRequest,
     RecommendResponse,
@@ -42,7 +42,7 @@ __all__ = [
     "Event",
     "Ask",
     "Tell",
-    "HealthResponse",
+    "Health",
     "Loader",
     "Outcome",
     "Pick",

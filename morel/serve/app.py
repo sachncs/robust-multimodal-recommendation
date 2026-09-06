@@ -13,7 +13,7 @@ from morel.serve.loader import Loader
 from morel.serve.schema import (
     CompleteRequest,
     Done,
-    HealthResponse,
+    Health,
     Pick,
     RecommendRequest,
     RecommendResponse,
@@ -71,9 +71,9 @@ def create(loader: Loader | None = None) -> FastAPI:
     app.state.loader = loader or Loader()
     app.state.updater_enabled = True
 
-    @app.get("/health", response_model=HealthResponse)
-    def health() -> HealthResponse:
-        return HealthResponse(status="ok", version="0.1.0")
+    @app.get("/health", response_model=Health)
+    def health() -> Health:
+        return Health(status="ok", version="0.1.0")
 
     @app.get("/metrics")
     def metrics() -> dict[str, float]:
