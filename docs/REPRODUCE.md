@@ -2,80 +2,62 @@
 
 A single command reproduces an experiment deterministically.
 
-## Quick reproduction
+## Quick reproduction (synthetic)
 
 ```bash
-make reproduce
+python -m morel train completion
 ```
 
-This runs the full pipeline on synthetic data and writes a reproducible
-artifact bundle to `runs/<timestamp>/`:
+This runs the full pipeline on a synthetic dataset and writes a
+reproducible artifact bundle under `runs/<timestamp>/`:
 
 ```
 runs/<timestamp>/
 ├── config.yaml           # the exact Config used
 ├── manifest.json         # dataset, version, code hash, seed
-├── metrics.jsonl         # per-epoch training metrics
-├── morel.log             # structured JSON log
-├── checkpoints/          # best.pt and last.pt
+├── metrics.jsonl         # per-step metrics
 ├── FIDELITY.md           # rendered from the fidelity registry
 ├── FIDELITY.json         # machine-readable fidelity report
-└── report.md             # tables summarizing the run
+├── report.md             # one-paragraph summary of the run
+└── checkpoints/
+    └── best.pt           # best validation checkpoint
 ```
 
-## Configuration
+## Reproducing from a saved config
 
-The reproducer reads a YAML config and overrides it from CLI flags or
-environment variables. Example `configs/reproduce.yaml`:
-
-```yaml
-seed: 42
-device: cpu
-data:
-  category: Beauty
-  min: 5
-mask:
-  kind: bernoulli
-  ratio: 0.4
-encode:
-  hidden: 128
-  layers: 2
-  heads: 4
-codebook:
-  size: 100
-route:
-  p: 4
-  tau: 0.5
-complete:
-  hidden: 128
-recommend:
-  embed: 64
-  layers: 3
-train:
-  completion:
-    epochs: 100
-    batch: 512
-  recommendation:
-    epochs: 100
-    batch: 1024
-eval:
-  ks: [10, 20]
-  robustness: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+```bash
+python -m morel reproduce path/to/config.yaml --items 100 --users 30 --epochs 5
 ```
+
+The `Reproduce` service reads the YAML, sets the seed, validates the
+manifest's `config_hash` if present, and delegates to `Experiment.run`
+for full reproducibility.
+
+## Determinism guarantees
+
+- `morel.core.seed.seed(value)` configures deterministic seeding for
+  torch, torch CUDA, numpy, Python `random`, `PYTHONHASHSEED`, and
+  cuDNN. The CLI calls it at startup.
+- Resuming a run requires the saved `config_hash` to match the new
+  Config; mismatched hashes raise `ConfigError`.
+- `Manifest` sidecar binding ensures the artifact cannot be silently
+  consumed under a different configuration.
 
 ## Programmatic
 
 ```python
 from morel.app import Reproduce
 
-result = Reproduce(config_path="configs/reproduce.yaml", run_dir="runs/exp1").run()
+result = Reproduce(
+    config_path="runs/<ts>/config.yaml",
+    run_dir="runs/<ts>",
+).run()
 ```
 
-## Determinism guarantees
+## Limitations
 
-- Same `Config` and `seed` → bitwise-identical outputs (modulo CUDA
-  non-determinism, which is disabled by default).
-- Resume requires matching `config_hash`; mismatched hashes raise
-  `ConfigError`.
-- `Manifest` sidecar binding ensures the artifact cannot be silently
-  consumed under a different configuration.
+- The default synthetic reproduction uses random features and a small
+  synthetic bipartite graph. Real-data reproduction requires either
+  `morel data download` (Amazon-Reviews-2023 mirror) or a manually
+  curated `data/processed/<dataset>` directory matching the schema.
+- See `LIMITATIONS.md` for the published reproducibility scope.
