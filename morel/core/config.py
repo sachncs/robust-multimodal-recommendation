@@ -239,7 +239,7 @@ class Config:
         result: dict[str, Any] = {}
         for f in fields(cls):
             if f.name in coerced:
-                f_type = resolve_annotation(f.type)
+                f_type = resolve(f.type)
                 if (
                     isinstance(f_type, type)
                     and is_dataclass(f_type)
@@ -294,7 +294,7 @@ def coerce(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
         if f.name not in payload:
             continue
         value = payload[f.name]
-        f_type = resolve_annotation(f.type)
+        f_type = resolve(f.type)
         if isinstance(f_type, type) and is_dataclass(f_type) and isinstance(value, dict):
             out[f.name] = coerce(f_type, value)
         else:
@@ -302,7 +302,7 @@ def coerce(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def resolve_annotation(annotation: Any) -> Any:
+def resolve(annotation: Any) -> Any:
     """Return the dataclass type from a string annotation or class.
 
     Returns the annotation unchanged if it is not a string and not a dataclass

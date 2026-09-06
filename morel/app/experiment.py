@@ -16,11 +16,11 @@ import torch
 from morel.app.data import (
     build_completion_loaders,
     build_recommendation_loaders,
-    numpy_to_tensor,
     synth_bipartite,
+    to_tensor,
 )
 from morel.core.config import Config, Masking
-from morel.core.fidelity import render, render_md
+from morel.core.fidelity import render
 from morel.core.log import get as get_logger
 from morel.core.seed import seed as seed_everything
 from morel.data import build_mask
@@ -208,7 +208,7 @@ class Experiment:
             encoding="utf-8",
         )
 
-        render_md(self.run_dir / "FIDELITY.md")
+        render(self.run_dir / "FIDELITY.md")
         render(self.run_dir / "FIDELITY.json")
 
         duration = time.time() - start
@@ -483,9 +483,9 @@ class Benchmark:
                 dims={"visual": 4, "text": 2},
             )
             pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
-            features = {k: numpy_to_tensor(v) for k, v in dataset["features"].items()}
-            mask = numpy_to_tensor(dataset["mask"])
-            index_t = numpy_to_tensor(np.arange(size))
+            features = {k: to_tensor(v) for k, v in dataset["features"].items()}
+            mask = to_tensor(dataset["mask"])
+            index_t = to_tensor(np.arange(size))
             start = time.time()
             for _ in range(self.epochs):
                 pipeline(features, mask, dataset["item_adj"], index=index_t, training=True)

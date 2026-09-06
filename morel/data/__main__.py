@@ -138,7 +138,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     from morel.data.extract import text as encode_text
     from morel.data.manifest import Manifest
     from morel.data.store import save_npz
-    from morel.data.validate import features as validate_features
+    from morel.data.validate import features as check_features
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -161,7 +161,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
         "visual": encode_text(inputs, visual_encoder, batch=config.encoder.batch),
         "text": encode_text(inputs, text_encoder, batch=config.encoder.batch),
     }
-    validate_features(feats, items=items)
+    check_features(feats, items=items)
     # ``**feats`` is modality-keyed; a key colliding with save_npz's own
     # keyword-only parameter raises rather than silently misbinding.
     save_npz(

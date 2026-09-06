@@ -9,11 +9,11 @@ from morel.core.distributed import (
     init,
     initialized,
     is_lead,
-    local_rank,
+    local,
     mean,
     rank,
+    size,
     state,
-    world_size,
 )
 from morel.core.errors import (
     ConfigError,
@@ -45,7 +45,7 @@ from morel.core.fidelity import (
     render as fidelity_render_json,
 )
 from morel.core.fidelity import (
-    render_md as fidelity_render_markdown,
+    render as fidelity_render_markdown,
 )
 from morel.core.log import configure as configure_log
 from morel.core.log import get as get_logger
@@ -104,7 +104,7 @@ __all__ = [
     "init",
     "initialized",
     "is_lead",
-    "local_rank",
+    "local",
     "log_metrics",
     "manifest",
     "mean",
@@ -116,9 +116,9 @@ __all__ = [
     "seed_everything",
     "seed_restore",
     "seed_state",
+    "size",
     "state",
     "to",
-    "world_size",
 ]
 
 

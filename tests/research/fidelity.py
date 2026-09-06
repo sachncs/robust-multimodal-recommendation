@@ -6,7 +6,7 @@ import importlib
 from pathlib import Path
 
 from morel.core.fidelity import all as fidelity_all
-from morel.core.fidelity import registry, render, render_md
+from morel.core.fidelity import registry, render, render
 
 
 def split(test_ref: str) -> tuple[str, str]:
@@ -64,20 +64,20 @@ class Checker:
         assert not missing, f"missing test functions: {missing}"
 
     def registry(self) -> None:
-        """morel.core.__init__ side-effect-imports morel.core.fidelity.register_all."""
+        """morel.core.__init__ side-effect-imports morel.core.fidelity.register."""
         assert len(registry) >= 10
 
     def render(self, tmp_path: Path) -> None:
         md_path = tmp_path / "FIDELITY.md"
         json_path = tmp_path / "FIDELITY.json"
-        render_md(md_path)
+        render(md_path)
         render(json_path)
         assert md_path.read_text().count("\n") > 5
         assert json_path.read_text().startswith("{")
 
     def table(self, tmp_path: Path) -> None:
         md_path = tmp_path / "FIDELITY.md"
-        render_md(md_path)
+        render(md_path)
         body = md_path.read_text()
         for entry in fidelity_all():
             assert entry.name in body, f"{entry.name} not in rendered table"

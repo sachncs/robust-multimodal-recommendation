@@ -8,7 +8,7 @@ import scipy.sparse as sp
 
 from morel.core.errors import DataError
 from morel.data.validate import features, graph, interactions
-from morel.data.validate import mask as validate_mask
+from morel.data.validate import mask as check
 
 
 class Checker:
@@ -43,8 +43,8 @@ class Checker:
 
     def kept(self) -> None:
         with pytest.raises(DataError):
-            validate_mask(np.array([[0, 0], [1, 1]], dtype=np.float32))
+            check(np.array([[0, 0], [1, 1]], dtype=np.float32))
 
     def binary(self) -> None:
         with pytest.raises(DataError):
-            validate_mask(np.array([[0.5, 1.0]], dtype=np.float32))
+            check(np.array([[0.5, 1.0]], dtype=np.float32))

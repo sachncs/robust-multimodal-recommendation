@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from morel.core.fidelity import Entry, clear, register, render, render_md
+from morel.core.fidelity import Entry, clear, register, render, render
 
 
 class Checker:
@@ -23,7 +23,7 @@ class Checker:
         )
         register(entry)
         md_path = tmp_path / "fid.md"
-        render_md(md_path)
+        render(md_path)
         text = md_path.read_text(encoding="utf-8")
         assert "ACS" in text
         assert "EXACT" in text

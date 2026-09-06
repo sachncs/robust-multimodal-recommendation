@@ -40,7 +40,7 @@ from morel.data.stream import (
 )
 from morel.data.validate import features, graph
 from morel.data.validate import interactions as validate_interactions
-from morel.data.validate import mask as validate_mask
+from morel.data.validate import mask as check
 
 
 def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
@@ -133,6 +133,7 @@ __all__ = [
     "block",
     "build_extractor",
     "build_mask",
+    "check",
     "checksum",
     "cooccurrence",
     "download",
@@ -158,6 +159,5 @@ __all__ = [
     "structured",
     "text",
     "validate_interactions",
-    "validate_mask",
     "visual",
 ]

@@ -221,9 +221,9 @@ def run_render_fidelity(argv: list[str]) -> int:
     parser.add_argument("markdown", help="output markdown path")
     parser.add_argument("json", nargs="?", default=None, help="optional output json path")
     args = parser.parse_args(argv)
-    from morel.core.fidelity import render, render_md
+    from morel.core.fidelity import render
 
-    render_md(Path(args.markdown))
+    render(Path(args.markdown))
     if args.json is not None:
         render(Path(args.json))
     return 0

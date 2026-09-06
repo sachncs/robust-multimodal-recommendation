@@ -21,7 +21,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     def default(self) -> None:
-        assert dist.world_size() == 1
+        assert dist.size() == 1
 
     def rank(self) -> None:
         assert dist.rank() == 0
@@ -32,7 +32,7 @@ class Checker:
     def init(self) -> None:
         info = dist.init()
         assert info["rank"] == 0
-        assert info["world_size"] == 1
+        assert info["size"] == 1
         assert dist.initialized() is True
 
     def idempotent(self) -> None:
@@ -54,7 +54,7 @@ class Checker:
 
         os.environ["LOCAL_RANK"] = "3"
         try:
-            assert dist.local_rank() == 3
+            assert dist.local() == 3
         finally:
             os.environ.pop("LOCAL_RANK", None)
 

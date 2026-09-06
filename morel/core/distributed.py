@@ -53,8 +53,8 @@ def init(backend: str | None = None) -> dict[str, Any]:
     if state.initialized:
         return {
             "rank": rank(),
-            "world_size": world_size(),
-            "local_rank": local_rank(),
+            "size": size(),
+            "local": local(),
             "backend": state.backend,
         }
     if not torch.distributed.is_available():
@@ -62,8 +62,8 @@ def init(backend: str | None = None) -> dict[str, Any]:
         state.initialized = True
         return {
             "rank": 0,
-            "world_size": 1,
-            "local_rank": 0,
+            "size": 1,
+            "local": 0,
             "backend": None,
         }
     world_size_env = int(os.environ.get("WORLD_SIZE", "1"))
@@ -72,8 +72,8 @@ def init(backend: str | None = None) -> dict[str, Any]:
         state.initialized = True
         return {
             "rank": 0,
-            "world_size": 1,
-            "local_rank": 0,
+            "size": 1,
+            "local": 0,
             "backend": None,
         }
     if backend is None:
@@ -84,12 +84,12 @@ def init(backend: str | None = None) -> dict[str, Any]:
         raise MorelError(f"failed to init distributed group with backend={backend}: {exc}") from exc
     state.backend = backend
     state.initialized = True
-    if torch.cuda.is_available() and local_rank() < torch.cuda.device_count():
-        torch.cuda.set_device(local_rank())
+    if torch.cuda.is_available() and local() < torch.cuda.device_count():
+        torch.cuda.set_device(local())
     return {
         "rank": rank(),
-        "world_size": world_size(),
-        "local_rank": local_rank(),
+        "size": size(),
+        "local": local(),
         "backend": backend,
     }
 
@@ -110,7 +110,7 @@ def rank() -> int:
     return int(torch.distributed.get_rank())
 
 
-def world_size() -> int:
+def size() -> int:
     """Return the world size (1 when single-process)."""
     if not state.initialized:
         return 1
@@ -121,7 +121,7 @@ def world_size() -> int:
     return int(torch.distributed.get_world_size())
 
 
-def local_rank() -> int:
+def local() -> int:
     """Return the local rank on the current node."""
     return int(os.environ.get("LOCAL_RANK", "0"))
 
@@ -139,18 +139,18 @@ def barrier() -> None:
         return
     if not torch.distributed.is_initialized():
         return
-    if world_size() <= 1:
+    if size() <= 1:
         return
     torch.distributed.barrier()
 
 
 def mean(value: float | torch.Tensor) -> float:
     """All-reduce a scalar across ranks and return its mean."""
-    if not state.initialized or world_size() <= 1:
+    if not state.initialized or size() <= 1:
         return float(value)
     tensor = torch.as_tensor(value, dtype=torch.float64)
     torch.distributed.all_reduce(tensor, op=torch.distributed.ReduceOp.SUM)
-    tensor /= world_size()
+    tensor /= size()
     return float(tensor.item())
 
 
@@ -173,9 +173,9 @@ __all__ = [
     "init",
     "initialized",
     "is_lead",
-    "local_rank",
+    "local",
     "mean",
     "rank",
+    "size",
     "state",
-    "world_size",
 ]

@@ -39,7 +39,7 @@ class Output:
 
 
 @contextmanager
-def module_mode(module: nn.Module, training: bool) -> Iterator[None]:
+def mode(module: nn.Module, training: bool) -> Iterator[None]:
     """Run a block with ``module`` in the given train/eval mode, then restore.
 
     ``nn.Dropout`` and friends key off :attr:`torch.nn.Module.training`, which
@@ -234,7 +234,7 @@ class Pipeline(nn.Module):
                 "morel.data.build.cooccurrence (which removes them) "
                 "and pass that adjacency here."
             )
-        with module_mode(self, training):
+        with mode(self, training):
             device = features[next(iter(features))].device
             pe_full = self.pe_encoder(adjacency).to(device)
             # Pad PE up to configured pe_dim if the graph is too small to provide
@@ -353,4 +353,4 @@ class Pipeline(nn.Module):
         return hidden
 
 
-__all__ = ["Output", "Pipeline", "module_mode"]
+__all__ = ["Output", "Pipeline", "mode"]

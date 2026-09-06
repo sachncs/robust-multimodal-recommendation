@@ -49,12 +49,12 @@ class CompletionDataset(Dataset[dict[str, Any]]):
         }
 
 
-def numpy_to_tensor(array: np.ndarray) -> torch.Tensor:
+def to_tensor(array: np.ndarray) -> torch.Tensor:
     """Wrap :func:`torch.from_numpy` for type convenience."""
     return torch.from_numpy(array)
 
 
-def collate_completion(batch: list[dict[str, Any]]) -> dict[str, Any]:
+def collate(batch: list[dict[str, Any]]) -> dict[str, Any]:
     """Collate a list of completion-stage samples into a torch dict."""
     features_keys = list(batch[0]["features"].keys())
     return {
@@ -112,10 +112,10 @@ def build_completion_loaders(
     train, val = split_dataset(
         CompletionDataset(features, mask, adjacency), val_fraction=val_fraction, seed=seed
     )
-    train_loader = DataLoader(train, batch_size=batch_size, collate_fn=collate_completion)
+    train_loader = DataLoader(train, batch_size=batch_size, collate_fn=collate)
     if val is None:
         return train_loader, None
-    return train_loader, DataLoader(val, batch_size=batch_size, collate_fn=collate_completion)
+    return train_loader, DataLoader(val, batch_size=batch_size, collate_fn=collate)
 
 
 def build_completion_loader(
@@ -128,7 +128,7 @@ def build_completion_loader(
     return DataLoader(
         CompletionDataset(features, mask, adjacency),
         batch_size=batch_size,
-        collate_fn=collate_completion,
+        collate_fn=collate,
     )
 
 
@@ -255,8 +255,8 @@ __all__ = [
     "build_completion_loaders",
     "build_recommendation_loader",
     "build_recommendation_loaders",
-    "collate_completion",
-    "numpy_to_tensor",
+    "collate",
     "split_dataset",
     "synth_bipartite",
+    "to_tensor",
 ]

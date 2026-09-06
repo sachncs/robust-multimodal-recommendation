@@ -17,8 +17,8 @@ from torch.utils.data import DataLoader, Dataset
 from morel.app.data import (
     CompletionDataset,
     build_completion_loader,
-    collate_completion,
-    numpy_to_tensor,
+    collate,
+    to_tensor,
 )
 
 
@@ -132,8 +132,8 @@ __all__ = [
     "build_bpr_loader",
     "build_completion_loader",
     "build_path_graph",
-    "collate_completion",
+    "collate",
     "make_completion_collate",
-    "numpy_to_tensor",
+    "to_tensor",
     "silent_monitor",
 ]

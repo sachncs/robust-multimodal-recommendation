@@ -64,7 +64,7 @@ def register(entry: Entry) -> Entry:
     return entry
 
 
-def render_md(target: Path | str) -> None:
+def render(target: Path | str) -> None:
     """Render the registry as a Markdown report.
 
     Args:
@@ -90,7 +90,7 @@ def render_md(target: Path | str) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def render(target: Path | str) -> None:
+def render_json(target: Path | str) -> None:
     """Render the registry as a JSON file.
 
     Args:
@@ -422,5 +422,4 @@ __all__ = [
     "register",
     "registry",
     "render",
-    "render_md",
 ]
