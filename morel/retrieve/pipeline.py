@@ -13,6 +13,7 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
+from morel.core.errors import ConfigError
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import query as anchor_query
 from morel.retrieve.bfs import bfs as bfs_distances
@@ -184,6 +185,11 @@ def retrieve(
     ------
         ConfigError: If ``kind`` is not a registered strategy.
     """
+    if kind not in KIND:
+        raise ConfigError(
+            f"unknown retrieval strategy {kind!r}; available: "
+            f"{', '.join(sorted(KIND)) or '(none)'}"
+        )
     strategy = KIND[kind]
     observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
     if not observed and kind != "bfs":
@@ -243,4 +249,4 @@ def as_tensor(
     return nodes, mask_t, sizes
 
 
-__all__ = ["Result", "as_tensor", "batch", "retrieve"]
+__all__ = ["ConfigError", "Result", "as_tensor", "batch", "retrieve"]

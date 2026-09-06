@@ -20,6 +20,19 @@ from morel.core.errors import (
 class Checker:
     """Aggregated test methods for this module."""
 
+    @pytest.mark.parametrize(
+        "cls",
+        [
+            DataError,
+            ConfigError,
+            ModelError,
+            GraphError,
+            TrainError,
+            EvalError,
+            ShapeError,
+            DeterminismError,
+        ],
+    )
     def specializations(self, cls: type) -> None:
         assert issubclass(cls, MorelError)
 

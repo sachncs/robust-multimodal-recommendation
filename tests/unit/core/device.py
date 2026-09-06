@@ -44,6 +44,7 @@ class Checker:
         assert Config().device == "auto"
         assert device("auto") == device(None)
 
+    @pytest.mark.parametrize("value", ["auto", "AUTO", " auto ", "", "default"])
     def like(self, value: str) -> None:
         assert device(value) == device(None)
 

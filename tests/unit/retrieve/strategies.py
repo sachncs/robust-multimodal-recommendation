@@ -40,6 +40,7 @@ class Checker:
     def registered(self) -> None:
         assert set(STRATEGIES) >= {"mage", "acs", "anchor", "bfs"}
 
+    @pytest.mark.parametrize("kind", ["mage", "acs", "anchor", "bfs"])
     def query(self, kind: str) -> None:
         features, mask, adjacency = corpus()
         subgraph = retrieve(5, features, mask, adjacency, anchors=4, iters=2, kind=kind)
@@ -88,6 +89,7 @@ class Checker:
             got = set(batched.nodes[row, : batched.sizes[row]].tolist())
             assert got == expected
 
+    @pytest.mark.parametrize("kind", ["mage", "acs", "anchor", "bfs"])
     def kind(self, kind: str) -> None:
         features, mask, adjacency = corpus()
         config = Config.from_dict(
