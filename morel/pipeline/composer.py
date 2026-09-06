@@ -15,14 +15,14 @@ import scipy.sparse as sp
 import torch
 import torch.nn as nn
 
-from morel.codebook import CODEBOOKS
-from morel.complete import COMPLETERS
+from morel.codebook import build as build_codebook
+from morel.complete import build as build_complete
 from morel.core.config import Config
 from morel.core.errors import GraphError, ModelError
 from morel.core.seed import deterministic
-from morel.encode import ENCODERS
+from morel.encode import build as build_encode
 from morel.graph import Laplace
-from morel.recommend import RECOMMENDERS
+from morel.recommend import build as build_recommend
 from morel.retrieve import Result, retrieve_batch
 from morel.route import build as build_route
 
@@ -100,7 +100,7 @@ class Pipeline(nn.Module):
         self.dims = dims
         self.pe_encoder = Laplace(k=config.encode.pe)
         with deterministic(config.seed):
-            self.transformer = ENCODERS.create(
+            self.transformer = build_encode(
                 config.encode.kind,
                 dims=dims,
                 pe_dim=config.encode.pe,
@@ -116,13 +116,14 @@ class Pipeline(nn.Module):
                 p=min(config.route.p, config.codebook.size),
                 tau=config.route.tau,
             )
-            self.codebook = CODEBOOKS.create(
+            self.codebook = build_codebook(
                 config.codebook.kind,
                 dim=config.encode.hidden,
                 size=config.codebook.size,
                 router=self.router,
+                seed=config.seed,
             )
-            self.decoders = COMPLETERS.create(
+            self.decoders = build_complete(
                 config.complete.kind,
                 latent_dim=config.encode.hidden,
                 dims=dims,
@@ -153,11 +154,11 @@ class Pipeline(nn.Module):
         ------
             ConfigError: If ``config.recommend.kind`` is not registered.
         """
-        users = ui_graph.shape[0]
+        _ = ui_graph.shape[0]
         items = ui_graph.shape[1]
-        recommender = RECOMMENDERS.create(
+        recommender = build_recommend(
             self.config.recommend.kind,
-            users=users,
+            users=items,
             items=items,
             embed=self.config.recommend.embed,
             layers=self.config.recommend.layers,

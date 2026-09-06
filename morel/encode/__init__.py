@@ -2,25 +2,15 @@
 
 import torch.nn as nn
 
-from morel.core.registry import Registry
 from morel.encode.baseline import GraphEncoder, GraphEncoderBaseline, Identity, Sum
 from morel.encode.input import Input
 from morel.encode.layer import Layer
 from morel.encode.pool import CLS, Attention, Mean, Token
 from morel.encode.transformer import Transformer
 
-#: Selectable joint encoders, keyed by ``config.encode.kind``.
-#:
-#: A registered encoder must accept ``(features, mask, pe)`` plus the optional
-#: ``attention_mask`` and ``sequence`` arguments, and return one
-#: ``hidden``-width embedding per batch item. ``Sum`` is deliberately absent:
-#: it concatenates without projecting, so its output width is not ``hidden``
-#: and the router downstream cannot consume it.
-ENCODERS: Registry[nn.Module] = Registry("encoder")
 
-
-@ENCODERS.register("transformer")
-def build_transformer(
+def build(
+    kind: str,
     *,
     dims: dict[str, int],
     pe_dim: int,
@@ -29,35 +19,49 @@ def build_transformer(
     heads: int,
     dropout: float,
 ) -> nn.Module:
-    """Build the masked transformer encoder used by the full model."""
-    return Transformer(
-        dims=dims,
-        pe_dim=pe_dim,
-        hidden=hidden,
-        layers=layers,
-        heads=heads,
-        dropout=dropout,
-    )
+    """Build the joint encoder selected by ``config.encode.kind``.
+
+    Args:
+        kind: Encoder name. One of ``"transformer"`` or ``"identity"``.
+        dims: Mapping from modality name to its feature dimension.
+        pe_dim: Positional-encoding dimension.
+        hidden: Hidden width of the encoder output.
+        layers: Number of transformer layers (ignored for ``identity``).
+        heads: Number of attention heads (ignored for ``identity``).
+        dropout: Dropout rate (ignored for ``identity``).
+
+    Returns
+    -------
+        The constructed encoder module.
+
+    Raises
+    ------
+        ValueError: If ``kind`` is not a known encoder name.
+    """
+    if kind == "transformer":
+        return Transformer(
+            dims=dims,
+            pe_dim=pe_dim,
+            hidden=hidden,
+            layers=layers,
+            heads=heads,
+            dropout=dropout,
+        )
+    if kind == "identity":
+        return Identity(dims, pe_dim, hidden)
+    raise ValueError(f"unknown encoder kind {kind!r}; available: transformer, identity")
 
 
-@ENCODERS.register("identity")
-def build_identity_encoder(
-    *,
-    dims: dict[str, int],
-    pe_dim: int,
-    hidden: int,
-    layers: int,
-    heads: int,
-    dropout: float,
-) -> nn.Module:
-    """Build the linear no-transformer ablation encoder."""
-    del layers, heads, dropout
-    return Identity(dims, pe_dim, hidden)
+#: Map from config name to encoder class for introspection.
+KIND: dict[str, type[nn.Module]] = {
+    "transformer": Transformer,
+    "identity": Identity,
+}
 
 
 __all__ = [
     "CLS",
-    "ENCODERS",
+    "KIND",
     "Attention",
     "GraphEncoder",
     "GraphEncoderBaseline",
@@ -68,6 +72,5 @@ __all__ = [
     "Sum",
     "Token",
     "Transformer",
-    "build_identity_encoder",
-    "build_transformer",
+    "build",
 ]

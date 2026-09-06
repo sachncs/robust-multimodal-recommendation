@@ -8,46 +8,58 @@ from morel.codebook.codebook import (
     balance,
     usage,
 )
-from morel.core.registry import Registry
 from morel.route import Router
 
-#: Selectable codebooks, keyed by ``config.codebook.kind``.
-CODEBOOKS: Registry[Codebook] = Registry("codebook")
 
+def build(
+    kind: str,
+    *,
+    dim: int,
+    size: int,
+    router: Router,
+    seed: int | None = None,
+) -> Codebook:
+    """Build the codebook selected by ``config.codebook.kind``.
 
-@CODEBOOKS.register("gumbel")
-def build_gumbel(*, dim: int, size: int, router: Router, seed: int | None = None) -> Codebook:
-    """Build the router-driven codebook used by the full model."""
-    return GumbelVQ(dim=dim, size=size, router=router, seed=seed)
+    Args:
+        kind: Codebook name. One of ``"gumbel"``, ``"vq"``, ``"identity"``.
+        dim: Embedding dimension.
+        size: Number of codebook entries.
+        router: Router used by Gumbel-VQ to produce assignment weights.
+        seed: Optional RNG seed for reproducibility.
 
+    Returns
+    -------
+        The constructed codebook.
 
-@CODEBOOKS.register("vq")
-def build_vq(*, dim: int, size: int, router: Router, seed: int | None = None) -> Codebook:
-    """Build a nearest-neighbour vector-quantizing codebook.
-
-    The router is accepted for a uniform factory signature; plain VQ selects
-    codes by distance and does not consult it.
+    Raises
+    ------
+        ValueError: If ``kind`` is not a known codebook name.
     """
-    del router
-    return VQ(dim=dim, size=size, seed=seed)
+    if kind == "gumbel":
+        return GumbelVQ(dim=dim, size=size, router=router, seed=seed)
+    if kind == "vq":
+        return VQ(dim=dim, size=size, seed=seed)
+    if kind == "identity":
+        return IdentityCodebook(dim=dim, size=size)
+    raise ValueError(f"unknown codebook kind {kind!r}; available: gumbel, vq, identity")
 
 
-@CODEBOOKS.register("identity")
-def build_identity(*, dim: int, size: int, router: Router, seed: int | None = None) -> Codebook:
-    """Build the pass-through codebook used for the no-codebook ablation."""
-    del router, seed
-    return IdentityCodebook(dim=dim, size=size)
+#: Map from config name to codebook class for introspection.
+KIND: dict[str, type[Codebook]] = {
+    "gumbel": GumbelVQ,
+    "vq": VQ,
+    "identity": IdentityCodebook,
+}
 
 
 __all__ = [
-    "CODEBOOKS",
+    "KIND",
     "VQ",
     "Codebook",
     "GumbelVQ",
     "IdentityCodebook",
     "balance",
-    "build_gumbel",
-    "build_identity",
-    "build_vq",
+    "build",
     "usage",
 ]

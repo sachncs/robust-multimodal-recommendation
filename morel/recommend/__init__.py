@@ -2,18 +2,14 @@
 
 import torch.nn as nn
 
-from morel.core.registry import Registry
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, distinct_ranks, negatives, ranks_to_items
 from morel.recommend.light import Light
 from morel.recommend.protocol import Recommender
 
-#: Selectable downstream rankers, keyed by ``config.recommend.kind``.
-RECOMMENDERS: Registry[nn.Module] = Registry("recommender")
 
-
-@RECOMMENDERS.register("light")
-def build_light(
+def build(
+    kind: str,
     *,
     users: int,
     items: int,
@@ -22,60 +18,57 @@ def build_light(
     feature_dim: int | None = None,
     seed: int | None = None,
 ) -> nn.Module:
-    """Build the LightGCN ranker used by the full model."""
-    return Light(
-        users=users,
-        items=items,
-        embed=embed,
-        layers=layers,
-        feature_dim=feature_dim,
-        seed=seed,
-    )
+    """Build the downstream ranker selected by ``config.recommend.kind``.
 
+    Args:
+        kind: Ranker name. One of ``"light"``, ``"mf"``, ``"pop"``.
+        users: Number of users.
+        items: Number of items.
+        embed: Embedding dimension.
+        layers: Number of propagation layers (ignored for non-graph rankers).
+        feature_dim: Optional modality feature dimension for ``"light"``.
+        seed: Optional RNG seed.
 
-@RECOMMENDERS.register("mf")
-def build_mf(
-    *,
-    users: int,
-    items: int,
-    embed: int,
-    layers: int,
-    feature_dim: int | None = None,
-    seed: int | None = None,
-) -> nn.Module:
-    """Build a matrix-factorization ranker.
+    Returns
+    -------
+        The constructed ranker module.
 
-    It has no propagation layers and does not consume modality features.
+    Raises
+    ------
+        ValueError: If ``kind`` is not a known ranker name.
     """
-    del layers, feature_dim
-    return MF(users=users, items=items, embed=embed, seed=seed)
+    if kind == "light":
+        return Light(
+            users=users,
+            items=items,
+            embed=embed,
+            layers=layers,
+            feature_dim=feature_dim,
+            seed=seed,
+        )
+    if kind == "mf":
+        return MF(users=users, items=items, embed=embed, seed=seed)
+    if kind == "pop":
+        return Pop(users=users, items=items)
+    raise ValueError(f"unknown recommender kind {kind!r}; available: light, mf, pop")
 
 
-@RECOMMENDERS.register("pop")
-def build_pop(
-    *,
-    users: int,
-    items: int,
-    embed: int,
-    layers: int,
-    feature_dim: int | None = None,
-    seed: int | None = None,
-) -> nn.Module:
-    """Build the popularity baseline, which has no learned parameters."""
-    del embed, layers, feature_dim, seed
-    return Pop(users=users, items=items)
+#: Map from config name to ranker class for introspection.
+KIND: dict[str, type[nn.Module]] = {
+    "light": Light,
+    "mf": MF,
+    "pop": Pop,
+}
 
 
 __all__ = [
+    "KIND",
     "MF",
-    "RECOMMENDERS",
     "Light",
     "Pop",
     "Recommender",
     "bpr",
-    "build_light",
-    "build_mf",
-    "build_pop",
+    "build",
     "distinct_ranks",
     "negatives",
     "ranks_to_items",
