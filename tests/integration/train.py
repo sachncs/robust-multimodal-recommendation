@@ -9,7 +9,7 @@ from morel.core.config import Config
 from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
-from morel.train.completion import Completion, CompletionConfig
+from morel.train.completion import Completion, TrainConfig
 from tests.shared import Corpus, build_path_graph, make_completion_collate
 
 
@@ -67,7 +67,7 @@ class Checker:
             batch_size=4,
             collate_fn=make_completion_collate(list(features.keys())),
         )
-        cfg = CompletionConfig()
+        cfg = TrainConfig()
         pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
         pipeline.attach(features, mask, adj)
         trainer = Completion(pipeline, cfg, monitor=SilentMonitor(), checkpoint_dir=tmp_path)

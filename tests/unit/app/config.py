@@ -2,7 +2,7 @@
 
 ``Experiment.run`` wrote ``config.yaml`` into the run directory and hashed the
 same config into ``manifest.json``, but built its trainer from
-``CompletionConfig()`` defaults and a hardcoded batch size and epoch count.
+``TrainConfig()`` defaults and a hardcoded batch size and epoch count.
 Every ``completion.*`` hyperparameter was therefore ignored while still being
 recorded, so the manifest described a run that had not happened. These tests
 pin that the recorded config is the config that ran.

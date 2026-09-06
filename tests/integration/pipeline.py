@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from morel.core.config import Config
 from morel.core.errors import GraphError
 from morel.pipeline import Pipeline
-from morel.train.completion import Completion, CompletionConfig
+from morel.train.completion import Completion, TrainConfig
 from tests.shared import Corpus, build_path_graph, make_completion_collate
 
 
@@ -49,7 +49,7 @@ class Checker:
         )
         trainer = Completion(
             pipeline,
-            CompletionConfig(),
+            TrainConfig(),
             monitor=SilentMonitor(),
             checkpoint_dir=tmp_path,
             device="cpu",

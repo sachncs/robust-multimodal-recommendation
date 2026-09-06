@@ -12,8 +12,8 @@ from torch.utils.data import DataLoader
 from morel.core.config import Config
 from morel.pipeline import Pipeline
 from morel.recommend import Light
-from morel.train.completion import Completion, CompletionConfig
-from morel.train.recommendation import Recommendation, RecommendationConfig
+from morel.train.completion import Completion, TrainConfig
+from morel.train.recommendation import Recommendation, RankConfig
 from tests.shared import BPR, build_completion_loader, build_path_graph
 
 
@@ -36,7 +36,7 @@ class Checker:
         model.attach(features, mask, adj)
 
         loader = build_completion_loader(features, mask, adj, batch_size=4)
-        cfg = CompletionConfig()
+        cfg = TrainConfig()
         trainer = Completion(model, cfg, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path)
         trainer.fit(loader, loader, epochs=2, patience=1)
         assert True
@@ -55,7 +55,7 @@ class Checker:
         )
         model = Light(users=users, items=items, embed=4, layers=2)
         loader = DataLoader(BPR(users, items, n_batches=16), batch_size=4)
-        cfg = RecommendationConfig()
+        cfg = RankConfig()
         trainer = Recommendation(
             model, cfg, ui_graph=ui, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path
         )
@@ -75,7 +75,7 @@ class Checker:
         model = Light(users=users, items=items, embed=4, layers=1)
         trainer = Recommendation(
             model,
-            RecommendationConfig(),
+            RankConfig(),
             ui_graph=ui,
             monitor=silent_monitor_factory(),
             checkpoint_dir=tmp_path,
@@ -96,7 +96,7 @@ class Checker:
         model = Light(users=users, items=items, embed=4, layers=1)
         trainer = Recommendation(
             model,
-            RecommendationConfig(),
+            RankConfig(),
             ui_graph=ui,
             monitor=silent_monitor_factory(),
             checkpoint_dir=tmp_path,
