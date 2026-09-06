@@ -258,5 +258,5 @@ __all__ = [
     "recommend_loaders",
     "split",
     "synth",
-    "tensor",
+    "to_tensor",
 ]
