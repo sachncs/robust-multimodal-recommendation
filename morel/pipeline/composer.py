@@ -24,7 +24,7 @@ from morel.encode import build as build_encode
 from morel.graph import Laplace
 from morel.recommend import KIND as RECOMMEND_KIND
 from morel.recommend import build as build_recommend
-from morel.retrieve import Result, retrieve_batch
+from morel.retrieve import Result, batch
 from morel.route import build as build_route
 
 
@@ -142,9 +142,7 @@ class Pipeline(nn.Module):
         self.retrieval_mask: np.ndarray | None = None
         self.retrieval_adj: sp.csr_matrix | None = None
 
-    def attach_recommender(
-        self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None
-    ) -> None:
+    def attach_recommend(self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None) -> None:
         """Attach the downstream ranker named by ``config.recommend.kind``.
 
         The ranker is initialized under ``config.seed``. Whatever
@@ -226,14 +224,14 @@ class Pipeline(nn.Module):
         Raises
         ------
             GraphError: If the adjacency has self-loops. Build the item graph
-                once with ``morel.data.build.item_cooccurrence``; that
+                once with ``morel.data.build.cooccurrence``; that
                 builder removes self-loops before persisting.
         """
         if adjacency.diagonal().any():
             raise GraphError(
                 "Pipeline.forward received an adjacency with self-loops; "
                 "build the item graph once with "
-                "morel.data.build.item_cooccurrence (which removes them) "
+                "morel.data.build.cooccurrence (which removes them) "
                 "and pass that adjacency here."
             )
         with module_mode(self, training):
@@ -258,7 +256,7 @@ class Pipeline(nn.Module):
                 and index is not None
             ):
                 queries = [int(i) for i in index.detach().cpu().tolist()]
-                result = retrieve_batch(
+                result = batch(
                     queries,
                     self.retrieval_features,
                     self.retrieval_mask,
@@ -271,7 +269,7 @@ class Pipeline(nn.Module):
                 )
                 subgraph_indices = result.nodes
                 subgraph_mask = result.mask
-                hidden = self.encode_subgraph(
+                hidden = self.encode(
                     features,
                     mask,
                     pe_full,
@@ -292,7 +290,7 @@ class Pipeline(nn.Module):
             subgraph_mask=subgraph_mask,
         )
 
-    def encode_subgraph(
+    def encode(
         self,
         features: dict[str, torch.Tensor],
         mask: torch.Tensor,
@@ -318,8 +316,7 @@ class Pipeline(nn.Module):
         corpus_mask = self.retrieval_mask
         if corpus_features is None or corpus_mask is None:
             raise ModelError(
-                "encode_subgraph needs a bound corpus; "
-                "call Pipeline.attach(features, mask, adjacency) first"
+                "encode needs a bound corpus; call Pipeline.attach(features, mask, adjacency) first"
             )
         max_size = max(int(result.max_size), 1)
         batch = int(result.batch)

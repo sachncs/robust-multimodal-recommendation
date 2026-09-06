@@ -66,7 +66,7 @@ class Checker:
     def kind(self, kind: str, expected: str) -> None:
         config = make(recommend={"kind": kind, "embed": 8, "layers": 2})
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
-        pipeline.attach_recommender(ui())
+        pipeline.attach_recommend(ui())
         assert pipeline.recommender is not None
         assert type(pipeline.recommender).__name__ == expected
 
@@ -75,7 +75,7 @@ class Checker:
         for kind in RECOMMEND_KIND:
             config = make(recommend={"kind": kind, "embed": 8, "layers": 2})
             pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
-            pipeline.attach_recommender(ui())
+            pipeline.attach_recommend(ui())
             assert pipeline.recommender is not None
             scores = pipeline.recommender(torch.arange(2), torch.arange(3))
             assert scores.shape == (2, 3), f"{kind} produced {scores.shape}"

@@ -39,7 +39,7 @@ class Checker:
     def to(self, tmp_path) -> None:
         c = Config()
         path = tmp_path / "config.yaml"
-        c.to_yaml(path)
+        c.save(path)
         loaded = Config.from_yaml(path)
         assert loaded.hash() == c.hash()
 
@@ -49,5 +49,5 @@ class Checker:
 
     def env(self, monkeypatch) -> None:
         monkeypatch.setenv("MOREL_SEED", "123")
-        c = Config.from_env()
+        c = Config.load_env()
         assert c.seed == 123

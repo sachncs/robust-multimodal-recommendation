@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import DataError
-from morel.data.build import bipartite, item_cooccurrence, kcore
+from morel.data.build import bipartite, cooccurrence, kcore
 
 
 class Checker:
@@ -24,7 +24,7 @@ class Checker:
         user = np.array([0, 1])
         item = np.array([0, 1])
         g = bipartite(user, item, 2, 2)
-        cooc = item_cooccurrence(g)
+        cooc = cooccurrence(g)
         diag = cooc.diagonal()
         assert (diag == 0).all()
 
@@ -32,7 +32,7 @@ class Checker:
         user = np.array([0, 1, 2, 0, 1])
         item = np.array([0, 1, 2, 1, 2])
         g = bipartite(user, item, 3, 3)
-        cooc = item_cooccurrence(g)
+        cooc = cooccurrence(g)
         diff = cooc - cooc.T
         assert abs(diff).max() == 0
 

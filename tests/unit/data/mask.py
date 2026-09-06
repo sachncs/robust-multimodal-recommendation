@@ -1,7 +1,7 @@
 """Masking must be selectable and driven by configuration.
 
 ``config.masking.kind``, ``ratio`` and ``seed`` were all inert:
-``synthetic_dataset`` hardcoded ``bernoulli(items, 2, 0.4, seed=0)``. The
+``synthetic`` hardcoded ``bernoulli(items, 2, 0.4, seed=0)``. The
 missing-modality pattern is the experimental condition for this method, so a
 configured ratio that had no effect meant the run did not match its own record.
 """
@@ -11,7 +11,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from morel.app.experiment import synthetic_dataset
+from morel.app.experiment import synthetic
 from morel.core.config import Masking
 from morel.core.errors import ConfigError, DataError
 from morel.data import MASKS
@@ -47,25 +47,25 @@ class Checker:
             MASKS.create("nope", items=5, modalities=2, ratio=0.5, seed=0)
 
     def synthetic(self) -> None:
-        sparse = synthetic_dataset(80, 4, 2, 10, Masking(ratio=0.1))
-        dense = synthetic_dataset(80, 4, 2, 10, Masking(ratio=0.9))
+        sparse = synthetic(80, 4, 2, 10, Masking(ratio=0.1))
+        dense = synthetic(80, 4, 2, 10, Masking(ratio=0.9))
         assert sparse["mask"].mean() > dense["mask"].mean()
 
     def dataset(self) -> None:
-        first = synthetic_dataset(40, 4, 2, 10, Masking(seed=1))["mask"]
-        second = synthetic_dataset(40, 4, 2, 10, Masking(seed=2))["mask"]
+        first = synthetic(40, 4, 2, 10, Masking(seed=1))["mask"]
+        second = synthetic(40, 4, 2, 10, Masking(seed=2))["mask"]
         assert not np.array_equal(first, second)
-        again = synthetic_dataset(40, 4, 2, 10, Masking(seed=1))["mask"]
+        again = synthetic(40, 4, 2, 10, Masking(seed=1))["mask"]
         assert np.array_equal(first, again)
 
     def honours(self) -> None:
-        bern = synthetic_dataset(40, 4, 2, 10, Masking(kind="bernoulli", ratio=0.5, seed=0))["mask"]
-        blk = synthetic_dataset(40, 4, 2, 10, Masking(kind="block", ratio=0.5, seed=0))["mask"]
+        bern = synthetic(40, 4, 2, 10, Masking(kind="bernoulli", ratio=0.5, seed=0))["mask"]
+        blk = synthetic(40, 4, 2, 10, Masking(kind="block", ratio=0.5, seed=0))["mask"]
         assert not np.array_equal(bern, blk)
 
     def defaults(self) -> None:
-        explicit = synthetic_dataset(40, 4, 2, 10, Masking())["mask"]
-        implicit = synthetic_dataset(40, 4, 2, 10)["mask"]
+        explicit = synthetic(40, 4, 2, 10, Masking())["mask"]
+        implicit = synthetic(40, 4, 2, 10)["mask"]
         assert np.array_equal(explicit, implicit)
 
 

@@ -16,7 +16,7 @@ import torch
 from morel.core.config import Config
 from morel.core.errors import ConfigError
 from morel.pipeline import Pipeline
-from morel.retrieve import KIND as STRATEGIES, retrieve, retrieve_batch
+from morel.retrieve import KIND as STRATEGIES, retrieve, batch
 
 
 def corpus() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix]:
@@ -83,7 +83,7 @@ class Checker:
     def strategy(self) -> None:
         features, mask, adjacency = corpus()
         queries = list(range(6))
-        batched = retrieve_batch(queries, features, mask, adjacency, anchors=4, iters=2, kind="bfs")
+        batched = batch(queries, features, mask, adjacency, anchors=4, iters=2, kind="bfs")
         for row, query in enumerate(queries):
             expected = retrieve(query, features, mask, adjacency, anchors=4, iters=2, kind="bfs")
             got = set(batched.nodes[row, : batched.sizes[row]].tolist())

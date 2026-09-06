@@ -8,7 +8,7 @@ from morel.retrieve.bfs import bfs, neighbor_array, neighbor_iter, path
 from morel.retrieve.mage import batch as mage_batch
 from morel.retrieve.mage import expand as mage
 from morel.retrieve.pipeline import KIND, Result, as_tensor, retrieve
-from morel.retrieve.pipeline import batch as retrieve_batch
+from morel.retrieve.pipeline import batch as batch
 from morel.retrieve.relevance import mean_relevance, relevance
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     "anchor",
     "anchor_batch",
     "as_tensor",
+    "batch",
     "bfs",
     "mage",
     "mage_batch",
@@ -28,5 +29,4 @@ __all__ = [
     "path",
     "relevance",
     "retrieve",
-    "retrieve_batch",
 ]

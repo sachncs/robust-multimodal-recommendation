@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 
 from morel.core.errors import ConfigError, ModelError
-from morel.train.checkpoint import State, hash_config, safe_load, unsafe_load
+from morel.train.checkpoint import State, hash_config, load, unsafe_load
 from morel.train.monitor import Monitor
 
 
@@ -68,7 +68,7 @@ class Checker:
         assert mon.latest() is None
 
     def payload(self, tmp_path: Path) -> None:
-        """safe_load refuses payloads that contain a __reduce__ exploit class."""
+        """load refuses payloads that contain a __reduce__ exploit class."""
 
         class Exploit:
             def __reduce__(self):  # pragma: no cover - never executed
@@ -77,13 +77,13 @@ class Checker:
         bad_path = tmp_path / "exploit.pt"
         torch.save({"model": {"evil": Exploit()}}, bad_path)
         with pytest.raises(ModelError):
-            safe_load(bad_path)
+            load(bad_path)
 
     def keys(self, tmp_path: Path) -> None:
         bad_path = tmp_path / "bad.pt"
         torch.save({"model": {}, "unexpected": True}, bad_path)
         with pytest.raises(ModelError):
-            safe_load(bad_path)
+            load(bad_path)
 
     def exploit(self, tmp_path: Path) -> None:
         """unsafe_load is the explicit opt-in for non-tensor payloads."""
@@ -99,8 +99,8 @@ class Checker:
         p = tmp_path / "scalar.pt"
         torch.save(42, p)
         with pytest.raises(ModelError):
-            safe_load(p)
+            load(p)
 
     def raises(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError):
-            safe_load(tmp_path / "nope.pt")
+            load(tmp_path / "nope.pt")

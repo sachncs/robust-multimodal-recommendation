@@ -197,7 +197,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
 def run_build(args: argparse.Namespace, config: Config) -> None:
     """Run the ``build`` subcommand."""
     from morel.data.build import bipartite as build_bipartite
-    from morel.data.build import item_cooccurrence, kcore
+    from morel.data.build import cooccurrence, kcore
     from morel.data.manifest import Manifest
     from morel.data.store import save_graph, save_npz
 
@@ -210,7 +210,7 @@ def run_build(args: argparse.Namespace, config: Config) -> None:
     pairs = rng.integers(0, users, size=512), rng.integers(0, items, size=512)
     ui = build_bipartite(pairs[0], pairs[1], users, items)
     save_graph(out_dir / "bipartite.npz", ui)
-    item_adj = item_cooccurrence(ui)
+    item_adj = cooccurrence(ui)
     # data.min is the k-core threshold; leaving it unapplied meant the
     # configured minimum-degree filter never ran.
     if args.min_edges > 0:

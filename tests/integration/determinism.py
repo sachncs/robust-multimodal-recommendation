@@ -13,7 +13,7 @@ import scipy.sparse as sp
 import torch
 
 from morel.core.config import Config
-from morel.data.build import bipartite, item_cooccurrence
+from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.eval import ndcg_at_k, recall_at_k
 from morel.pipeline import Pipeline
@@ -30,7 +30,7 @@ def synthetic() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix, sp.cs
         "text": rng.normal(size=(items, 8)).astype(np.float32),
     }
     mask = bernoulli(items, 2, 0.4, seed=42).to_numpy()
-    return features, mask, item_cooccurrence(ui), ui
+    return features, mask, cooccurrence(ui), ui
 
 
 def run(config: Config) -> tuple[dict[str, torch.Tensor], torch.Tensor, float, float]:

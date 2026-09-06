@@ -27,27 +27,27 @@ class Checker:
         assert dist.rank() == 0
 
     def zero(self) -> None:
-        assert dist.is_rank_zero() is True
+        assert dist.is_lead() is True
 
     def init(self) -> None:
         info = dist.init()
         assert info["rank"] == 0
         assert info["world_size"] == 1
-        assert dist.is_initialized() is True
+        assert dist.initialized() is True
 
     def idempotent(self) -> None:
         dist.init()
         dist.init()
-        assert dist.is_initialized() is True
+        assert dist.initialized() is True
         assert dist.rank() == 0
 
     def barrier(self) -> None:
         dist.barrier()
-        assert dist.is_rank_zero() is True
+        assert dist.is_lead() is True
 
     def reduce(self) -> None:
         dist.init()
-        assert dist.reduce_mean(7.5) == 7.5
+        assert dist.mean(7.5) == 7.5
 
     def local(self) -> None:
         import os
@@ -61,5 +61,5 @@ class Checker:
     def cleanup(self) -> None:
         dist.init()
         dist.cleanup()
-        assert dist.is_initialized() is False
+        assert dist.initialized() is False
         assert dist.state.initialized is False

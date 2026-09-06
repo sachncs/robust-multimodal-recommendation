@@ -6,7 +6,7 @@ Every stage produces artifacts with manifests.
 
 from morel.core.errors import ConfigError, DataError
 from morel.data.acquire import download, fetch
-from morel.data.build import bipartite, interactions, item_cooccurrence, kcore
+from morel.data.build import bipartite, cooccurrence, interactions, kcore
 from morel.data.extract import (
     FeatureEncoder,
     RandomEncoder,
@@ -134,6 +134,7 @@ __all__ = [
     "build_extractor",
     "build_mask",
     "checksum",
+    "cooccurrence",
     "download",
     "exact_two_pass_interactions",
     "features",
@@ -141,7 +142,6 @@ __all__ = [
     "fingerprint",
     "graph",
     "interactions",
-    "item_cooccurrence",
     "kcore",
     "load_graph",
     "load_manifest",

@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     handler = {
         "data": run_data,
-        "train": run_train,
+        "train": train,
         "eval": run_eval,
         "bench": run_bench,
         "reproduce": run_reproduce,
@@ -81,7 +81,7 @@ def run_data(argv: list[str]) -> int:
     return int(data_main(argv) or 0)
 
 
-def run_train(argv: list[str]) -> int:
+def train(argv: list[str]) -> int:
     """Handle the ``train`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel train", description="training")
     sub = parser.add_subparsers(dest="sub", required=True)
@@ -221,11 +221,11 @@ def run_render_fidelity(argv: list[str]) -> int:
     parser.add_argument("markdown", help="output markdown path")
     parser.add_argument("json", nargs="?", default=None, help="optional output json path")
     args = parser.parse_args(argv)
-    from morel.core.fidelity import render_json, render_markdown
+    from morel.core.fidelity import render, render_md
 
-    render_markdown(Path(args.markdown))
+    render_md(Path(args.markdown))
     if args.json is not None:
-        render_json(Path(args.json))
+        render(Path(args.json))
     return 0
 
 

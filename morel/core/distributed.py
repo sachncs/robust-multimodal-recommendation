@@ -94,7 +94,7 @@ def init(backend: str | None = None) -> dict[str, Any]:
     }
 
 
-def is_initialized() -> bool:
+def initialized() -> bool:
     """Return whether the runtime has been initialised."""
     return state.initialized
 
@@ -126,7 +126,7 @@ def local_rank() -> int:
     return int(os.environ.get("LOCAL_RANK", "0"))
 
 
-def is_rank_zero() -> bool:
+def is_lead() -> bool:
     """Return True for the rank-zero process (always True when single-process)."""
     return rank() == 0
 
@@ -144,7 +144,7 @@ def barrier() -> None:
     torch.distributed.barrier()
 
 
-def reduce_mean(value: float | torch.Tensor) -> float:
+def mean(value: float | torch.Tensor) -> float:
     """All-reduce a scalar across ranks and return its mean."""
     if not state.initialized or world_size() <= 1:
         return float(value)
@@ -171,11 +171,11 @@ __all__ = [
     "barrier",
     "cleanup",
     "init",
-    "is_initialized",
-    "is_rank_zero",
+    "initialized",
+    "is_lead",
     "local_rank",
+    "mean",
     "rank",
-    "reduce_mean",
     "state",
     "world_size",
 ]

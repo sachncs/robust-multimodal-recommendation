@@ -123,7 +123,7 @@ class Trainer(ABC):
                 self.best_metric = val_metric
                 no_improve = 0
                 if self.checkpoint_dir is not None:
-                    self.save_checkpoint(epoch, val_metric)
+                    self.save(epoch, val_metric)
             else:
                 no_improve += 1
                 if no_improve >= patience:
@@ -143,7 +143,7 @@ class Trainer(ABC):
             count += 1
         return {"loss": running / max(count, 1)}
 
-    def save_checkpoint(self, epoch: int, metric: float) -> None:
+    def save(self, epoch: int, metric: float) -> None:
         """Persist the current model state to the best checkpoint."""
         if self.checkpoint_dir is None:
             return

@@ -15,7 +15,7 @@ from morel.core.errors import ConfigError, ModelError
 ALLOWED = {"model", "optimizer", "epoch", "metric", "rng", "config_hash", "extras"}
 
 
-def safe_load(target: Path | str) -> dict[str, Any]:
+def load(target: Path | str) -> dict[str, Any]:
     """Load a checkpoint payload safely.
 
     Uses ``weights_only=True`` to disable arbitrary pickle deserialization
@@ -95,7 +95,7 @@ class State:
     @classmethod
     def load(cls, target: Path | str, *, expected_config_hash: str | None = None) -> State:
         """Load a checkpoint, optionally verifying the config hash."""
-        payload = safe_load(target)
+        payload = load(target)
         if expected_config_hash is not None and payload.get("config_hash") != expected_config_hash:
             raise ConfigError(
                 f"checkpoint config hash mismatch: "
@@ -121,4 +121,4 @@ def hash_config(config: object) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-__all__ = ["State", "hash_config", "safe_load", "unsafe_load"]
+__all__ = ["State", "hash_config", "load", "unsafe_load"]

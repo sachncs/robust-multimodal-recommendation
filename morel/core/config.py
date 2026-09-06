@@ -235,11 +235,11 @@ class Config:
             if key not in cls_fields:
                 raise ConfigError(f"unknown top-level config key: {key!r}")
             clean_top[key] = value
-        coerced = coerce_config(cls, clean_top)
+        coerced = coerce(cls, clean_top)
         result: dict[str, Any] = {}
         for f in fields(cls):
             if f.name in coerced:
-                f_type = resolve_dataclass_annotation(f.type)
+                f_type = resolve_annotation(f.type)
                 if (
                     isinstance(f_type, type)
                     and is_dataclass(f_type)
@@ -254,10 +254,10 @@ class Config:
     def from_yaml(cls, path: Path | str) -> Config:
         """Load configuration from a YAML file."""
         text = Path(path).read_text(encoding="utf-8")
-        return cls.from_dict(yaml.safe_load(text))
+        return cls.from_dict(yaml.load(text, Loader=yaml.SafeLoader))
 
     @classmethod
-    def from_env(cls) -> Config:
+    def load_env(cls) -> Config:
         """Build a Config with values overridden from ``MOREL_*`` env vars.
 
         Recognized keys: ``MOREL_SEED``, ``MOREL_DEVICE``. Nested keys are not
@@ -276,17 +276,17 @@ class Config:
         merged.update(overrides)
         return cls.from_dict(merged)
 
-    def to_yaml(self, path: Path | str) -> None:
+    def save(self, path: Path | str) -> None:
         """Write the configuration to a YAML file."""
         text = yaml.safe_dump(self.dump(), sort_keys=True, allow_unicode=True)
         Path(path).write_text(text, encoding="utf-8")
 
 
-def coerce_config(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
+def coerce(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
     """Recursively coerce nested dicts into nested dataclass instances.
 
     Returns a dict suitable for ``cls(**result)``. Nested dataclass fields are
-    replaced with their ``coerce_config``-d dicts so that ``cls(**...)``
+    replaced with their ``coerce``-d dicts so that ``cls(**...)``
     constructs them in turn.
     """
     out: dict[str, Any] = {}
@@ -294,15 +294,15 @@ def coerce_config(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
         if f.name not in payload:
             continue
         value = payload[f.name]
-        f_type = resolve_dataclass_annotation(f.type)
+        f_type = resolve_annotation(f.type)
         if isinstance(f_type, type) and is_dataclass(f_type) and isinstance(value, dict):
-            out[f.name] = coerce_config(f_type, value)
+            out[f.name] = coerce(f_type, value)
         else:
             out[f.name] = value
     return out
 
 
-def resolve_dataclass_annotation(annotation: Any) -> Any:
+def resolve_annotation(annotation: Any) -> Any:
     """Return the dataclass type from a string annotation or class.
 
     Returns the annotation unchanged if it is not a string and not a dataclass

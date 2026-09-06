@@ -7,11 +7,11 @@ from morel.core.distributed import (
     barrier,
     cleanup,
     init,
-    is_initialized,
-    is_rank_zero,
+    initialized,
+    is_lead,
     local_rank,
+    mean,
     rank,
-    reduce_mean,
     state,
     world_size,
 )
@@ -42,10 +42,10 @@ from morel.core.fidelity import (
     register as fidelity_register,
 )
 from morel.core.fidelity import (
-    render_json as fidelity_render_json,
+    render as fidelity_render_json,
 )
 from morel.core.fidelity import (
-    render_markdown as fidelity_render_markdown,
+    render_md as fidelity_render_markdown,
 )
 from morel.core.log import configure as configure_log
 from morel.core.log import get as get_logger
@@ -102,15 +102,15 @@ __all__ = [
     "get_logger",
     "graphs",
     "init",
-    "is_initialized",
-    "is_rank_zero",
+    "initialized",
+    "is_lead",
     "local_rank",
     "log_metrics",
     "manifest",
+    "mean",
     "processed",
     "rank",
     "raw",
-    "reduce_mean",
     "root",
     "runs",
     "seed_everything",

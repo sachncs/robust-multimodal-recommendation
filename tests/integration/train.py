@@ -6,7 +6,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 from morel.core.config import Config
-from morel.data.build import bipartite, item_cooccurrence
+from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
@@ -30,7 +30,7 @@ class Checker:
         uids = rng.integers(0, users, size=300)
         iids = rng.integers(0, items, size=300)
         ui = bipartite(uids, iids, users, items)
-        item_graph = item_cooccurrence(ui)
+        item_graph = cooccurrence(ui)
 
         features_np = {
             "visual": rng.normal(size=(items, 4)).astype(np.float32),

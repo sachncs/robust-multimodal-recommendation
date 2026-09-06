@@ -87,7 +87,7 @@ def create(loader: Loader | None = None) -> FastAPI:
             pipeline = app.state.loader.get("default", build_default_pipeline)
         except MorelError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
-        completed = run_complete(pipeline, payload)
+        completed = run(pipeline, payload)
         return CompleteResponse(completed=serialize_completed(completed))
 
     @app.post("/v1/recommend", response_model=RecommendResponse)
@@ -98,7 +98,7 @@ def create(loader: Loader | None = None) -> FastAPI:
             pipeline = app.state.loader.get("default", build_default_pipeline)
         except MorelError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
-        items = run_recommend(pipeline, payload)
+        items = recommend_items(pipeline, payload)
         return RecommendResponse(items=items)
 
     @app.post("/v1/feedback", response_model=FeedbackResponse)
@@ -154,7 +154,7 @@ def build_default_pipeline() -> object:
     return Pipeline(Config(), dims={"visual": 4, "text": 2})
 
 
-def run_complete(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
+def run(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
     """Run the completion forward pass."""
     import numpy as np
     import scipy.sparse as sp
@@ -186,7 +186,7 @@ def run_complete(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
     return completed
 
 
-def run_recommend(pipeline: object, payload: RecommendRequest) -> list[RecommendItem]:
+def recommend_items(pipeline: object, payload: RecommendRequest) -> list[RecommendItem]:
     """Return the top-``top`` items for a user.
 
     Stub implementation: returns a uniformly-ranked slice of the catalogue.

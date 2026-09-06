@@ -37,7 +37,7 @@ def bipartite(user: np.ndarray, item: np.ndarray, users: int, items: int) -> sp.
     return matrix
 
 
-def item_cooccurrence(graph: sp.csr_matrix) -> sp.csr_matrix:
+def cooccurrence(graph: sp.csr_matrix) -> sp.csr_matrix:
     """Build an item-item co-occurrence graph from a user-item bipartite.
 
     The result is binarized, symmetrized, and self-loops are removed.
@@ -181,4 +181,4 @@ def interactions(
     return graph_matrix, item_meta, len(user2id), len(item2id)
 
 
-__all__ = ["bipartite", "interactions", "item_cooccurrence", "kcore"]
+__all__ = ["bipartite", "cooccurrence", "interactions", "kcore"]

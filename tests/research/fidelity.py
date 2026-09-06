@@ -6,7 +6,7 @@ import importlib
 from pathlib import Path
 
 from morel.core.fidelity import all as fidelity_all
-from morel.core.fidelity import registry, render_json, render_markdown
+from morel.core.fidelity import registry, render, render_md
 
 
 def split(test_ref: str) -> tuple[str, str]:
@@ -70,14 +70,14 @@ class Checker:
     def render(self, tmp_path: Path) -> None:
         md_path = tmp_path / "FIDELITY.md"
         json_path = tmp_path / "FIDELITY.json"
-        render_markdown(md_path)
-        render_json(json_path)
+        render_md(md_path)
+        render(json_path)
         assert md_path.read_text().count("\n") > 5
         assert json_path.read_text().startswith("{")
 
     def table(self, tmp_path: Path) -> None:
         md_path = tmp_path / "FIDELITY.md"
-        render_markdown(md_path)
+        render_md(md_path)
         body = md_path.read_text()
         for entry in fidelity_all():
             assert entry.name in body, f"{entry.name} not in rendered table"

@@ -20,12 +20,12 @@ from morel.app.data import (
     synth_bipartite,
 )
 from morel.core.config import Config, Masking
-from morel.core.fidelity import render_json, render_markdown
+from morel.core.fidelity import render, render_md
 from morel.core.log import get as get_logger
 from morel.core.seed import seed as seed_everything
 from morel.data import build_mask
 from morel.data.build import bipartite as build_bipartite
-from morel.data.build import item_cooccurrence
+from morel.data.build import cooccurrence
 from morel.data.manifest import Manifest
 from morel.eval import ablate, ablation_results, conditions, ndcg_at_k, recall_at_k
 from morel.pipeline import Pipeline
@@ -35,7 +35,7 @@ from morel.train.recommendation import Recommendation, RecommendationConfig
 log = get_logger("app.experiment")
 
 
-def synthetic_dataset(
+def synthetic(
     items: int,
     dim_visual: int,
     dim_text: int,
@@ -61,7 +61,7 @@ def synthetic_dataset(
     rng = np.random.default_rng(0)
     user_ids, item_ids = synth_bipartite(rng, items=items, users=users)
     ui = build_bipartite(user_ids, item_ids, users, items)
-    adj = item_cooccurrence(ui)
+    adj = cooccurrence(ui)
     features = {
         "visual": rng.normal(size=(items, dim_visual)).astype(np.float32),
         "text": rng.normal(size=(items, dim_text)).astype(np.float32),
@@ -123,10 +123,10 @@ class Experiment:
             "experiment.start",
             extra={"run_dir": str(self.run_dir), "config_hash": config_hash},
         )
-        self.config.to_yaml(self.run_dir / "config.yaml")
+        self.config.save(self.run_dir / "config.yaml")
         start = time.time()
 
-        dataset = synthetic_dataset(
+        dataset = synthetic(
             self.items, self.dim_visual, self.dim_text, self.users, self.config.masking
         )
         pipeline = Pipeline(
@@ -208,8 +208,8 @@ class Experiment:
             encoding="utf-8",
         )
 
-        render_markdown(self.run_dir / "FIDELITY.md")
-        render_json(self.run_dir / "FIDELITY.json")
+        render_md(self.run_dir / "FIDELITY.md")
+        render(self.run_dir / "FIDELITY.json")
 
         duration = time.time() - start
         log.info(
@@ -263,13 +263,13 @@ class RecommendationExperiment:
             "recommendation.start",
             extra={"run_dir": str(self.run_dir), "config_hash": config_hash},
         )
-        self.config.to_yaml(self.run_dir / "config.yaml")
+        self.config.save(self.run_dir / "config.yaml")
         start = time.time()
 
-        dataset = synthetic_dataset(self.items, 8, 4, self.users, self.config.masking)
+        dataset = synthetic(self.items, 8, 4, self.users, self.config.masking)
         ui = dataset["ui"]
         pipeline = Pipeline(self.config, dims={"visual": 8, "text": 4})
-        pipeline.attach_recommender(ui)
+        pipeline.attach_recommend(ui)
         assert pipeline.recommender is not None
 
         loader, val_loader = build_recommendation_loaders(
@@ -383,7 +383,7 @@ class AblationExperiment:
         feature_dim = self.dim_visual + self.dim_text
         pipeline = Pipeline(config, dims={"visual": self.dim_visual, "text": self.dim_text})
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
-        pipeline.attach_recommender(dataset["ui"], feature_dim=feature_dim)
+        pipeline.attach_recommend(dataset["ui"], feature_dim=feature_dim)
         assert pipeline.recommender is not None
         index = torch.arange(self.items)
         output = pipeline(
@@ -409,11 +409,11 @@ class AblationExperiment:
         self.run_dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed
         config_hash = self.config.hash()
-        self.config.to_yaml(self.run_dir / "config.yaml")
+        self.config.save(self.run_dir / "config.yaml")
         start = time.time()
         log.info("ablation.start", extra={"conditions": list(conditions(self.config))})
 
-        dataset = synthetic_dataset(
+        dataset = synthetic(
             self.items, self.dim_visual, self.dim_text, self.users, self.config.masking
         )
         labels = dataset["ui"].sign().toarray()
@@ -477,7 +477,7 @@ class Benchmark:
         self.run_dir.mkdir(parents=True, exist_ok=True)
         results: dict[str, list[float]] = {}
         for size in self.sizes:
-            dataset = synthetic_dataset(size, 4, 2, max(2, size // 4))
+            dataset = synthetic(size, 4, 2, max(2, size // 4))
             pipeline = Pipeline(
                 self.config,
                 dims={"visual": 4, "text": 2},

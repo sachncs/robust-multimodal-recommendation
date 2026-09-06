@@ -4,7 +4,7 @@ Every algorithm component declares a `Fidelity` entry. The registry renders
 ``docs/FIDELITY.md`` and ``docs/FIDELITY.json`` from this state, so the
 documentation can never drift from the implementation.
 
-The module-level :func:`register_all` is idempotent and runs at import time
+The module-level :func:`register` is idempotent and runs at import time
 from ``morel.core.__init__``. Each :class:`Entry` maps a paper claim to its
 implementation location, the test that proves the behaviour, and any
 documented deviation.
@@ -64,7 +64,7 @@ def register(entry: Entry) -> Entry:
     return entry
 
 
-def render_markdown(target: Path | str) -> None:
+def render_md(target: Path | str) -> None:
     """Render the registry as a Markdown report.
 
     Args:
@@ -90,7 +90,7 @@ def render_markdown(target: Path | str) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def render_json(target: Path | str) -> None:
+def render(target: Path | str) -> None:
     """Render the registry as a JSON file.
 
     Args:
@@ -196,7 +196,7 @@ def register_all() -> None:
             paper="GRE-MC Section 4",
             equation="sign(U^T U) with no self-loops",
             status="EXACT",
-            implementation="morel.data.build.item_cooccurrence",
+            implementation="morel.data.build.cooccurrence",
             test="tests/unit/data/build.py::Checker::cooccurrence",
             deviation=None,
         )
@@ -420,8 +420,7 @@ __all__ = [
     "all",
     "clear",
     "register",
-    "register_all",
     "registry",
-    "render_json",
-    "render_markdown",
+    "render",
+    "render_md",
 ]
