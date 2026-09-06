@@ -27,17 +27,69 @@ def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-1
     return -torch.log(torch.sigmoid(pos_scores - neg_scores) + eps).mean()
 
 
+def distinct_ranks(rng: np.random.Generator, high: int, size: int) -> np.ndarray:
+    """Draw ``size`` distinct integers from ``[0, high)``.
+
+    Uses rejection sampling when the draw is sparse relative to the range, so
+    the cost does not scale with ``high``. Falls back to a full permutation
+    draw only when ``size`` is a large fraction of ``high``, where the dense
+    approach is both correct and cheap.
+
+    The order of the returned values follows the order they were drawn, which
+    keeps the result reproducible for a given generator state.
+    """
+    if size * 3 >= high:
+        return np.asarray(rng.choice(high, size=size, replace=False), dtype=np.int64)
+    picked: list[int] = []
+    seen: set[int] = set()
+    while len(picked) < size:
+        for value in rng.integers(0, high, size=(size - len(picked)) * 2 + 8):
+            item = int(value)
+            if item not in seen:
+                seen.add(item)
+                picked.append(item)
+                if len(picked) == size:
+                    break
+    return np.asarray(picked, dtype=np.int64)
+
+
+def ranks_to_items(ranks: np.ndarray, positives: np.ndarray) -> np.ndarray:
+    """Map ranks over the *negative* items back to actual item ids.
+
+    ``ranks`` index the sorted sequence of items that are **not** in
+    ``positives``. Shifting each rank by the number of positives that precede
+    it recovers the item id without ever materializing the negative pool.
+
+    Args:
+        ranks: Ranks in ``[0, items - len(positives))``.
+        positives: Sorted, unique positive item ids for one user.
+
+    Returns
+    -------
+        Item ids of the same shape as ``ranks``.
+    """
+    if positives.size == 0:
+        return ranks
+    shifted = positives - np.arange(positives.size, dtype=positives.dtype)
+    return ranks + np.searchsorted(shifted, ranks, side="right")
+
+
 def negatives(
     ui: sp.csr_matrix,
     *,
     count: int,
     seed: int,
 ) -> np.ndarray:
-    """Sample ``count`` negatives per user.
+    """Sample ``count`` distinct negatives per user.
 
-    Vectorised sampler: builds the per-user negative pool once and then
-    draws ``count`` negatives per user. Strict: never returns a positive
-    item. Raises if a user has so many interactions that no negatives exist.
+    Works directly off the CSR structure: memory is ``O(nnz + users * count)``
+    rather than ``O(users * items)``. The previous implementation densified the
+    interaction matrix and then built an ``int64`` pool of the same shape,
+    which made the sampler unusable on realistically sized catalogues (a
+    100k x 50k dataset needed tens of gigabytes).
+
+    Strict: never returns a positive item, and the ``count`` negatives drawn
+    for a user are distinct from each other.
 
     Args
     ----
@@ -52,6 +104,12 @@ def negatives(
     -------
     np.ndarray
         Array of shape ``(users, count)`` of int64 item ids.
+
+    Raises
+    ------
+    DataError
+        If ``count`` is not positive, exceeds the catalogue size, or if some
+        user has fewer than ``count`` negatives available.
     """
     users, items = ui.shape
     if count <= 0:
@@ -59,18 +117,19 @@ def negatives(
     if count > items:
         raise DataError(f"count ({count}) > items ({items})")
     rng = np.random.default_rng(seed)
-    positive_dense = np.asarray(ui.toarray(), dtype=bool)
-    neg_pool = np.where(
-        ~positive_dense, np.broadcast_to(np.arange(items), positive_dense.shape), -1
-    )
-    pool = [neg_pool[u][neg_pool[u] >= 0] for u in range(users)]
-    min_neg = min(len(p) for p in pool)
+    indptr = ui.indptr
+    indices = ui.indices
+
+    per_user = [np.unique(indices[indptr[u] : indptr[u + 1]]) for u in range(users)]
+    min_neg = min(items - positives.size for positives in per_user) if users else items
     if min_neg < count:
         raise DataError(f"at least one user has only {min_neg} negatives available; need {count}")
+
     out = np.empty((users, count), dtype=np.int64)
-    for u in range(users):
-        out[u] = rng.choice(pool[u], size=count, replace=False)
+    for u, positives in enumerate(per_user):
+        ranks = distinct_ranks(rng, items - positives.size, count)
+        out[u] = ranks_to_items(ranks, positives)
     return out
 
 
-__all__ = ["bpr", "negatives"]
+__all__ = ["bpr", "distinct_ranks", "negatives", "ranks_to_items"]
