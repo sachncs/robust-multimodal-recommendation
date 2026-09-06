@@ -43,7 +43,7 @@ class Checker:
             pe(g, k=-1)
 
     def encoding(self) -> None:
-        """k=0 is the "no_pe" ablation condition, not an error."""
+        """k=0 is the "nope" ablation condition, not an error."""
         g = sp.csr_matrix(np.array([[0, 1], [1, 0]], dtype=np.float32))
         out = pe(g, k=0)
         assert out.shape == (2, 0)

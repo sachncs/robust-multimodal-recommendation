@@ -18,27 +18,27 @@ from morel.core.seed import seed as seed_everything
 log = logger("data.cli")
 
 
-def load_config(args: argparse.Namespace) -> Config:
+def config(args: argparse.Namespace) -> Config:
     """Load the config named by ``--config``, or the defaults."""
     path = getattr(args, "config", None)
     return Config.load(path) if path else Config()
 
 
-def resolve_paths(args: argparse.Namespace, config: Config) -> None:
-    """Fill unset path, category and masking flags from ``config``.
+def paths(args: argparse.Namespace, cfg: Config) -> None:
+    """Fill unset path, category and masking flags from ``cfg``.
 
     Every one of these had a hardcoded default that shadowed the
-    corresponding config field, so configuring data.raw or data.category had
+    corresponding cfg field, so configuring data.raw or data.category had
     no effect on any subcommand.
     """
     defaults = {
-        "dest": config.data.raw,
-        "data_dir": config.data.raw if args.cmd in {"extract", "build"} else config.data.processed,
-        "out_dir": config.data.processed,
-        "category": config.data.category,
-        "min_edges": config.data.min,
-        "ratio": config.masking.ratio,
-        "kind": config.masking.kind,
+        "dest": cfg.data.raw,
+        "data_dir": cfg.data.raw if args.cmd in {"extract", "build"} else cfg.data.processed,
+        "out_dir": cfg.data.processed,
+        "category": cfg.data.category,
+        "min_edges": cfg.data.min,
+        "ratio": cfg.masking.ratio,
+        "kind": cfg.masking.kind,
     }
     for name, value in defaults.items():
         if hasattr(args, name) and getattr(args, name) is None:
@@ -84,36 +84,36 @@ def main(argv: list[str] | None = None) -> int:
     verify.add_argument("--config", default=None)
 
     args = parser.parse_args(argv)
-    config = load_config(args)
-    resolve_paths(args, config)
-    configure_log(level=config.log.level, structured=config.log.structured)
+    cfg = config(args)
+    paths(args, cfg)
+    configure_log(level=cfg.log.level, structured=cfg.log.structured)
     try:
         if args.cmd == "download":
             from morel.data.acquire import download
 
-            paths = download(args.category, args.dest)
-            for p in paths:
+            downloaded = download(args.category, args.dest)
+            for p in downloaded:
                 print(p)
         elif args.cmd == "extract":
-            run_extract(args, config)
+            run_extract(args, cfg)
         elif args.cmd == "build":
-            assemble(args, config)
+            assemble(args, cfg)
         elif args.cmd == "mask":
             from morel.data import build_mask
 
-            seed_everything(config.seed)
+            seed_everything(cfg.seed)
             mask = build_mask(
                 args.kind,
                 items=args.items,
                 modalities=args.modalities,
                 ratio=args.ratio,
-                seed=config.masking.seed,
+                seed=cfg.masking.seed,
             )
             out = Path(args.out)
             out.parent.mkdir(parents=True, exist_ok=True)
             import numpy as np
 
-            np.save(out, mask.as_numpy())
+            np.save(out, mask.numpy())
             print(out)
         elif args.cmd == "verify":
             for path in Path(args.data_dir).rglob("*.manifest.json"):
@@ -126,11 +126,11 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def run_extract(args: argparse.Namespace, config: Config) -> None:
+def run_extract(args: argparse.Namespace, cfg: Config) -> None:
     """Run the ``extract`` subcommand.
 
-    The encoder for each modality is named by ``config.encoder.text`` and
-    ``config.encoder.visual`` and built through the extractor registry, so a
+    The encoder for each modality is named by ``cfg.encoder.text`` and
+    ``cfg.encoder.visual`` and built through the extractor registry, so a
     configured backbone is actually the one that runs. ``--synthetic`` forces
     the deterministic ``random`` encoder, which needs no model download.
     """
@@ -142,24 +142,20 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    items = max(8, config.encode.hidden // 8)
-    dim_visual = config.encoder.visual_dim
-    dim_text = config.encoder.text_dim
-    text_kind = "random" if args.synthetic else config.encoder.text
-    visual_kind = "random" if args.synthetic else config.encoder.visual
+    items = max(8, cfg.encode.hidden // 8)
+    dim_visual = cfg.encoder.visual_dim
+    dim_text = cfg.encoder.text_dim
+    text_kind = "random" if args.synthetic else cfg.encoder.text
+    visual_kind = "random" if args.synthetic else cfg.encoder.visual
     log.info("extract.encoders", extra={"text": text_kind, "visual": visual_kind})
 
-    text_encoder = assemble(
-        text_kind, dim=dim_text, batch=config.encoder.batch, seed=config.seed + 1
-    )
-    visual_encoder = assemble(
-        visual_kind, dim=dim_visual, batch=config.encoder.batch, seed=config.seed
-    )
+    text_encoder = assemble(text_kind, dim=dim_text, batch=cfg.encoder.batch, seed=cfg.seed + 1)
+    visual_encoder = assemble(visual_kind, dim=dim_visual, batch=cfg.encoder.batch, seed=cfg.seed)
     # Synthetic inputs are item ids; a real run would read them from data_dir.
     inputs = [f"item-{i}" for i in range(items)]
     feats = {
-        "visual": encode_text(inputs, visual_encoder, batch=config.encoder.batch),
-        "text": encode_text(inputs, text_encoder, batch=config.encoder.batch),
+        "visual": encode_text(inputs, visual_encoder, batch=cfg.encoder.batch),
+        "text": encode_text(inputs, text_encoder, batch=cfg.encoder.batch),
     }
     check_features(feats, items=items)
     # ``**feats`` is modality-keyed; a key colliding with store's own
@@ -172,9 +168,9 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
         dataset="synthetic" if args.synthetic else args.data_dir,
         version="0",
         code=f"morel.data.extract:{text_kind}+{visual_kind}",
-        seed=config.seed,
+        seed=cfg.seed,
         extractor="random",
-        cfg_hash=config.hash(),
+        cfg_hash=cfg.hash(),
         extras={"items": items},
     )
     saved = (out_dir / "features.npz").resolve()
@@ -184,9 +180,9 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
             dataset="synthetic" if args.synthetic else args.data_dir,
             version="0",
             code=f"morel.data.extract:{text_kind}+{visual_kind}",
-            seed=config.seed,
+            seed=cfg.seed,
             extractor="random",
-            cfg_hash=config.hash(),
+            cfg_hash=cfg.hash(),
             extras={"items": items},
         ).as_json(),
         encoding="utf-8",
@@ -194,7 +190,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     print(out_dir / "features.npz")
 
 
-def assemble(args: argparse.Namespace, config: Config) -> None:
+def assemble(args: argparse.Namespace, cfg: Config) -> None:
     """Run the ``build`` subcommand."""
     from morel.data.build import bipartite as build_bipartite
     from morel.data.build import cooccurrence, kcore
@@ -205,7 +201,7 @@ def assemble(args: argparse.Namespace, config: Config) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     import numpy as np
 
-    rng = np.random.default_rng(config.seed)
+    rng = np.random.default_rng(cfg.seed)
     users, items = 32, 64
     pairs = rng.integers(0, users, size=512), rng.integers(0, items, size=512)
     ui = build_bipartite(pairs[0], pairs[1], users, items)
@@ -227,9 +223,9 @@ def assemble(args: argparse.Namespace, config: Config) -> None:
             dataset="synthetic" if args.synthetic else args.data_dir,
             version="0",
             code="morel.data.build.bipartite",
-            seed=config.seed,
+            seed=cfg.seed,
             extractor="random",
-            cfg_hash=config.hash(),
+            cfg_hash=cfg.hash(),
             extras={"users": users, "items": items, "min_edges": args.min_edges},
         ).as_json(),
         encoding="utf-8",

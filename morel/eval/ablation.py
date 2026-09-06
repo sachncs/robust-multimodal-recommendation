@@ -23,26 +23,26 @@ from morel.core.errors import Cfg
 BASELINE = "baseline"
 
 
-def no_retrieve(config: Config) -> Config:
+def noretry(config: Config) -> Config:
     """Remove graph retrieval, leaving each item to be completed on its own."""
     return replace(config, retrieve=replace(config.retrieve, kind="none"))
 
 
-def no_pe(config: Config) -> Config:
+def nope(config: Config) -> Config:
     """Remove the Laplacian positional encoding by requesting zero dimensions."""
     return replace(config, encode=replace(config.encode, pe=0))
 
 
-def no_book(config: Config) -> Config:
+def nobook(config: Config) -> Config:
     """Replace the codebook with a pass-through, removing quantization."""
     return replace(config, codebook=replace(config.codebook, kind="identity"))
 
 
 #: Map from ablation name to transform function. Module-local; no global registry.
 KIND: dict[str, object] = {
-    "no_retrieve": no_retrieve,
-    "no_pe": no_pe,
-    "no_book": no_book,
+    "noretry": noretry,
+    "nope": nope,
+    "nobook": nobook,
 }
 
 
@@ -78,7 +78,7 @@ __all__ = [
     "KIND",
     "ablate",
     "conditions",
-    "no_book",
-    "no_pe",
-    "no_retrieve",
+    "nope",
+    "nobook",
+    "noretry",
 ]

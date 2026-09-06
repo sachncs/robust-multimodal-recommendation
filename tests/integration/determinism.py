@@ -29,7 +29,7 @@ def synthetic() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix, sp.cs
         "visual": rng.normal(size=(items, 16)).astype(np.float32),
         "text": rng.normal(size=(items, 8)).astype(np.float32),
     }
-    mask = bernoulli(items, 2, 0.4, seed=42).as_numpy()
+    mask = bernoulli(items, 2, 0.4, seed=42).numpy()
     return features, mask, cooccurrence(ui), ui
 
 

@@ -36,7 +36,7 @@ def start(nodes: int) -> np.ndarray:
     return np.random.default_rng(SEED).standard_normal(nodes)
 
 
-def coo_digest(matrix: sp.spmatrix) -> str:
+def digest(matrix: sp.spmatrix) -> str:
     """Stable hash of a sparse matrix's nonzero pattern and shape."""
     coo = sp.coo_matrix(matrix)
     h = hashlib.sha256()
@@ -225,7 +225,7 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
         raise Net(f"k must be non-negative, got {k}")
     if k == 0:
         # Zero requested dimensions means no positional encoding at all. This
-        # is a meaningful configuration, not an error: it is the "no_pe"
+        # is a meaningful configuration, not an error: it is the "nope"
         # ablation condition. Callers concatenate the result, and a
         # zero-width array contributes nothing.
         return np.zeros((adj.shape[0], 0), dtype=np.float64)
@@ -273,7 +273,7 @@ class Laplace(nn.Module):
 
     def forward(self, adjacency: sp.spmatrix) -> torch.Tensor:
         """Compute or retrieve cached Laplacian PE."""
-        key = coo_digest(adjacency)
+        key = digest(adjacency)
         if key in self.cache:
             self.cache.move_to_end(key)
             return self.cache[key]

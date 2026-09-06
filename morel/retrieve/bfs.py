@@ -97,4 +97,4 @@ def neighbors_map(adj: sp.csr_matrix) -> dict[int, np.ndarray]:
     return out
 
 
-__all__ = ["bfs", "walk", "neighbors_map", "path"]
+__all__ = ["bfs", "neighbors_map", "path", "walk"]

@@ -38,7 +38,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     def registered(self) -> None:
-        assert set(ABLATIONS) == {"no_retrieve", "no_pe", "no_book"}
+        assert set(ABLATIONS) == {"noretry", "nope", "nobook"}
 
     def all(self) -> None:
         """A configured condition that is not registered would fail mid-sweep."""
@@ -46,21 +46,21 @@ class Checker:
             assert name in ABLATIONS, f"{name} is named in eval.ablations but not registered"
 
     def baseline(self) -> None:
-        config = small(eval={"ks": [5], "ablations": ["no_pe"]})
-        assert conditions(config) == (BASELINE, "no_pe")
+        config = small(eval={"ks": [5], "ablations": ["nobook"]})
+        assert conditions(config) == (BASELINE, "nobook")
 
     def unchanged(self) -> None:
         config = small()
         assert ablate(config, BASELINE) is config
 
     def context(self) -> None:
-        assert ablate(small(), "no_retrieve").retrieve.kind == "none"
+        assert ablate(small(), "noretry").retrieve.kind == "none"
 
     def encoding(self) -> None:
-        assert ablate(small(), "no_pe").encode.pe == 0
+        assert ablate(small(), "nope").encode.pe == 0
 
     def quantization(self) -> None:
-        assert ablate(small(), "no_book").codebook.kind == "identity"
+        assert ablate(small(), "nobook").codebook.kind == "identity"
 
     def the(self) -> None:
         config = small()
@@ -71,23 +71,23 @@ class Checker:
 
     def component(self) -> None:
         config = small()
-        ablated = ablate(config, "no_pe")
+        ablated = ablate(config, "nope")
         assert ablated.codebook == config.codebook
         assert ablated.retrieve == config.retrieve
         assert ablated.recommend == config.recommend
         assert ablated.encode.pe != config.encode.pe
 
     def rejected(self) -> None:
-        with pytest.raises(Cfg, match="unknown ablation 'nope'; available: "):
-            ablate(small(), "nope")
+        with pytest.raises(Cfg, match="unknown ablation 'unknown'; available: "):
+            ablate(small(), "unknown")
 
     def cutoff(self, tmp_path: Path) -> None:
-        config = small(eval={"ks": [5, 10], "ablations": ["no_pe", "no_book"]})
+        config = small(eval={"ks": [5, 10], "ablations": ["nope", "nobook"]})
         result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         assert set(result["metrics"]) == {"recall@5", "ndcg@5", "recall@10", "ndcg@10"}
         for values in result["metrics"].values():
-            assert set(values) == {BASELINE, "no_pe", "no_book"}
+            assert set(values) == {BASELINE, "nope", "nobook"}
             for value in values.values():
                 assert 0.0 <= value <= 1.0
 
@@ -97,7 +97,7 @@ class Checker:
         A sweep where every condition scores identically measures nothing, and
         would have been reported as though it did.
         """
-        config = small(eval={"ks": [5], "ablations": ["no_retrieve", "no_book"]})
+        config = small(eval={"ks": [5], "ablations": ["noretry", "nobook"]})
         result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         recall = result["metrics"]["recall@5"]
@@ -126,6 +126,6 @@ class Checker:
 
     def morel(self, tmp_path: Path) -> None:
         """Built-in ablations are available without registration."""
-        assert "no_retrieve" in ABLATIONS
-        assert "no_pe" in ABLATIONS
-        assert "no_book" in ABLATIONS
+        assert "noretry" in ABLATIONS
+        assert "nope" in ABLATIONS
+        assert "nobook" in ABLATIONS

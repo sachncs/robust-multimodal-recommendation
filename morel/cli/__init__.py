@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 log = logger("cli")
 
 
-def build_parser() -> argparse.ArgumentParser:
+def parser() -> argparse.ArgumentParser:
     """Build the top-level CLI argument parser."""
     parser = argparse.ArgumentParser(
         prog="morel", description="morel: graph retrieval-enhanced multimodal recommendation"
@@ -45,7 +45,7 @@ def main(argv: list[str] | None = None) -> int:
     """Dispatch to subcommands."""
     raw = list(sys.argv[1:] if argv is None else argv)
     configure_logging(raw)
-    cli_parser = build_parser()
+    cli_parser = parser()
     if not raw:
         cli_parser.print_help()
         return 0
@@ -69,7 +69,7 @@ def main(argv: list[str] | None = None) -> int:
         "bench": bench,
         "reproduce": repro,
         "serve": serve,
-        "render-fidelity": fidelity_render,
+        "render-fidelity": fidelity,
     }[cmd]
     return handler(rest)
 
@@ -213,7 +213,7 @@ def repro(argv: list[str]) -> int:
     return int(bool(rep.run()))
 
 
-def fidelity_render(argv: list[str]) -> int:
+def fidelity(argv: list[str]) -> int:
     """Handle the ``render-fidelity`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel render-fidelity", description="render fidelity")
     parser.add_argument("markdown", help="output markdown path")

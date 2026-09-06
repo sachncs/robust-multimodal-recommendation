@@ -95,9 +95,9 @@ def assert_state() -> None:
 __all__ = [
     "Scope",
     "admin",
-    "assert_state",
+    "assert",
     "dependency",
-    "viewer",
     "require",
     "token",
+    "viewer",
 ]

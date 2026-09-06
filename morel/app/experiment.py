@@ -72,7 +72,7 @@ def synthetic(
         modalities=2,
         ratio=settings.ratio,
         seed=settings.seed,
-    ).as_numpy()
+    ).numpy()
     return {
         "ui": ui,
         "item_adj": adj,

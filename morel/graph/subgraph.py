@@ -45,12 +45,12 @@ class Subgraph:
         """Return whether ``node`` is in the subgraph."""
         return int(node) in self.nodes
 
-    def as_set(self) -> set[int]:
+    def set(self) -> set[int]:
         """Return the subgraph as a Python set."""
         return set(self.nodes.tolist())
 
     @classmethod
-    def from_indices(cls, indices: list[int] | np.ndarray) -> Subgraph:
+    def indices(cls, indices: list[int] | np.ndarray) -> Subgraph:
         """Construct from a list of indices, deduplicating and sorting."""
         return cls(nodes=np.unique(np.asarray(indices, dtype=np.int64)))
 

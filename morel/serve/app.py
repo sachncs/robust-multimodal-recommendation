@@ -161,7 +161,7 @@ def run(pipeline: object, payload: Fill) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="items must be non-empty")
     pipeline_obj = cast("Pipeline", pipeline)
     dims = getattr(pipeline_obj, "dims", {"visual": 4, "text": 2})
-    mask = bernoulli(len(items), len(dims), 0.4, seed=0).as_numpy()
+    mask = bernoulli(len(items), len(dims), 0.4, seed=0).numpy()
     features = {
         name: torch.from_numpy(np.zeros((len(items), dim), dtype=np.float32))
         for name, dim in dims.items()

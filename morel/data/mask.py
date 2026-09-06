@@ -61,7 +61,7 @@ class Mask:
         absent: np.ndarray = self.data[item] == 0
         return absent
 
-    def as_numpy(self) -> np.ndarray:
+    def numpy(self) -> np.ndarray:
         """Return the underlying array."""
         return self.data
 
@@ -139,7 +139,7 @@ def stack(masks: list[Mask]) -> np.ndarray:
     """Stack a list of masks into a 3-D array ``(len(masks), items, modalities)``."""
     if not masks:
         raise Datum("stack requires at least one mask")
-    arrays = [m.as_numpy() for m in masks]
+    arrays = [m.numpy() for m in masks]
     return np.stack(arrays, axis=0)
 
 

@@ -138,7 +138,7 @@ def none(
 
     Nothing is retrieved, so the encoder sees only the item being completed
     and no graph context. This is the condition ``eval.ablations`` calls
-    ``no_retrieve``.
+    ``noretry``.
     """
     del features, mask, adj, anchors, iters, fallback
     return {int(query)}

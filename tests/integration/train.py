@@ -36,7 +36,7 @@ class Checker:
             "visual": rng.normal(size=(items, 4)).astype(np.float32),
             "text": rng.normal(size=(items, 2)).astype(np.float32),
         }
-        mask_np = bernoulli(items, 2, 0.4, seed=0).as_numpy()
+        mask_np = bernoulli(items, 2, 0.4, seed=0).numpy()
 
         import torch
 

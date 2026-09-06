@@ -12,9 +12,9 @@ import torch.nn as nn
 from morel.serve.auth import (
     admin,
     assert_state,
-    viewer,
     require,
     token,
+    viewer,
 )
 from morel.serve.lock import RWLock
 from morel.serve.update import Updater

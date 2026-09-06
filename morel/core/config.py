@@ -140,7 +140,7 @@ class Eval:
 
     ks: tuple[int, ...] = (10, 20)
     robustness: tuple[float, ...] = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
-    ablations: tuple[str, ...] = ("no_retrieve", "no_pe", "no_book")
+    ablations: tuple[str, ...] = ("noretry", "nope", "nobook")
 
 
 @dataclass(frozen=True)

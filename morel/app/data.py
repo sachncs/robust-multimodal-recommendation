@@ -190,7 +190,7 @@ class BPR(Dataset[dict[str, Any]]):
         return {"users": user, "positive": positive, "negative": negative}
 
 
-def recommend_loader(
+def recommender(
     ui_graph: sp.csr_matrix,
     *,
     batch_size: int = 1024,
@@ -251,7 +251,7 @@ __all__ = [
     "build",
     "cast",
     "collate",
-    "recommend_loader",
+    "recommender",
     "recommends",
     "split",
     "synth",

@@ -26,17 +26,17 @@ class Checker:
     def every(self) -> None:
         """Completion is impossible for an item with nothing observed."""
         for ratio in (0.1, 0.5, 0.9):
-            mask = build_mask("bernoulli", items=40, modalities=2, ratio=ratio, seed=0).as_numpy()
+            mask = build_mask("bernoulli", items=40, modalities=2, ratio=ratio, seed=0).numpy()
             assert (mask.sum(axis=1) > 0).all()
 
     def bernoulli(self) -> None:
-        low = build_mask("bernoulli", items=200, modalities=3, ratio=0.1, seed=0).as_numpy()
-        high = build_mask("bernoulli", items=200, modalities=3, ratio=0.9, seed=0).as_numpy()
+        low = build_mask("bernoulli", items=200, modalities=3, ratio=0.1, seed=0).numpy()
+        high = build_mask("bernoulli", items=200, modalities=3, ratio=0.9, seed=0).numpy()
         assert low.mean() > high.mean()
 
     def masking(self) -> None:
-        first = build_mask("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).as_numpy()
-        second = build_mask("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).as_numpy()
+        first = build_mask("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).numpy()
+        second = build_mask("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).numpy()
         assert np.array_equal(first, second)
 
     def block(self) -> None:

@@ -17,6 +17,8 @@ import pytest
 
 from morel.core.config import Config
 from morel.data.__main__ import main
+from morel.data.__main__ import config as load_cfg
+from morel.data.__main__ import paths as resolve_paths
 
 
 def write(tmp_path: Path, **payload: Any) -> Path:
@@ -173,11 +175,11 @@ class Checker:
         """--category used to be required, ignoring data.category entirely."""
         import argparse
 
-        from morel.data.__main__ import load_config, resolve_paths
+        from morel.data.__main__ import config, paths
 
         config = Config.parse({"data": {"category": "Books", "raw": "r", "processed": "p"}})
         args = argparse.Namespace(cmd="download", category=None, dest=None, config=None)
         resolve_paths(args, config)
         assert args.category == "Books"
         assert args.dest == "r"
-        assert load_config(argparse.Namespace(config=None)) == Config()
+        assert load_cfg(argparse.Namespace(config=None)) == Config()

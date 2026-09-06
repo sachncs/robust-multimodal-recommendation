@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import Net
-from morel.retrieve.bfs import bfs, walk, neighbors_map, path
+from morel.retrieve.bfs import bfs, neighbors_map, path, walk
 
 
 class Checker:

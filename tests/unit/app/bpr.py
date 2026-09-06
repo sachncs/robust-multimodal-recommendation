@@ -8,7 +8,7 @@ import scipy.sparse as sp
 
 from morel.app.data import (
     BPR,
-    recommend_loader,
+    recommender,
     recommends,
     split,
 )
@@ -73,7 +73,7 @@ class Checker:
             BPR(sp.csr_matrix(np.ones((2, 3), dtype=np.float32)), length=5)
 
     def loader(self) -> None:
-        loader = recommend_loader(interactions(), batch_size=32)
+        loader = recommender(interactions(), batch_size=32)
         batch = next(iter(loader))
         assert set(batch) == {"users", "positive", "negative"}
         for value in batch.values():
@@ -81,7 +81,7 @@ class Checker:
 
     def epoch(self) -> None:
         ui = interactions()
-        loader = recommend_loader(ui)
+        loader = recommender(ui)
         assert len(loader.dataset) == ui.nnz
 
     def split(self) -> None:
