@@ -41,7 +41,7 @@ class Manifest:
         return json.dumps(dataclasses.asdict(self), indent=2, sort_keys=True, ensure_ascii=False)
 
     @classmethod
-    def from_json(cls, text: str) -> "Manifest":
+    def from_json(cls, text: str) -> Manifest:
         """Deserialize from JSON."""
         payload = json.loads(text)
         return cls(**payload)
@@ -110,10 +110,10 @@ def checksum(path: Path | str) -> str:
 
 
 __all__ = [
-    "Manifest",
     "SCHEMA_VERSION",
+    "Manifest",
+    "checksum",
+    "load",
     "path_for",
     "save",
-    "load",
-    "checksum",
 ]

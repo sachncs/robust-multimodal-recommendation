@@ -212,7 +212,7 @@ class Config:
         return asdict(self)
 
     @classmethod
-    def defaults(cls) -> "Config":
+    def defaults(cls) -> Config:
         """Return a Config populated entirely with default values.
 
         Equivalent to ``Config()`` but typed for clarity at call sites
@@ -222,7 +222,7 @@ class Config:
         return cls()
 
     @classmethod
-    def from_dict(cls, payload: dict[str, Any]) -> "Config":
+    def from_dict(cls, payload: dict[str, Any]) -> Config:
         """Build a Config from a nested dict.
 
         Unknown keys raise ConfigError. Missing keys take defaults.
@@ -247,13 +247,13 @@ class Config:
         return cls(**result)
 
     @classmethod
-    def from_yaml(cls, path: Path | str) -> "Config":
+    def from_yaml(cls, path: Path | str) -> Config:
         """Load configuration from a YAML file."""
         text = Path(path).read_text(encoding="utf-8")
         return cls.from_dict(yaml.safe_load(text))
 
     @classmethod
-    def from_env(cls) -> "Config":
+    def from_env(cls) -> Config:
         """Build a Config with values overridden from ``MOREL_*`` env vars.
 
         Recognized keys: ``MOREL_SEED``, ``MOREL_DEVICE``. Nested keys are not
@@ -320,19 +320,19 @@ def resolve_dataclass_annotation(annotation: Any) -> type:
 
 
 __all__ = [
-    "Data",
-    "Encoder",
-    "Masking",
-    "Retrieve",
-    "Encode",
-    "Route",
     "Codebook",
     "Complete",
-    "Recommend",
     "Completion",
-    "Recommendation",
-    "Eval",
-    "Serve",
-    "Log",
     "Config",
+    "Data",
+    "Encode",
+    "Encoder",
+    "Eval",
+    "Log",
+    "Masking",
+    "Recommend",
+    "Recommendation",
+    "Retrieve",
+    "Route",
+    "Serve",
 ]

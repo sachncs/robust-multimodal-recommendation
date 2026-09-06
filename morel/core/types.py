@@ -95,9 +95,9 @@ class Embedding:
         """Return whether the underlying tensor requires gradients."""
         return self.tensor.requires_grad
 
-    def to(self, device: torch.device | str) -> "Embedding":
+    def to(self, device: torch.device | str) -> Embedding:
         """Return a new Embedding on the given device."""
         return Embedding(name=self.name, tensor=self.tensor.to(device))
 
 
-__all__ = ["Modality", "Mask", "Graph", "Embedding"]
+__all__ = ["Embedding", "Graph", "Mask", "Modality"]

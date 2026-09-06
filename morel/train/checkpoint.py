@@ -93,7 +93,7 @@ class State:
         tmp.replace(path)
 
     @classmethod
-    def load(cls, target: Path | str, *, expected_config_hash: str | None = None) -> "State":
+    def load(cls, target: Path | str, *, expected_config_hash: str | None = None) -> State:
         """Load a checkpoint, optionally verifying the config hash."""
         payload = safe_load(target)
         if expected_config_hash is not None and payload.get("config_hash") != expected_config_hash:

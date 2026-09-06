@@ -25,12 +25,13 @@ class Item:
     matrix: sp.csr_matrix
 
     def __post_init__(self) -> None:
+        """Enforce graph invariants on construction."""
         invariants.no_self_loops(self.matrix)
         invariants.symmetric(self.matrix)
         invariants.finite(self.matrix)
 
     @classmethod
-    def from_bipartite(cls, bipartite: Bipartite) -> "Item":
+    def from_bipartite(cls, bipartite: Bipartite) -> Item:
         """Construct the item-item graph from a bipartite user-item graph."""
         cooc = bipartite.matrix.T @ bipartite.matrix
         cooc = cooc.sign()

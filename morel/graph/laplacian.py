@@ -96,7 +96,7 @@ class Laplace(nn.Module):
         super().__init__()
         self.k = k
         self.capacity = capacity
-        self.cache: "OrderedDict[str, torch.Tensor]" = OrderedDict()
+        self.cache: OrderedDict[str, torch.Tensor] = OrderedDict()
 
     def forward(self, adjacency: sp.spmatrix) -> torch.Tensor:
         """Compute or retrieve cached Laplacian PE."""

@@ -19,7 +19,7 @@ class Loader:
         if capacity <= 0:
             raise ValueError("capacity must be positive")
         self.capacity = capacity
-        self.cache: "OrderedDict[str, Any]" = OrderedDict()
+        self.cache: OrderedDict[str, Any] = OrderedDict()
         self.lock = threading.Lock()
 
     def get(self, key: str, factory: Any) -> Any:
