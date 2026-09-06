@@ -23,7 +23,7 @@ def write(tmp_path: Path, **payload: Any) -> Path:
     """Write a config YAML and return its path."""
     tmp_path.mkdir(parents=True, exist_ok=True)
     path = tmp_path / "config.yaml"
-    Config.from_dict(payload).save(path)
+    Config.parse(payload).save(path)
     return path
 
 
@@ -147,7 +147,7 @@ class Checker:
 
         from morel.data.__main__ import load_config, resolve_paths
 
-        config = Config.from_dict({"data": {"category": "Books", "raw": "r", "processed": "p"}})
+        config = Config.parse({"data": {"category": "Books", "raw": "r", "processed": "p"}})
         args = argparse.Namespace(cmd="download", category=None, dest=None, config=None)
         resolve_paths(args, config)
         assert args.category == "Books"

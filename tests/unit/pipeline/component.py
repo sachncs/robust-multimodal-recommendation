@@ -36,7 +36,7 @@ def make(**sections: dict[str, object]) -> Config:
     }
     for name, values in sections.items():
         payload.setdefault(name, {}).update(values)
-    return Config.from_dict(payload)
+    return Config.parse(payload)
 
 
 def ui() -> sp.csr_matrix:

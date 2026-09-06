@@ -31,7 +31,7 @@ def small(**overrides: Any) -> Config:
         "eval": {"ks": [5]},
     }
     payload.update(overrides)
-    return Config.from_dict(payload)
+    return Config.parse(payload)
 
 
 class Checker:

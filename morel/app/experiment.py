@@ -14,7 +14,7 @@ import numpy as np
 import torch
 
 from morel.app.data import (
-    build_completion_loaders,
+    build_loaders,
     build_recommendation_loaders,
     synth_bipartite,
     to_tensor,
@@ -135,7 +135,7 @@ class Experiment:
         )
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
 
-        loader, val_loader = build_completion_loaders(
+        loader, val_loader = build_loaders(
             dataset["features"],
             dataset["mask"],
             dataset["item_adj"],
@@ -506,7 +506,7 @@ class Reproduce:
 
     def run(self) -> dict[str, Any]:
         """Re-run a saved experiment deterministically."""
-        config = Config.from_yaml(self.config_path)
+        config = Config.load(self.config_path)
         seed_everything(config.seed)
         experiment = Experiment(
             config=config,

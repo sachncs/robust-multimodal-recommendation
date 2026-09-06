@@ -10,7 +10,7 @@ from morel.app.data import (
     BPR,
     build_recommendation_loader,
     build_recommendation_loaders,
-    split_dataset,
+    split,
 )
 from morel.core.errors import DataError
 
@@ -86,14 +86,14 @@ class Checker:
 
     def split(self) -> None:
         dataset = BPR(interactions(), length=100, seed=0)
-        train, val = split_dataset(dataset, val_fraction=0.2, seed=0)
+        train, val = split(dataset, val_fraction=0.2, seed=0)
         assert val is not None
         assert len(val) == 20
         assert len(train) == 80
 
     def disjoint(self) -> None:
         dataset = BPR(interactions(), length=100, seed=0)
-        train, val = split_dataset(dataset, val_fraction=0.25, seed=0)
+        train, val = split(dataset, val_fraction=0.25, seed=0)
         assert val is not None
         train_idx, val_idx = set(train.indices), set(val.indices)
         assert not (train_idx & val_idx), "a sample must not be in both splits"
@@ -101,26 +101,26 @@ class Checker:
 
     def reproducible(self) -> None:
         dataset = BPR(interactions(), length=100, seed=0)
-        first, _ = split_dataset(dataset, val_fraction=0.3, seed=5)
-        second, _ = split_dataset(dataset, val_fraction=0.3, seed=5)
+        first, _ = split(dataset, val_fraction=0.3, seed=5)
+        second, _ = split(dataset, val_fraction=0.3, seed=5)
         assert first.indices == second.indices
 
     def zero(self) -> None:
         dataset = BPR(interactions(), length=100, seed=0)
-        train, val = split_dataset(dataset, val_fraction=0.0, seed=0)
+        train, val = split(dataset, val_fraction=0.0, seed=0)
         assert val is None
         assert train is dataset
 
     def fraction(self) -> None:
         dataset = BPR(interactions(), length=4, seed=0)
-        _, val = split_dataset(dataset, val_fraction=0.01, seed=0)
+        _, val = split(dataset, val_fraction=0.01, seed=0)
         assert val is None, "rather than build an empty validation loader"
 
     def invalid(self) -> None:
         dataset = BPR(interactions(), length=10, seed=0)
         for bad in (-0.1, 1.0, 1.5):
             with pytest.raises(DataError, match=r"validation fraction must be in \[0, 1\)"):
-                split_dataset(dataset, val_fraction=bad, seed=0)
+                split(dataset, val_fraction=bad, seed=0)
 
     def recommendation(self) -> None:
         ui = interactions()

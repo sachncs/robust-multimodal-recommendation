@@ -27,7 +27,7 @@ def small(**completion: Any) -> Config:
         "codebook": {"size": 16},
         "completion": {"epochs": 2, "batch": 4, **completion},
     }
-    return Config.from_dict(payload)
+    return Config.parse(payload)
 
 
 class Checker:
@@ -80,13 +80,13 @@ class Checker:
         captured: dict[str, Any] = {}
         import morel.app.experiment as module
 
-        real = module.build_completion_loaders
+        real = module.build_loaders
 
         def capture(*args: Any, **kwargs: Any) -> Any:
             captured.update(kwargs)
             return real(*args, **kwargs)
 
-        monkeypatch.setattr(module, "build_completion_loaders", capture)
+        monkeypatch.setattr(module, "build_loaders", capture)
 
         Experiment(config=small(batch=3), run_dir=tmp_path, items=10, users=4).run()
         assert captured["batch_size"] == 3
@@ -104,6 +104,6 @@ class Checker:
         config = small(lr=7e-4, epochs=2)
         result = Experiment(config=config, run_dir=tmp_path, items=10, users=4).run()
 
-        written = Config.from_yaml(tmp_path / "config.yaml")
+        written = Config.load(tmp_path / "config.yaml")
         assert written.hash() == result["config_hash"]
         assert written.completion.lr == pytest.approx(7e-4)

@@ -21,7 +21,7 @@ log = get_logger("data.cli")
 def load_config(args: argparse.Namespace) -> Config:
     """Load the config named by ``--config``, or the defaults."""
     path = getattr(args, "config", None)
-    return Config.from_yaml(path) if path else Config()
+    return Config.load(path) if path else Config()
 
 
 def resolve_paths(args: argparse.Namespace, config: Config) -> None:

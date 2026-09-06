@@ -67,7 +67,7 @@ def collate(batch: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def split_dataset(
+def split(
     dataset: Dataset[dict[str, Any]], *, val_fraction: float, seed: int
 ) -> tuple[Dataset[dict[str, Any]], Dataset[dict[str, Any]] | None]:
     """Split ``dataset`` deterministically into train and validation parts.
@@ -99,7 +99,7 @@ def split_dataset(
     return Subset(dataset, train_indices), Subset(dataset, val_indices)
 
 
-def build_completion_loaders(
+def build_loaders(
     features: dict[str, np.ndarray],
     mask: np.ndarray,
     adjacency: sp.csr_matrix,
@@ -109,7 +109,7 @@ def build_completion_loaders(
     seed: int = 0,
 ) -> tuple[DataLoader[dict[str, Any]], DataLoader[dict[str, Any]] | None]:
     """Build the completion train loader and, if requested, a validation loader."""
-    train, val = split_dataset(
+    train, val = split(
         Corpus(features, mask, adjacency), val_fraction=val_fraction, seed=seed
     )
     train_loader = DataLoader(train, batch_size=batch_size, collate_fn=collate)
@@ -118,7 +118,7 @@ def build_completion_loaders(
     return train_loader, DataLoader(val, batch_size=batch_size, collate_fn=collate)
 
 
-def build_completion_loader(
+def build_loader(
     features: dict[str, np.ndarray],
     mask: np.ndarray,
     adjacency: sp.csr_matrix,
@@ -226,7 +226,7 @@ def build_recommendation_loaders(
     """Build the BPR train loader and, if requested, a validation loader."""
     if length is None:
         length = max(int(ui_graph.nnz), 1)
-    train, val = split_dataset(
+    train, val = split(
         BPR(ui_graph, length=length, seed=seed), val_fraction=val_fraction, seed=seed
     )
     train_loader = DataLoader(train, batch_size=batch_size)
@@ -251,12 +251,12 @@ def synth_bipartite(
 __all__ = [
     "BPR",
     "Corpus",
-    "build_completion_loader",
-    "build_completion_loaders",
+    "build_loader",
+    "build_loaders",
     "build_recommendation_loader",
     "build_recommendation_loaders",
     "collate",
-    "split_dataset",
+    "split",
     "synth_bipartite",
     "to_tensor",
 ]

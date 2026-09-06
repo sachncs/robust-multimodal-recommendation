@@ -39,7 +39,7 @@ def write(tmp_path: Path, **payload: Any) -> Path:
     """Write a config YAML and return its path."""
     tmp_path.mkdir(parents=True, exist_ok=True)
     path = tmp_path / "config.yaml"
-    Config.from_dict(payload).save(path)
+    Config.parse(payload).save(path)
     return path
 
 

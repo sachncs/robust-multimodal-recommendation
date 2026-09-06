@@ -20,7 +20,7 @@ from morel.core.config import Config
 
 def small(**recommendation: Any) -> Config:
     """Return a config small enough to train quickly."""
-    return Config.from_dict(
+    return Config.parse(
         {
             "encode": {"hidden": 16, "pe": 4, "layers": 1, "heads": 2},
             "codebook": {"size": 16},
@@ -103,7 +103,7 @@ class Checker:
         assert captured["trainer_config"].grad_clip == pytest.approx(1.5)
 
     def recommender(self, tmp_path: Path) -> None:
-        config = Config.from_dict(
+        config = Config.parse(
             {
                 "encode": {"hidden": 16, "pe": 4, "layers": 1, "heads": 2},
                 "codebook": {"size": 16},

@@ -21,7 +21,7 @@ from morel.core.config import Config
 def write(tmp_path: Path, **payload: Any) -> Path:
     """Write a config YAML and return its path."""
     path = tmp_path / "config.yaml"
-    Config.from_dict(payload).save(path)
+    Config.parse(payload).save(path)
     return path
 
 

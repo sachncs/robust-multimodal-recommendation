@@ -92,7 +92,7 @@ class Checker:
     @pytest.mark.parametrize("kind", ["mage", "acs", "anchor", "bfs"])
     def kind(self, kind: str) -> None:
         features, mask, adjacency = corpus()
-        config = Config.from_dict(
+        config = Config.parse(
             {
                 "encode": {"hidden": 16, "pe": 4, "layers": 1, "heads": 2},
                 "codebook": {"size": 16},

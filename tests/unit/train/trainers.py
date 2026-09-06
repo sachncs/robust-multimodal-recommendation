@@ -14,7 +14,7 @@ from morel.pipeline import Pipeline
 from morel.recommend import Light
 from morel.train.completion import Completion, TrainConfig
 from morel.train.recommendation import Recommendation, RankConfig
-from tests.shared import BPR, build_completion_loader, build_path_graph
+from tests.shared import BPR, build_loader, build_path_graph
 
 
 class Checker:
@@ -35,7 +35,7 @@ class Checker:
         model = Pipeline(config, dims={"visual": dim, "text": dim})
         model.attach(features, mask, adj)
 
-        loader = build_completion_loader(features, mask, adj, batch_size=4)
+        loader = build_loader(features, mask, adj, batch_size=4)
         cfg = TrainConfig()
         trainer = Completion(model, cfg, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path)
         trainer.fit(loader, loader, epochs=2, patience=1)

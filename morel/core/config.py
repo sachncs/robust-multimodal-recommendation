@@ -222,7 +222,7 @@ class Config:
         return cls()
 
     @classmethod
-    def from_dict(cls, payload: dict[str, Any]) -> Config:
+    def parse(cls, payload: dict[str, Any]) -> Config:
         """Build a Config from a nested dict.
 
         Unknown keys raise ConfigError. Missing keys take defaults.
@@ -251,10 +251,10 @@ class Config:
         return cls(**result)
 
     @classmethod
-    def from_yaml(cls, path: Path | str) -> Config:
+    def load(cls, path: Path | str) -> Config:
         """Load configuration from a YAML file."""
         text = Path(path).read_text(encoding="utf-8")
-        return cls.from_dict(yaml.load(text, Loader=yaml.SafeLoader))
+        return cls.parse(yaml.load(text, Loader=yaml.SafeLoader))
 
     @classmethod
     def load_env(cls) -> Config:
@@ -274,7 +274,7 @@ class Config:
             return cls()
         merged = cls().dump()
         merged.update(overrides)
-        return cls.from_dict(merged)
+        return cls.parse(merged)
 
     def save(self, path: Path | str) -> None:
         """Write the configuration to a YAML file."""

@@ -292,7 +292,7 @@ def load_config_or_default(path: Path | None) -> Config:
 
     if path is None:
         return Config()
-    return Config.from_yaml(path)
+    return Config.load(path)
 
 
 if __name__ == "__main__":

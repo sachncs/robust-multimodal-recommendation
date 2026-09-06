@@ -40,12 +40,12 @@ class Checker:
         c = Config()
         path = tmp_path / "config.yaml"
         c.save(path)
-        loaded = Config.from_yaml(path)
+        loaded = Config.load(path)
         assert loaded.hash() == c.hash()
 
     def rejects(self) -> None:
         with pytest.raises(ConfigError):
-            Config.from_dict({"seed": 0, "totally_made_up": True})
+            Config.parse({"seed": 0, "totally_made_up": True})
 
     def env(self, monkeypatch) -> None:
         monkeypatch.setenv("MOREL_SEED", "123")
