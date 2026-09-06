@@ -28,7 +28,7 @@ def admin() -> bool:
     return bool(os.environ.get("MOREL_AUTH_TOKEN_ADMIN") or os.environ.get("MOREL_AUTH_TOKEN"))
 
 
-def is_read() -> bool:
+def viewer() -> bool:
     """Return whether read-scope auth is configured."""
     return bool(os.environ.get("MOREL_AUTH_TOKEN_READ") or os.environ.get("MOREL_AUTH_TOKEN"))
 
@@ -88,7 +88,7 @@ def dependency(scope: Scope) -> Callable[[Request], None]:
 
 def assert_state() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
-    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (admin() or is_read()):
+    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (admin() or viewer()):
         raise Cfg("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
 
 
@@ -97,7 +97,7 @@ __all__ = [
     "admin",
     "assert_state",
     "dependency",
-    "is_read",
+    "viewer",
     "require",
     "token",
 ]

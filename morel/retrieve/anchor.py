@@ -10,7 +10,7 @@ from morel.core.log import get as logger
 log = logger("retrieve.anchor")
 
 
-def validate_anchor(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
+def check(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
     """Validate feature-array shapes and return the number of items."""
     if not features:
         raise Net("features dict is empty")
@@ -75,7 +75,7 @@ def query(
     """
     if query_modality not in features:
         return np.empty(0, dtype=np.int64)
-    items = validate_anchor(features, mask)
+    items = check(features, mask)
     if query_item < 0 or query_item >= items:
         raise Net(f"query_item {query_item} out of range [0, {items})")
     if top <= 0:

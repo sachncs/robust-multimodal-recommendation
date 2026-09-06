@@ -126,12 +126,12 @@ class Checker:
         assert pipeline.training is False, "a training pass must not leave the module in train mode"
 
     def cache(self) -> None:
-        """Regression: attach_recommend used to raise AttributeError."""
+        """Regression: wire used to raise AttributeError."""
         config = Config()
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
         ui = sp.csr_matrix(np.array([[1, 0, 1], [0, 1, 1]], dtype=np.float32))
 
-        pipeline.attach_recommend(ui)
+        pipeline.wire(ui)
 
         assert pipeline.recommender is not None
         assert pipeline.recommender.users == 2
@@ -146,10 +146,10 @@ class Checker:
 
         first = Pipeline(config, dims={"visual": 4, "text": 2})
         torch.manual_seed(1)
-        first.attach_recommend(ui)
+        first.wire(ui)
         second = Pipeline(config, dims={"visual": 4, "text": 2})
         torch.manual_seed(4321)
-        second.attach_recommend(ui)
+        second.wire(ui)
 
         assert first.recommender is not None
         assert second.recommender is not None

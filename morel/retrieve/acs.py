@@ -25,7 +25,7 @@ from morel.graph import invariants
 log = logger("retrieve.acs")
 
 
-def validate_acs(adj: sp.csr_matrix, anchors: list[int]) -> None:
+def verify(adj: sp.csr_matrix, anchors: list[int]) -> None:
     if anchors is None:
         raise Net("anchors must not be None")
     if not anchors:
@@ -63,7 +63,7 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
     """
     if adj.ndim != 2 or adj.shape[0] != adj.shape[1]:
         raise Net(f"adj must be square, got {adj.shape}")
-    validate_acs(adj, anchors)
+    verify(adj, anchors)
     invariants.loopless(adj)
     if not anchors:
         return set()

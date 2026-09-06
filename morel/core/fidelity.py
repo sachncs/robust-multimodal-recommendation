@@ -90,7 +90,7 @@ def render(target: Path | str) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def render_json(target: Path | str) -> None:
+def show(target: Path | str) -> None:
     """Render the registry as a JSON file.
 
     Args:

@@ -12,7 +12,7 @@ import torch.nn as nn
 from morel.serve.auth import (
     admin,
     assert_state,
-    is_read,
+    viewer,
     require,
     token,
 )
@@ -44,7 +44,7 @@ class Checker:
         monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
         monkeypatch.delenv("MOREL_AUTH_TOKEN_ADMIN", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "read-tok")
-        assert is_read() is True
+        assert viewer() is True
         assert admin() is False
         assert token("read") == "read-tok"
         assert token("admin") is None
@@ -53,7 +53,7 @@ class Checker:
         monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
         monkeypatch.delenv("MOREL_AUTH_TOKEN_READ", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-tok")
-        assert is_read() is False
+        assert viewer() is False
         assert admin() is True
         assert token("read") is None
         assert token("admin") == "admin-tok"
@@ -66,7 +66,7 @@ class Checker:
         ):
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN", "legacy")
-        assert is_read() is True
+        assert viewer() is True
         assert admin() is True
         assert token("read") == "legacy"
         assert token("admin") == "legacy"

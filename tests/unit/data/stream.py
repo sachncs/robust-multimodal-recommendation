@@ -9,8 +9,8 @@ import numpy as np
 import pytest
 
 from morel.data.stream import (
-    cooc,
     confirmed,
+    cooc,
     review,
     stream,
 )

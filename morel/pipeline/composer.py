@@ -142,7 +142,7 @@ class Pipeline(nn.Module):
         self.corpus_mask: np.ndarray | None = None
         self.corpus_adj: sp.csr_matrix | None = None
 
-    def attach_recommend(self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None) -> None:
+    def wire(self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None) -> None:
         """Attach the downstream ranker named by ``config.recommend.kind``.
 
         The ranker is initialized under ``config.seed``. Whatever

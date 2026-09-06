@@ -12,7 +12,7 @@ from morel.serve.auth import (
     admin,
     assert_state,
     dependency,
-    is_read,
+    viewer,
     token,
 )
 from morel.serve.loader import Loader
@@ -61,7 +61,7 @@ __all__ = [
     "assert_state",
     "create",
     "dependency",
-    "is_read",
+    "viewer",
     "reader",
     "serialize",
     "token",

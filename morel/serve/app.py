@@ -94,7 +94,7 @@ def create(loader: Loader | None = None) -> FastAPI:
             pipeline = app.state.loader.get("default", default)
         except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
-        items = recommend_items(pipeline, payload)
+        items = suggest(pipeline, payload)
         return List(items=items)
 
     @app.post("/v1/feedback", response_model=Tell)
@@ -180,7 +180,7 @@ def run(pipeline: object, payload: Fill) -> dict[str, Any]:
     return completed
 
 
-def recommend_items(pipeline: object, payload: Query) -> list[Pick]:
+def suggest(pipeline: object, payload: Query) -> list[Pick]:
     """Return the top-``top`` items for a user.
 
     Stub implementation: returns a uniformly-ranked slice of the catalogue.

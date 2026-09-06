@@ -183,7 +183,7 @@ class Updater:
         """Snapshot the pipeline state dict for rollback."""
         return copy.deepcopy(self.pipeline.state_dict())
 
-    def validate_loss(self, batch: list[Event]) -> float:
+    def assess(self, batch: list[Event]) -> float:
         """Compute the held-out validation loss using the configured ``loss_step``."""
         if not batch:
             return float("inf")
@@ -214,7 +214,7 @@ class Updater:
         replay_sample = replay[:n_replay] if n_replay else []
         step_batch = replay_sample + train_batch
         loss = float(self.loss_step(step_batch))
-        valid_loss = self.validate_loss(val_batch)
+        valid_loss = self.assess(val_batch)
         committed, version_after = self.apply(loss, valid_loss)
         return Outcome(
             committed=committed,

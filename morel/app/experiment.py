@@ -269,7 +269,7 @@ class Rank:
         dataset = synthetic(self.items, 8, 4, self.users, self.config.masking)
         ui = dataset["ui"]
         pipeline = Pipeline(self.config, dims={"visual": 8, "text": 4})
-        pipeline.attach_recommend(ui)
+        pipeline.wire(ui)
         assert pipeline.recommender is not None
 
         loader, val_loader = recommends(
@@ -383,7 +383,7 @@ class Ablate:
         feature_dim = self.dim_visual + self.dim_text
         pipeline = Pipeline(config, dims={"visual": self.dim_visual, "text": self.dim_text})
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
-        pipeline.attach_recommend(dataset["ui"], feature_dim=feature_dim)
+        pipeline.wire(dataset["ui"], feature_dim=feature_dim)
         assert pipeline.recommender is not None
         index = torch.arange(self.items)
         output = pipeline(
