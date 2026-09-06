@@ -64,7 +64,7 @@ def test_fidelity_test_functions_exist() -> None:
 
 
 def test_fidelity_registry_is_nonempty_after_import() -> None:
-    """morel.core.__init__ side-effect-imports morel.core.fidelity_registry."""
+    """morel.core.__init__ side-effect-imports morel.core.fidelity.register_all."""
     assert len(registry) >= 10
 
 
