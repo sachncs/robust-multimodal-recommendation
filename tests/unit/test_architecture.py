@@ -138,14 +138,17 @@ def documented_kinds() -> dict[str, set[str]]:
     doc = (SOURCE.parent / "docs" / "ARCHITECTURE.md").read_text(encoding="utf-8")
     found: dict[str, set[str]] = {}
     for line in doc.splitlines():
-        if not line.startswith("| `") or ".kind`" not in line:
+        if not line.startswith("| `"):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if len(cells) != 3:
             continue
+        # The middle cell names the registry; only rows that name one in
+        # ALL-CAPS are part of the extension-point table.
         registry = cells[1].strip("`")
-        kinds = {k.strip().strip("`") for k in cells[2].split(",")}
-        found[registry] = kinds
+        if not registry.isupper():
+            continue
+        found[registry] = {k.strip().strip("`") for k in cells[2].split(",")}
     return found
 
 
@@ -153,7 +156,7 @@ def test_documented_extension_points_match_the_registries() -> None:
     """docs/ARCHITECTURE.md must not drift from what is actually registered."""
     from morel.codebook import CODEBOOKS
     from morel.complete import COMPLETERS
-    from morel.data import MASKS
+    from morel.data import EXTRACTORS, MASKS
     from morel.encode import ENCODERS
     from morel.recommend import RECOMMENDERS
     from morel.retrieve import STRATEGIES
@@ -161,6 +164,7 @@ def test_documented_extension_points_match_the_registries() -> None:
 
     registries = {
         "MASKS": MASKS,
+        "EXTRACTORS": EXTRACTORS,
         "STRATEGIES": STRATEGIES,
         "ENCODERS": ENCODERS,
         "ROUTERS": ROUTERS,

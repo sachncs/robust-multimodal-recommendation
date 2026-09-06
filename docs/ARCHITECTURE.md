@@ -81,11 +81,13 @@ Each pipeline stage is selected by a `kind` in the config and built through a
 registry. The registries are `morel.encode.ENCODERS`, `morel.route.ROUTERS`,
 `morel.codebook.CODEBOOKS`, `morel.complete.COMPLETERS`,
 `morel.recommend.RECOMMENDERS`, `morel.retrieve.STRATEGIES` and
-`morel.data.MASKS`; each is a `morel.core.registry.Registry`.
+`morel.data.MASKS` and `morel.data.EXTRACTORS`; each is a
+`morel.core.registry.Registry`.
 
 | Config field | Registry | Shipped kinds |
 |---|---|---|
 | `masking.kind` | `MASKS` | `bernoulli`, `block` |
+| `encoder.text` / `encoder.visual` | `EXTRACTORS` | `random`, `sentence-transformers/all-MiniLM-L6-v2`, `resnet50` |
 | `retrieve.kind` | `STRATEGIES` | `mage`, `acs`, `anchor`, `bfs`, `none` |
 | `encode.kind` | `ENCODERS` | `transformer`, `identity` |
 | `route.kind` | `ROUTERS` | `top`, `dense`, `gumbel`, `fixed` |

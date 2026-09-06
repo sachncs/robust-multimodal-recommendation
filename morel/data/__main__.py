@@ -133,8 +133,15 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def run_extract(args: argparse.Namespace, config: Config) -> None:
-    """Run the ``extract`` subcommand."""
-    from morel.data.extract import random as random_features
+    """Run the ``extract`` subcommand.
+
+    The encoder for each modality is named by ``config.encoder.text`` and
+    ``config.encoder.visual`` and built through the extractor registry, so a
+    configured backbone is actually the one that runs. ``--synthetic`` forces
+    the deterministic ``random`` encoder, which needs no model download.
+    """
+    from morel.data import EXTRACTORS
+    from morel.data.extract import text as encode_text
     from morel.data.manifest import Manifest
     from morel.data.store import save_npz
     from morel.data.validate import features as validate_features
@@ -144,9 +151,21 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     items = max(8, config.encode.hidden // 8)
     dim_visual = config.encoder.visual_dim
     dim_text = config.encoder.text_dim
+    text_kind = "random" if args.synthetic else config.encoder.text
+    visual_kind = "random" if args.synthetic else config.encoder.visual
+    log.info("extract.encoders", extra={"text": text_kind, "visual": visual_kind})
+
+    text_encoder = EXTRACTORS.create(
+        text_kind, dim=dim_text, batch=config.encoder.batch, seed=config.seed + 1
+    )
+    visual_encoder = EXTRACTORS.create(
+        visual_kind, dim=dim_visual, batch=config.encoder.batch, seed=config.seed
+    )
+    # Synthetic inputs are item ids; a real run would read them from data_dir.
+    inputs = [f"item-{i}" for i in range(items)]
     feats = {
-        "visual": random_features(items, dim_visual, seed=config.seed),
-        "text": random_features(items, dim_text, seed=config.seed + 1),
+        "visual": encode_text(inputs, visual_encoder, batch=config.encoder.batch),
+        "text": encode_text(inputs, text_encoder, batch=config.encoder.batch),
     }
     validate_features(feats, items=items)
     # ``**feats`` is modality-keyed; a key colliding with save_npz's own
@@ -158,7 +177,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     Manifest(
         dataset="synthetic" if args.synthetic else args.data_dir,
         version="0",
-        code="morel.data.extract.random",
+        code=f"morel.data.extract:{text_kind}+{visual_kind}",
         seed=config.seed,
         extractor="random",
         config_hash=config.hash(),
@@ -170,7 +189,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
         Manifest(
             dataset="synthetic" if args.synthetic else args.data_dir,
             version="0",
-            code="morel.data.extract.random",
+            code=f"morel.data.extract:{text_kind}+{visual_kind}",
             seed=config.seed,
             extractor="random",
             config_hash=config.hash(),

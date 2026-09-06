@@ -8,7 +8,16 @@ from morel.core.errors import DataError
 from morel.core.registry import Registry
 from morel.data.acquire import download, download_legacy, fetch
 from morel.data.build import bipartite, interactions, item_cooccurrence, kcore
-from morel.data.extract import FeatureEncoder, fingerprint, random, text, visual
+from morel.data.extract import (
+    FeatureEncoder,
+    RandomEncoder,
+    SentenceTransformerEncoder,
+    TorchvisionEncoder,
+    fingerprint,
+    random,
+    text,
+    visual,
+)
 from morel.data.manifest import (
     Manifest,
     checksum,
@@ -33,6 +42,36 @@ from morel.data.stream import (
 from morel.data.validate import features, graph
 from morel.data.validate import interactions as validate_interactions
 from morel.data.validate import mask as validate_mask
+
+#: Feature extractors, keyed by ``config.encoder.text`` / ``config.encoder.visual``.
+#:
+#: A factory takes ``dim``, ``batch`` and ``seed`` and returns something
+#: satisfying :class:`~morel.data.extract.FeatureEncoder`. Backbones that need
+#: an optional extra are constructed lazily, so importing morel never pulls in
+#: sentence-transformers or torchvision.
+EXTRACTORS: Registry[FeatureEncoder] = Registry("feature extractor")
+
+
+@EXTRACTORS.register("random")
+def build_random_encoder(*, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
+    """Build the deterministic encoder used by the synthetic pipeline."""
+    del batch
+    return RandomEncoder(dim, seed=seed)
+
+
+@EXTRACTORS.register("sentence-transformers/all-MiniLM-L6-v2")
+def build_minilm(*, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
+    """Build the default text backbone; requires the ``text`` extra."""
+    del dim, seed
+    return SentenceTransformerEncoder("sentence-transformers/all-MiniLM-L6-v2", batch=batch)
+
+
+@EXTRACTORS.register("resnet50")
+def build_resnet50(*, dim: int, batch: int = 32, seed: int = 0) -> FeatureEncoder:
+    """Build the default visual backbone; requires the ``vision`` extra."""
+    del dim, seed
+    return TorchvisionEncoder("resnet50", batch=batch)
+
 
 #: Selectable masking strategies, keyed by ``config.masking.kind``.
 #:
@@ -73,15 +112,22 @@ def build_block_mask(*, items: int, modalities: int, ratio: float, seed: int) ->
 
 
 __all__ = [
+    "EXTRACTORS",
     "MASKS",
     "FeatureEncoder",
     "Manifest",
     "Mask",
+    "RandomEncoder",
+    "SentenceTransformerEncoder",
+    "TorchvisionEncoder",
     "bernoulli",
     "bipartite",
     "block",
     "build_bernoulli_mask",
     "build_block_mask",
+    "build_minilm",
+    "build_random_encoder",
+    "build_resnet50",
     "checksum",
     "download",
     "download_legacy",
