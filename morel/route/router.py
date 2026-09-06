@@ -8,6 +8,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F  # noqa: N812
 
+from morel.core.errors import ConfigError
+
 
 @dataclass(frozen=True)
 class Weights:
@@ -137,7 +139,7 @@ def build(kind: str, dim: int, k: int, *, p: int, tau: float) -> Router:
         return Gumbel(dim, k, tau=tau)
     if kind == "fixed":
         return Fixed(k)
-    raise ValueError(f"unknown router kind: {kind!r}")
+    raise ConfigError(f"unknown router '{kind}'; available: top, dense, gumbel, fixed")
 
 
 __all__ = ["Dense", "Fixed", "Gumbel", "Router", "Top", "Weights", "build"]

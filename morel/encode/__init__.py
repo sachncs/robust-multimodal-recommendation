@@ -50,7 +50,7 @@ def build(
         )
     if kind == "identity":
         return Identity(dims, pe_dim, hidden)
-    raise ConfigError(f"unknown encoder kind {kind!r}; available: transformer, identity")
+    raise ConfigError(f"unknown encoder '{kind}'; available: transformer, identity")
 
 
 #: Map from config name to encoder class for introspection.

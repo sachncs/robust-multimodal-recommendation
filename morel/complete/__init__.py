@@ -25,7 +25,7 @@ def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> n
     """
     if kind == "mlp":
         return Decoders(latent_dim=latent_dim, dims=dims, hidden=hidden)
-    raise ConfigError(f"unknown completer kind {kind!r}; available: mlp")
+    raise ConfigError(f"unknown completer '{kind}'; available: mlp")
 
 
 #: Map from config name to completer class for introspection.

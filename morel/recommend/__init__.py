@@ -51,7 +51,7 @@ def build(
         return MF(users=users, items=items, embed=embed, seed=seed)
     if kind == "pop":
         return Pop(users=users, items=items)
-    raise ConfigError(f"unknown recommender kind {kind!r}; available: light, mf, pop")
+    raise ConfigError(f"unknown recommender '{kind}'; available: light, mf, pop")
 
 
 #: Map from config name to ranker class for introspection.
