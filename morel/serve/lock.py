@@ -14,58 +14,109 @@ from contextlib import contextmanager
 
 
 class RWLock:
-    """A simple reader-writer lock.
+    """A reader-writer lock with writer preference.
 
-    Multiple readers can hold the lock concurrently. Writers are
-    exclusive.
+    Multiple readers hold the lock concurrently; writers are exclusive.
+
+    Once a writer is waiting, new readers queue behind it. Without that, a
+    stream of overlapping readers keeps ``active_readers`` above zero forever
+    and a writer never runs: under sustained inference traffic the model
+    updater would be starved indefinitely and updates would silently never be
+    applied. Readers therefore wait at most for the duration of one update,
+    and writers are guaranteed to make progress.
+
+    The lock is not reentrant. A thread already holding a read lock must not
+    ask for the write lock, and vice versa; doing so deadlocks.
     """
 
     def __init__(self) -> None:
+        """Create an unheld lock."""
         self.condition = threading.Condition()
         self.active_readers = 0
         self.active_writer = False
+        self.waiting_writers = 0
 
     def acquire_read(self, timeout: float | None = None) -> bool:
-        """Block until a read lock is acquired, or return False on timeout."""
+        """Acquire a read lock, waiting for any active or pending writer.
+
+        Args:
+            timeout: Seconds to wait, or ``None`` to wait indefinitely.
+
+        Returns
+        -------
+            ``True`` if the lock was acquired, ``False`` on timeout.
+        """
         with self.condition:
             if timeout is None:
-                while self.active_writer:
+                while self.active_writer or self.waiting_writers > 0:
                     self.condition.wait()
-                self.active_readers += 1
-                return True
-            self.condition.wait_for(lambda: not self.active_writer, timeout=timeout)
-            if self.active_writer:
+            elif not self.condition.wait_for(
+                lambda: not self.active_writer and self.waiting_writers == 0,
+                timeout=timeout,
+            ):
                 return False
             self.active_readers += 1
             return True
 
     def release_read(self) -> None:
-        """Release a previously acquired read lock."""
+        """Release a previously acquired read lock.
+
+        Raises
+        ------
+            RuntimeError: If no read lock is held. Silently going negative
+                would let a later writer proceed while a reader is still
+                inside the critical section.
+        """
         with self.condition:
+            if self.active_readers <= 0:
+                raise RuntimeError("release_read called without holding a read lock")
             self.active_readers -= 1
             if self.active_readers == 0:
                 self.condition.notify_all()
 
     def acquire_write(self, timeout: float | None = None) -> bool:
-        """Block until a write lock is acquired, or return False on timeout."""
+        """Acquire the exclusive write lock.
+
+        Registers as a waiting writer first, which holds off new readers so
+        that this call cannot be starved by a continuous read stream.
+
+        Args:
+            timeout: Seconds to wait, or ``None`` to wait indefinitely.
+
+        Returns
+        -------
+            ``True`` if the lock was acquired, ``False`` on timeout.
+        """
         with self.condition:
-            if timeout is None:
-                while self.active_writer or self.active_readers > 0:
-                    self.condition.wait()
+            self.waiting_writers += 1
+            try:
+                if timeout is None:
+                    while self.active_writer or self.active_readers > 0:
+                        self.condition.wait()
+                elif not self.condition.wait_for(
+                    lambda: not self.active_writer and self.active_readers == 0,
+                    timeout=timeout,
+                ):
+                    return False
                 self.active_writer = True
                 return True
-            self.condition.wait_for(
-                lambda: not self.active_writer and self.active_readers == 0,
-                timeout=timeout,
-            )
-            if self.active_writer or self.active_readers > 0:
-                return False
-            self.active_writer = True
-            return True
+            finally:
+                self.waiting_writers -= 1
+                if not self.active_writer:
+                    # Gave up: wake the readers that were queued behind us,
+                    # otherwise they wait for a writer that is no longer coming.
+                    self.condition.notify_all()
 
     def release_write(self) -> None:
-        """Release a previously acquired write lock."""
+        """Release a previously acquired write lock.
+
+        Raises
+        ------
+            RuntimeError: If the write lock is not held.
+        """
         with self.condition:
+            if not self.active_writer:
+                raise RuntimeError("release_write called without holding the write lock")
             self.active_writer = False
             self.condition.notify_all()
 
