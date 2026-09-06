@@ -73,9 +73,9 @@ class Pipeline(nn.Module):
             hidden=config.complete.hidden,
         )
         self.recommender: nn.Module | None = None
-        self._retrieval_features: dict[str, np.ndarray] | None = None
-        self._retrieval_mask: np.ndarray | None = None
-        self._retrieval_adj: sp.csr_matrix | None = None
+        self.retrieval_features: dict[str, np.ndarray] | None = None
+        self.retrieval_mask: np.ndarray | None = None
+        self.retrieval_adj: sp.csr_matrix | None = None
 
     def attach_recommender(self, ui_graph: sp.csr_matrix) -> None:
         """Attach a downstream LightGCN recommender sized for the graph."""
@@ -101,9 +101,9 @@ class Pipeline(nn.Module):
         PyTorch tensors with the autograd engine. It only stores the corpus
         attributes used by retrieval during :meth:`forward`.
         """
-        self._retrieval_features = features
-        self._retrieval_mask = mask
-        self._retrieval_adj = adjacency
+        self.retrieval_features = features
+        self.retrieval_mask = mask
+        self.retrieval_adj = adjacency
 
     def forward(
         self,
@@ -158,17 +158,17 @@ class Pipeline(nn.Module):
         subgraph_mask: np.ndarray | None = None
 
         if (
-            self._retrieval_features is not None
-            and self._retrieval_mask is not None
+            self.retrieval_features is not None
+            and self.retrieval_mask is not None
             and index is not None
         ):
             queries = [int(i) for i in index.detach().cpu().tolist()]
             result = retrieve_batch(
                 queries,
-                self._retrieval_features,
-                self._retrieval_mask,
-                self._retrieval_adj
-                if self._retrieval_adj is not None
+                self.retrieval_features,
+                self.retrieval_mask,
+                self.retrieval_adj
+                if self.retrieval_adj is not None
                 else sp.csr_matrix(adjacency),
                 anchors=self.config.retrieve.anchors,
                 iters=self.config.retrieve.iters,
@@ -235,10 +235,10 @@ class Pipeline(nn.Module):
             node_ids_np = result.nodes[b, :size]
             for k, name in enumerate(modalities):
                 node_features[name][b, :size] = torch.from_numpy(
-                    self._retrieval_features[name][node_ids_np]
+                    self.retrieval_features[name][node_ids_np]
                 ).to(device).float()
             node_mask[b, :size] = torch.from_numpy(
-                self._retrieval_mask[node_ids_np]
+                self.retrieval_mask[node_ids_np]
             ).to(device).float()
             pe[b, :size] = pe_full[node_ids_np]
             attention[b, :size] = torch.from_numpy(result.mask[b, :size]).bool().to(device)

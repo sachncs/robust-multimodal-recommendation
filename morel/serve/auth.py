@@ -71,6 +71,20 @@ def require(request: Request, scope: Scope = "read") -> None:
         raise HTTPException(status_code=401, detail=f"invalid bearer token for {scope}")
 
 
+def dependency(scope: Scope):
+    """Return a FastAPI-compatible dependency callable for the given scope.
+
+    The returned callable preserves the ``(request: Request) -> None``
+    signature so FastAPI can introspect the parameter list and inject the
+    incoming request.
+    """
+
+    def scoped_dependency(request: Request) -> None:
+        require(request, scope=scope)
+
+    return scoped_dependency
+
+
 def assert_configured() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
     if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (
@@ -82,8 +96,9 @@ def assert_configured() -> None:
 __all__ = [
     "Scope",
     "admin_enabled",
-    "read_enabled",
-    "token_for_scope",
-    "require",
     "assert_configured",
+    "dependency",
+    "read_enabled",
+    "require",
+    "token_for_scope",
 ]

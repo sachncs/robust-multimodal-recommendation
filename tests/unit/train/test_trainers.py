@@ -115,4 +115,4 @@ def test_trainer_amp_cpu_runs(
     )
     loader = DataLoader(BPRDataset(users, items, n_batches=4), batch_size=2)
     trainer.fit(loader, None, epochs=1, patience=2)
-    assert trainer._scaler is not None
+    assert trainer.scaler is not None

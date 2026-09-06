@@ -82,10 +82,8 @@ def full_mask() -> np.ndarray:
 
 
 @pytest.fixture
-def tmp_manifest(tmp_path) -> "Path":  # type: ignore[name-defined]
+def tmp_manifest(tmp_path: Path) -> Path:
     """A directory pre-created for manifest artifacts."""
-    from pathlib import Path
-
     d = tmp_path / "artifacts"
     d.mkdir(parents=True, exist_ok=True)
     return d

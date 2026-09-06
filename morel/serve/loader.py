@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import threading
 from collections import OrderedDict
-from pathlib import Path
 from typing import Any
-
-from morel.core.errors import ModelError
 
 
 class Loader:
@@ -20,48 +17,39 @@ class Loader:
         if capacity <= 0:
             raise ValueError("capacity must be positive")
         self.capacity = capacity
-        self._cache: "OrderedDict[str, Any]" = OrderedDict()
-        self._lock = threading.Lock()
+        self.cache: "OrderedDict[str, Any]" = OrderedDict()
+        self.lock = threading.Lock()
 
     def get(self, key: str, factory: Any) -> Any:
         """Return a cached pipeline or build and cache one via ``factory``."""
         if not isinstance(key, str) or not key:
             raise ValueError("key must be a non-empty string")
-        with self._lock:
-            if key in self._cache:
-                self._cache.move_to_end(key)
-                return self._cache[key]
+        with self.lock:
+            if key in self.cache:
+                self.cache.move_to_end(key)
+                return self.cache[key]
         model = factory()
         if model is None:
             raise ModelError(f"loader factory returned None for key {key!r}")
-        with self._lock:
-            if key in self._cache:
-                existing = self._cache[key]
-                self._cache.move_to_end(key)
+        with self.lock:
+            if key in self.cache:
+                existing = self.cache[key]
+                self.cache.move_to_end(key)
                 return existing
-            self._cache[key] = model
-            while len(self._cache) > self.capacity:
-                self._cache.popitem(last=False)
+            self.cache[key] = model
+            while len(self.cache) > self.capacity:
+                self.cache.popitem(last=False)
         return model
 
     def clear(self) -> None:
         """Drop every cached pipeline."""
-        with self._lock:
-            self._cache.clear()
+        with self.lock:
+            self.cache.clear()
 
     def keys(self) -> list[str]:
         """Return currently cached keys (insertion-ordered)."""
-        with self._lock:
-            return list(self._cache.keys())
-
-    def load_path(self, path: Path | str) -> Any:
-        """Load a torch checkpoint safely, returning the payload dict."""
-        from morel.train.checkpoint import safe_load
-
-        path = Path(path)
-        if not path.exists():
-            raise ModelError(f"checkpoint not found: {path}")
-        return safe_load(path)
+        with self.lock:
+            return list(self.cache.keys())
 
 
 __all__ = ["Loader"]

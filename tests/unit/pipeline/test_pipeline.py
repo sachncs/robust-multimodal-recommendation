@@ -11,7 +11,7 @@ from morel.pipeline import Pipeline
 
 
 def test_pipeline_end_to_end() -> None:
-    config = Config(encode=Config.__dataclass_fields__["encode"].default_factory())  # type: ignore[misc]
+    config = Config.defaults()
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
     features = {

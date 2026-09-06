@@ -212,6 +212,16 @@ class Config:
         return asdict(self)
 
     @classmethod
+    def defaults(cls) -> "Config":
+        """Return a Config populated entirely with default values.
+
+        Equivalent to ``Config()`` but typed for clarity at call sites
+        that want to spell out "give me the defaults" without implicit
+        semantics.
+        """
+        return cls()
+
+    @classmethod
     def from_dict(cls, payload: dict[str, Any]) -> "Config":
         """Build a Config from a nested dict.
 

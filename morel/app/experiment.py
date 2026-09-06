@@ -11,6 +11,12 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from morel.app.data import (
+    CompletionDataset,
+    build_completion_loader,
+    numpy_to_tensor,
+    synth_bipartite,
+)
 from morel.core.config import Config
 from morel.core.fidelity import render_json, render_markdown
 from morel.core.log import get as get_logger
@@ -28,8 +34,8 @@ log = get_logger("app.experiment")
 def synthetic_dataset(items: int, dim_visual: int, dim_text: int, users: int) -> dict:
     """Build a small reproducible synthetic dataset."""
     rng = np.random.default_rng(0)
-    pairs = rng.integers(0, users, size=items * 5), rng.integers(0, items, size=items * 5)
-    ui = build_bipartite(pairs[0], pairs[1], users, items)
+    user_ids, item_ids = synth_bipartite(rng, items=items, users=users)
+    ui = build_bipartite(user_ids, item_ids, users, items)
     adj = item_cooccurrence(ui)
     features = {
         "visual": rng.normal(size=(items, dim_visual)).astype(np.float32),
@@ -83,23 +89,12 @@ class Experiment:
         )
         pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
 
-        from torch.utils.data import DataLoader, Dataset
-
-        items_count = self.items
-
-        class CompletionBatchDataset(Dataset):
-            def __len__(self) -> int:
-                return items_count
-
-            def __getitem__(self, idx: int) -> dict:
-                return {
-                    "index": idx,
-                    "features": {k: v[idx] for k, v in dataset["features"].items()},
-                    "mask": dataset["mask"][idx],
-                    "adjacency": dataset["item_adj"],
-                }
-
-        loader = DataLoader(CompletionBatchDataset(), batch_size=8, collate_fn=collate_batch)
+        loader = build_completion_loader(
+            dataset["features"],
+            dataset["mask"],
+            dataset["item_adj"],
+            batch_size=8,
+        )
         trainer = Completion(
             pipeline,
             CompletionConfig(),
@@ -168,24 +163,6 @@ class Experiment:
         }
 
 
-def to_torch(arr: np.ndarray) -> torch.Tensor:
-    """Wrap ``torch.from_numpy`` for type convenience."""
-    return torch.from_numpy(arr)
-
-
-def collate_batch(batch: list[dict]) -> dict:
-    """Collate a list of completion-stage samples into a torch dict."""
-    features_keys = list(batch[0]["features"].keys())
-    return {
-        "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
-        "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
-        "features": {
-            k: torch.from_numpy(np.stack([b["features"][k] for b in batch])) for k in features_keys
-        },
-        "adjacency": batch[0]["adjacency"],
-    }
-
-
 @dataclass
 class Benchmark:
     """Run a benchmark sweep and return timings."""
@@ -206,9 +183,9 @@ class Benchmark:
                 dims={"visual": 4, "text": 2},
             )
             pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
-            features = {k: to_torch(v) for k, v in dataset["features"].items()}
-            mask = to_torch(dataset["mask"])
-            index_t = to_torch(np.arange(size))
+            features = {k: numpy_to_tensor(v) for k, v in dataset["features"].items()}
+            mask = numpy_to_tensor(dataset["mask"])
+            index_t = numpy_to_tensor(np.arange(size))
             start = time.time()
             for _ in range(self.epochs):
                 pipeline(features, mask, dataset["item_adj"], index=index_t, training=True)

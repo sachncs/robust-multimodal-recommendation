@@ -8,13 +8,15 @@ from morel.serve.app import (
     create,
 )
 from morel.serve.auth import (
+    Scope,
     admin_enabled,
     assert_configured,
+    dependency,
     read_enabled,
     token_for_scope,
 )
 from morel.serve.loader import Loader
-from morel.serve.lock import RWLock, reader, writer
+from morel.serve.lock import RWLock, ReadGuard, WriteGuard, reader, writer
 from morel.serve.schema import (
     CompleteRequest,
     CompleteResponse,
@@ -24,39 +26,35 @@ from morel.serve.schema import (
     RecommendResponse,
     serialize_completed,
 )
-from morel.serve.update import FeedbackEvent, PipelineUpdater, Signal, UpdateResult
-
-# Backwards-compat aliases under the old prefix-style names.
-auth_assert_configured = assert_configured
-auth_admin_enabled = admin_enabled
-auth_read_enabled = read_enabled
-auth_token_for_scope = token_for_scope
+from morel.serve.update import DefaultLossStep, FeedbackEvent, LossStep, PipelineUpdater, Signal, UpdateResult
 
 
 __all__ = [
     "CompleteRequest",
     "CompleteResponse",
+    "DefaultLossStep",
     "FeedbackEvent",
     "FeedbackRequest",
     "FeedbackResponse",
     "HealthResponse",
     "Loader",
+    "LossStep",
     "PipelineUpdater",
     "RWLock",
+    "ReadGuard",
     "RecommendItem",
     "RecommendRequest",
     "RecommendResponse",
     "RollbackResponse",
+    "Scope",
     "Signal",
     "StatsResponse",
     "UpdateResult",
+    "WriteGuard",
     "admin_enabled",
     "assert_configured",
-    "auth_admin_enabled",
-    "auth_assert_configured",
-    "auth_read_enabled",
-    "auth_token_for_scope",
     "create",
+    "dependency",
     "read_enabled",
     "reader",
     "serialize_completed",

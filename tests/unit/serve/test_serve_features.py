@@ -168,31 +168,61 @@ def test_updater_tick_with_empty_buffer_returns_noop() -> None:
 
 
 def test_updater_tick_increments_version_on_commit() -> None:
-    updater = PipelineUpdater(TinyModel(), cooldown_seconds=0)
+    updater = PipelineUpdater(
+        TinyModel(),
+        cooldown_seconds=0,
+        loss_step=lambda batch: 0.5,
+    )
     for i in range(32):
         updater.accept(user=i, item=i, signal="like")
-    result = updater.tick(apply_step=lambda batch: 0.5)
+    result = updater.tick()
     assert result.committed is True
     assert result.version == 1
     assert updater.stats()["updates_applied"] == 1
 
 
 def test_updater_tick_triggers_cooldown_on_nan_loss() -> None:
-    updater = PipelineUpdater(TinyModel(), cooldown_seconds=30)
+    updater = PipelineUpdater(
+        TinyModel(),
+        cooldown_seconds=30,
+        loss_step=lambda batch: float("nan"),
+    )
     for i in range(16):
         updater.accept(user=i, item=i, signal="like")
-    result = updater.tick(apply_step=lambda batch: float("nan"))
+    result = updater.tick()
     assert result.committed is False
     assert updater.cooldown_until > time.time()
 
 
 def test_updater_rollback_decrements_version() -> None:
-    updater = PipelineUpdater(TinyModel(), cooldown_seconds=0)
+    updater = PipelineUpdater(
+        TinyModel(),
+        cooldown_seconds=0,
+        loss_step=lambda batch: 0.5,
+    )
     for i in range(32):
         updater.accept(user=i, item=i, signal="like")
-    updater.tick(apply_step=lambda batch: 0.5)
-    updater.tick(apply_step=lambda batch: 0.4)
+    updater.tick()
+    updater.tick()
     assert updater.version == 2
     version = updater.rollback(steps=1)
     assert version == 1
     assert updater.version == 1
+
+
+def test_default_loss_step_is_polymorphic() -> None:
+    """LossStep Protocol: DefaultLossStep and a custom callable both work."""
+    from morel.serve.update import DefaultLossStep
+
+    base = PipelineUpdater(TinyModel(), cooldown_seconds=0)
+    assert isinstance(base.loss_step, DefaultLossStep)
+    custom = PipelineUpdater(
+        TinyModel(),
+        cooldown_seconds=0,
+        loss_step=lambda batch: 0.42,
+    )
+    for i in range(8):
+        custom.accept(user=i, item=i, signal="like")
+    result = custom.tick()
+    assert result.committed is True
+    assert abs(result.loss - 0.42) < 1e-6

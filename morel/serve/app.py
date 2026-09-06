@@ -76,7 +76,7 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.post("/v1/complete", response_model=CompleteResponse)
     def complete(
-        payload: CompleteRequest, _: None = Depends(_require_read)
+        payload: CompleteRequest, _: None = Depends(auth.dependency("read"))
     ) -> CompleteResponse:
         try:
             pipeline = app.state.loader.get("default", build_default_pipeline)
@@ -87,7 +87,7 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.post("/v1/recommend", response_model=RecommendResponse)
     def recommend(
-        payload: RecommendRequest, _: None = Depends(_require_read)
+        payload: RecommendRequest, _: None = Depends(auth.dependency("read"))
     ) -> RecommendResponse:
         try:
             pipeline = app.state.loader.get("default", build_default_pipeline)
@@ -98,7 +98,7 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.post("/v1/feedback", response_model=FeedbackResponse)
     def feedback(
-        payload: FeedbackRequest, _: None = Depends(_require_admin)
+        payload: FeedbackRequest, _: None = Depends(auth.dependency("admin"))
     ) -> FeedbackResponse:
         if not getattr(app.state, "updater_enabled", True):
             raise HTTPException(status_code=503, detail="Updater disabled")
@@ -109,14 +109,16 @@ def create(loader: Loader | None = None) -> FastAPI:
         return FeedbackResponse(queued=True, buffer_size=updater.stats()["events_buffered"])
 
     @app.post("/v1/rollback", response_model=RollbackResponse)
-    def rollback(_: None = Depends(_require_admin)) -> RollbackResponse:
+    def rollback(
+        steps: int = 1, _: None = Depends(auth.dependency("admin"))
+    ) -> RollbackResponse:
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
-        return RollbackResponse(restored_version=updater.rollback())
+        return RollbackResponse(restored_version=updater.rollback(steps=steps))
 
     @app.get("/v1/stats", response_model=StatsResponse)
-    def stats(_: None = Depends(_require_admin)) -> StatsResponse:
+    def stats(_: None = Depends(auth.dependency("admin"))) -> StatsResponse:
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
@@ -133,12 +135,9 @@ def create(loader: Loader | None = None) -> FastAPI:
     return app
 
 
-def _require_read(request: Request) -> None:
-    auth.require(request, scope="read")
-
-
-def _require_admin(request: Request) -> None:
-    auth.require(request, scope="admin")
+# Re-export for callers that want the dependency callables by name.
+require_read = auth.dependency("read")
+require_admin = auth.dependency("admin")
 
 
 def build_default_pipeline() -> object:

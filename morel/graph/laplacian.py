@@ -96,24 +96,24 @@ class Laplace(nn.Module):
         super().__init__()
         self.k = k
         self.capacity = capacity
-        self._cache: "OrderedDict[str, torch.Tensor]" = OrderedDict()
+        self.cache: "OrderedDict[str, torch.Tensor]" = OrderedDict()
 
     def forward(self, adjacency: sp.spmatrix) -> torch.Tensor:
         """Compute or retrieve cached Laplacian PE."""
         key = coo_data_hash(adjacency)
-        if key in self._cache:
-            self._cache.move_to_end(key)
-            return self._cache[key]
+        if key in self.cache:
+            self.cache.move_to_end(key)
+            return self.cache[key]
         array = pe(adjacency, k=self.k)
         tensor = torch.from_numpy(array).float()
-        self._cache[key] = tensor
-        while len(self._cache) > self.capacity:
-            self._cache.popitem(last=False)
+        self.cache[key] = tensor
+        while len(self.cache) > self.capacity:
+            self.cache.popitem(last=False)
         return tensor
 
     def clear(self) -> None:
         """Clear the cache."""
-        self._cache.clear()
+        self.cache.clear()
 
 
 __all__ = ["Laplace", "laplacian", "pe"]

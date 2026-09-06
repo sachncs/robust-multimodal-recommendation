@@ -14,7 +14,7 @@ from morel.train.completion import Completion, CompletionConfig
 
 
 class SilentMonitor:
-    def log(self, *args, **kwargs):  # noqa: ANN001, D401
+    def log(self, step: int | None = None, **metrics: object) -> None:
         return None
 
 

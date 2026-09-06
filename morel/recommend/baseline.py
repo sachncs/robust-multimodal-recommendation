@@ -52,13 +52,13 @@ class Pop(nn.Module):
         self.users = users
         self.items = items
         self.register_buffer("popularity", torch.zeros(items))
-        self._trained = False
+        self.fitted = False
 
     def fit(self, ui: sp.csr_matrix) -> None:
         """Precompute item popularity from the interaction matrix."""
         counts = np.asarray(ui.sum(axis=0)).flatten().astype(np.float32)
         self.popularity = torch.from_numpy(counts)
-        self._trained = True
+        self.fitted = True
 
     def forward(
         self,
@@ -67,7 +67,7 @@ class Pop(nn.Module):
         ui_graph: sp.csr_matrix | None = None,
     ) -> torch.Tensor:
         """Score users against items via popularity broadcasted to users."""
-        if not self._trained:
+        if not self.fitted:
             if ui_graph is None:
                 raise RuntimeError("Pop must be fitted with a ui_graph first")
             self.fit(ui_graph)

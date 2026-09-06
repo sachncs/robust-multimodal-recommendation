@@ -18,16 +18,14 @@ import math
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Protocol
 
 import numpy as np
-import torch
 import torch.nn as nn
 
 from morel.serve.lock import RWLock
 
 log = logging.getLogger("morel.serve.update")
-
 
 Signal = str
 
@@ -54,8 +52,33 @@ class UpdateResult:
     n_replay_used: int
 
 
+class LossStep(Protocol):
+    """Compute the loss for one update step given a batch of feedback.
+
+    Implementations may be the production trainer step, a small
+    surrogate, or the ``DefaultLossStep`` baseline.
+    """
+
+    def __call__(self, batch: list[FeedbackEvent]) -> float:
+        ...
+
+
+class DefaultLossStep:
+    """No-training loss step used as a baseline and for tests.
+
+    Returns a deterministic pseudo-loss derived from the batch size and
+    the current wall-clock time so subsequent ticks produce different
+    losses (and the divergence guard can be exercised).
+    """
+
+    def __call__(self, batch: list[FeedbackEvent]) -> float:
+        import time as _time
+
+        return float(_time.time()) * 0.001 + 0.1 * math.log1p(len(batch))
+
+
 class PipelineUpdater:
-    """Background updater that calls ``tick()`` periodically.
+    """Background updater that calls :meth:`tick` periodically.
 
     Args
     ----
@@ -85,15 +108,17 @@ class PipelineUpdater:
         cooldown_seconds: float = 60.0,
         replay_ratio: float = 0.3,
         val_ratio: float = 0.1,
+        loss_step: LossStep | None = None,
     ) -> None:
         self.pipeline = pipeline
         self.lock = RWLock()
         self.feedback_ring: deque[FeedbackEvent] = deque(maxlen=feedback_capacity)
         self.replay_ring: deque[FeedbackEvent] = deque(maxlen=replay_capacity)
-        self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
+        self.rollback_ring: deque[dict] = deque(maxlen=rollback_window)
         self.cooldown_until: float = 0.0
         self.replay_ratio = float(replay_ratio)
         self.val_ratio = float(val_ratio)
+        self.loss_step: LossStep = loss_step or DefaultLossStep()
         self.version = 0
         self.loss_window: deque[float] = deque(maxlen=64)
         self.last_loss = float("nan")
@@ -107,7 +132,7 @@ class PipelineUpdater:
             self.feedback_ring.append(event)
             self.replay_ring.append(event)
 
-    def stats(self) -> dict[str, float | int]:
+    def stats(self) -> dict:
         """Return a snapshot of the updater state."""
         with self.lock.read():
             return {
@@ -137,32 +162,17 @@ class PipelineUpdater:
         self.pipeline.load_state_dict(snapshot)
         return self.version
 
-    def _snapshot(self) -> dict[str, Any]:
+    def snapshot_state(self) -> dict:
         return copy.deepcopy(self.pipeline.state_dict())
 
-    def _validate(self, batch: list[FeedbackEvent]) -> float:
+    def validation_loss(self, batch: list[FeedbackEvent]) -> float:
+        """Compute the held-out validation loss using the configured ``loss_step``."""
         if not batch:
             return float("inf")
-        return float(np.random.default_rng(0).normal(0.5, 0.1))
+        return float(self.loss_step(batch))
 
-    def tick(
-        self,
-        apply_step: Callable[[list[FeedbackEvent]], float] | None = None,
-    ) -> UpdateResult:
-        """Run one update step.
-
-        Args
-        ----
-        apply_step : callable, optional
-            Function that takes a list of FeedbackEvent and returns a scalar
-            loss. When ``None``, a stub that returns a random loss is used
-            (useful for tests that don't carry a real trainer).
-
-        Returns
-        -------
-        UpdateResult
-            The result of the tick.
-        """
+    def tick(self) -> UpdateResult:
+        """Run one update step."""
         with self.lock.read():
             now = time.time()
             if now < self.cooldown_until:
@@ -184,10 +194,9 @@ class PipelineUpdater:
         n_replay = int(len(train_batch) * self.replay_ratio)
         replay_sample = replay[:n_replay] if n_replay else []
         step_batch = replay_sample + train_batch
-        apply = apply_step or self._stub_loss
-        loss = float(apply(step_batch))
-        valid_loss = self._validate(val_batch)
-        committed, version_after = self._maybe_commit(loss, valid_loss)
+        loss = float(self.loss_step(step_batch))
+        valid_loss = self.validation_loss(val_batch)
+        committed, version_after = self.apply_update(loss, valid_loss)
         return UpdateResult(
             committed=committed,
             loss=loss,
@@ -197,10 +206,7 @@ class PipelineUpdater:
             n_replay_used=len(replay_sample),
         )
 
-    def _stub_loss(self, batch: list[FeedbackEvent]) -> float:
-        return float(np.random.default_rng(len(batch)).normal(0.0, 1.0))
-
-    def _maybe_commit(self, loss: float, valid_loss: float | None) -> tuple[bool, int]:
+    def apply_update(self, loss: float, valid_loss: float | None) -> tuple[bool, int]:
         with self.lock.write():
             if not math.isfinite(loss):
                 self.cooldown_until = time.time() + 60.0
@@ -213,7 +219,7 @@ class PipelineUpdater:
                 self.cooldown_until = time.time() + 60.0
                 log.warning("divergence: loss explosion; rolling back and cooling down")
                 return False, self.version
-            snapshot = self._snapshot()
+            snapshot = self.snapshot_state()
             self.rollback_ring.append(snapshot)
             self.pipeline.load_state_dict(snapshot)
             self.version += 1
@@ -224,4 +230,11 @@ class PipelineUpdater:
             return True, self.version
 
 
-__all__ = ["FeedbackEvent", "PipelineUpdater", "Signal", "UpdateResult"]
+__all__ = [
+    "DefaultLossStep",
+    "FeedbackEvent",
+    "LossStep",
+    "PipelineUpdater",
+    "Signal",
+    "UpdateResult",
+]

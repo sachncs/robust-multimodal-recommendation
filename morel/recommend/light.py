@@ -77,10 +77,6 @@ class Light(nn.Module):
         i_emb = final[self.users :]
         return u_emb[users] @ i_emb[items].t()
 
-    def adjacency(self, ui_graph: sp.csr_matrix) -> torch.Tensor:
-        """Return the cached normalized adjacency; rebuild if graph changes."""
-        return self.normalized_adjacency(ui_graph)
-
     def normalized_adjacency(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
         """Compute or fetch the cached normalized adjacency tensor.
 

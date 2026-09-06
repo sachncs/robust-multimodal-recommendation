@@ -120,5 +120,8 @@ __all__ = [
 ]
 
 
-# Side-effect import: registers every paper-component fidelity entry.
-import morel.core.fidelity_registry  # noqa: F401
+# Register every paper-component fidelity entry on import. The call is
+# idempotent so callers may also invoke it explicitly.
+from morel.core import fidelity_registry
+
+fidelity_registry.register_all()

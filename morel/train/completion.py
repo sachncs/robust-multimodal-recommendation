@@ -72,12 +72,12 @@ class Completion(Trainer):
                 + self.completion_config.lambda_usage * usage_term
                 + self.completion_config.lambda_balance * balance_term
             )
-        if self._scaler is not None:
-            self._scaler.scale(total).backward()
-            self._scaler.unscale_(self.optimizer)
+        if self.scaler is not None:
+            self.scaler.scale(total).backward()
+            self.scaler.unscale_(self.optimizer)
             self.clip(list(self.model.parameters()))
-            self._scaler.step(self.optimizer)
-            self._scaler.update()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
         else:
             total.backward()
             self.clip(list(self.model.parameters()))

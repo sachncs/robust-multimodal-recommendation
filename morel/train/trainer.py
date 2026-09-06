@@ -47,7 +47,7 @@ class Trainer(ABC):
         )
         self.best_metric: float = float("inf")
         self.config_hash = hash_config(config)
-        self._scaler = (
+        self.scaler = (
             torch.amp.GradScaler(self.device.type)
             if amp and self.device.type in {"cuda", "cpu"}
             else None

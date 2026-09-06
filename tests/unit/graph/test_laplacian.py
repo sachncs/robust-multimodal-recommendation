@@ -46,11 +46,11 @@ def test_laplace_evicts_when_full(path3) -> None:
     lap(path3)
     other = sp.csr_matrix(np.array([[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], dtype=np.float32))
     lap(other)
-    assert len(lap._cache) <= 2
+    assert len(lap.cache) <= 2
 
 
 def test_laplace_clear(path3) -> None:
     lap = Laplace(k=2)
     lap(path3)
     lap.clear()
-    assert len(lap._cache) == 0
+    assert len(lap.cache) == 0
