@@ -9,7 +9,7 @@ import numpy as np
 
 
 @dataclass
-class RobustnessResult:
+class Robust:
     """Result of a robustness sweep."""
 
     ratios: list[float]
@@ -21,7 +21,7 @@ def robustness_sweep(
     labels: np.ndarray,
     *,
     metrics: dict[str, Callable[[np.ndarray, np.ndarray], float]],
-) -> RobustnessResult:
+) -> Robust:
     """Evaluate a metric across a range of mask ratios.
 
     Args:
@@ -31,17 +31,17 @@ def robustness_sweep(
 
     Returns
     -------
-        RobustnessResult with one entry per ratio per metric.
+        Robust with one entry per ratio per metric.
     """
     if not scores_by_ratio:
-        return RobustnessResult(ratios=[])
+        return Robust(ratios=[])
     ratios = sorted(scores_by_ratio.keys())
     metric_lists: dict[str, list[float]] = {name: [] for name in metrics}
     for ratio in ratios:
         scores = scores_by_ratio[ratio]
         for name, fn in metrics.items():
             metric_lists[name].append(fn(scores, labels))
-    return RobustnessResult(ratios=ratios, metrics=metric_lists)
+    return Robust(ratios=ratios, metrics=metric_lists)
 
 
 def ablation_results(
@@ -64,4 +64,4 @@ def ablation_results(
     return {name: metric(scores, labels) for name, scores in scores_by_condition.items()}
 
 
-__all__ = ["RobustnessResult", "ablation_results", "robustness_sweep"]
+__all__ = ["Robust", "ablation_results", "robustness_sweep"]

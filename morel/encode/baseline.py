@@ -94,7 +94,7 @@ class Sum(nn.Module):
         return torch.cat(parts, dim=-1)
 
 
-class GraphEncoderBaseline(nn.Module):
+class Baseline(nn.Module):
     """Multiplexer that builds the requested graph encoder."""
 
     def __init__(
@@ -123,4 +123,4 @@ class GraphEncoderBaseline(nn.Module):
         return encoded
 
 
-__all__ = ["GraphEncoder", "GraphEncoderBaseline", "Identity", "Sum"]
+__all__ = ["Baseline", "GraphEncoder", "Identity", "Sum"]

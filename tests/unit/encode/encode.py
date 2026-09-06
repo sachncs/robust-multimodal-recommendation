@@ -77,18 +77,18 @@ class Checker:
             Transformer(dims={"v": 4}, pe_dim=2, hidden=8, layers=1, heads=2, pool="bogus")
 
     def identity(self) -> None:
-        from morel.encode import GraphEncoderBaseline
+        from morel.encode import Baseline
 
-        base = GraphEncoderBaseline("identity", dims={"v": 4}, pe_dim=2, hidden=8)
+        base = Baseline("identity", dims={"v": 4}, pe_dim=2, hidden=8)
         feats = {"v": torch.randn(3, 4)}
         mask = torch.ones(3, 1)
         pe = torch.randn(3, 2)
         assert base(feats, mask, pe).shape == (3, 8)
 
     def sum(self) -> None:
-        from morel.encode import GraphEncoderBaseline
+        from morel.encode import Baseline
 
-        base = GraphEncoderBaseline("sum", dims={"v": 4, "t": 2}, pe_dim=2, hidden=8)
+        base = Baseline("sum", dims={"v": 4, "t": 2}, pe_dim=2, hidden=8)
         feats = {"v": torch.randn(3, 4), "t": torch.randn(3, 2)}
         mask = torch.ones(3, 2)
         pe = torch.randn(3, 2)
@@ -97,10 +97,10 @@ class Checker:
     def kind(self) -> None:
         import pytest
 
-        from morel.encode import GraphEncoderBaseline
+        from morel.encode import Baseline
 
         with pytest.raises(ValueError, match="unknown baseline kind"):
-            GraphEncoderBaseline("nope", dims={"v": 4}, pe_dim=2, hidden=8)
+            Baseline("nope", dims={"v": 4}, pe_dim=2, hidden=8)
 
     def one(self) -> None:
         pool = Attention(dim=8)
