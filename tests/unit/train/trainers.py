@@ -13,7 +13,7 @@ from morel.core.config import Config
 from morel.pipeline import Pipeline
 from morel.recommend import Light
 from morel.train.completion import Completion, Fit
-from morel.train.recommendation import RankCfg, Recommendation
+from morel.train.recommendation import Rec, Recommendation
 from tests.shared import BPR, build, build_path_graph
 
 
@@ -55,7 +55,7 @@ class Checker:
         )
         model = Light(users=users, items=items, embed=4, layers=2)
         loader = DataLoader(BPR(users, items, n_batches=16), batch_size=4)
-        cfg = RankCfg()
+        cfg = Rec()
         trainer = Recommendation(
             model, cfg, ui_graph=ui, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path
         )
@@ -75,7 +75,7 @@ class Checker:
         model = Light(users=users, items=items, embed=4, layers=1)
         trainer = Recommendation(
             model,
-            RankCfg(),
+            Rec(),
             ui_graph=ui,
             monitor=silent_monitor_factory(),
             checkpoint_dir=tmp_path,
@@ -96,7 +96,7 @@ class Checker:
         model = Light(users=users, items=items, embed=4, layers=1)
         trainer = Recommendation(
             model,
-            RankCfg(),
+            Rec(),
             ui_graph=ui,
             monitor=silent_monitor_factory(),
             checkpoint_dir=tmp_path,

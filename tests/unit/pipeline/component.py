@@ -49,7 +49,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     @pytest.mark.parametrize(
-        ("kind", "expected"), [("gumbel", "GumbelCodebook"), ("vq", "VQ"), ("identity", "Noop")]
+        ("kind", "expected"), [("gumbel", "Soft"), ("vq", "VQ"), ("identity", "Noop")]
     )
     def implementation(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(codebook={"kind": kind}), dims={"visual": 4, "text": 2})

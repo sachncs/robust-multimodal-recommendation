@@ -30,7 +30,7 @@ from morel.data.manifest import Manifest
 from morel.eval import ablate, conditions, ndcg_at_k, recall_at_k, results
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, Fit
-from morel.train.recommendation import RankCfg, Recommendation
+from morel.train.recommendation import Rec, Recommendation
 
 log = get_logger("app.experiment")
 
@@ -280,7 +280,7 @@ class Rank:
         )
         trainer = Recommendation(
             pipeline.recommender,
-            RankCfg(grad_clip=self.config.recommendation.grad_clip),
+            Rec(grad_clip=self.config.recommendation.grad_clip),
             ui_graph=ui,
             negatives_count=self.config.recommendation.negatives,
             seed=seed_value,

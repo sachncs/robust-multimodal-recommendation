@@ -1,4 +1,4 @@
-"""Codebook: VQ and GumbelCodebook. Code usage and balance loss helpers."""
+"""Codebook: VQ and Soft. Code usage and balance loss helpers."""
 
 from __future__ import annotations
 
@@ -95,7 +95,7 @@ class VQ(Codebook):
         return quantized_st, one_hot
 
 
-class GumbelCodebook(Codebook):
+class Soft(Codebook):
     """Codebook that uses a Router for the discrete selection.
 
     Returns ``(quantized, probs)`` where ``probs`` is the routing distribution
@@ -183,4 +183,4 @@ def balance(probs: torch.Tensor) -> torch.Tensor:
     return probs.shape[1] * (bar_p**2).sum()
 
 
-__all__ = ["VQ", "Codebook", "GumbelCodebook", "Noop", "balance", "usage"]
+__all__ = ["VQ", "Codebook", "Noop", "Soft", "balance", "usage"]

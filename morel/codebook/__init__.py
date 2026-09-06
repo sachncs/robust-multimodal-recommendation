@@ -3,8 +3,8 @@
 from morel.codebook.codebook import (
     VQ,
     Codebook,
-    GumbelCodebook,
     Noop,
+    Soft,
     balance,
     usage,
 )
@@ -38,7 +38,7 @@ def build(
         ValueError: If ``kind`` is not a known codebook name.
     """
     if kind == "gumbel":
-        return GumbelCodebook(dim=dim, size=size, router=router, seed=seed)
+        return Soft(dim=dim, size=size, router=router, seed=seed)
     if kind == "vq":
         return VQ(dim=dim, size=size, seed=seed)
     if kind == "identity":
@@ -48,7 +48,7 @@ def build(
 
 #: Map from config name to codebook class for introspection.
 KIND: dict[str, type[Codebook]] = {
-    "gumbel": GumbelCodebook,
+    "gumbel": Soft,
     "vq": VQ,
     "identity": Noop,
 }
@@ -58,8 +58,8 @@ __all__ = [
     "KIND",
     "VQ",
     "Codebook",
-    "GumbelCodebook",
     "Noop",
+    "Soft",
     "balance",
     "build",
     "usage",
