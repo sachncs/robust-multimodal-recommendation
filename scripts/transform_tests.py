@@ -143,36 +143,56 @@ def transform_file(path: pathlib.Path) -> str:
     if not tests:
         return new_src
 
-    # Remove the test functions and all their decorators from the source.
-    # The transformer drops decorators (parametrize, given, settings, etc.)
-    # because re-applying them to class methods requires precise AST
-    # manipulation; the conftest-level test isolation compensates for the
-    # lost parametrization by running each Checker method as a single test.
+    # Remove the test functions from the source. We capture parametrize
+    # and given/settings decorators so they can be re-applied to the
+    # Checker method (parametrize on class methods is fully supported by
+    # pytest and yields one test instance per parameter set).
     lines = new_src.splitlines(keepends=True)
     drop: set[int] = set()
+    kept_decorators: dict[ast.FunctionDef | ast.AsyncFunctionDef, list[str]] = {}
+
+    def decorator_end_line(dec: ast.expr, all_lines: list[str]) -> int:
+        """Return the 1-indexed line of the closing ``)`` of ``dec``.
+
+        ``ast.end_lineno`` stops at the last argument of a multi-line
+        call, so we walk forward while parens are unbalanced.
+        """
+        start = dec.lineno or 1
+        if start < 1 or start > len(all_lines):
+            return start
+        opens = 0
+        for i in range(start - 1, len(all_lines)):
+            opens += all_lines[i].count("(") - all_lines[i].count(")")
+            if opens <= 0 and i >= start - 1:
+                return i + 1
+        return len(all_lines)
+
     for fn in tests:
         end = fn.end_lineno or fn.lineno
         for ln in range(fn.lineno, end + 1):
             drop.add(ln - 1)
-        if fn.decorator_list:
-            first_decorator = min(
-                d.lineno for d in fn.decorator_list if d.lineno is not None
-            )
-            # Drop every line from the first decorator up to the def line.
-            # This handles multi-line decorator calls where the closing
-            # ``)`` sits on its own line.
-            for ln in range(first_decorator, fn.lineno):
-                line = lines[ln - 1] if ln - 1 < len(lines) else ""
+        kept: list[str] = []
+        for dec in fn.decorator_list:
+            is_kept = False
+            if isinstance(dec, ast.Call):
+                func = dec.func
+                if isinstance(func, ast.Attribute):
+                    if func.attr in {"parametrize", "given", "settings"}:
+                        is_kept = True
+                elif isinstance(func, ast.Name):
+                    if func.id in {"parametrize", "given", "settings"}:
+                        is_kept = True
+            if is_kept:
+                src_dec = ast.get_source_segment(new_src, dec)
+                if src_dec:
+                    kept.append(src_dec)
+            # Drop every line from the decorator's start to its true
+            # closing-paren line (handles multi-line decorators).
+            dec_first = dec.lineno or 0
+            dec_last = decorator_end_line(dec, lines)
+            for ln in range(dec_first, dec_last + 1):
                 drop.add(ln - 1)
-                # If this line opens a paren that isn't closed on the same
-                # line, keep dropping lines until the parens balance.
-                opens = line.count("(") - line.count(")")
-                while opens > 0 and ln < fn.lineno:
-                    ln += 1
-                    if ln - 1 < len(lines):
-                        next_line = lines[ln - 1]
-                        opens += next_line.count("(") - next_line.count(")")
-                        drop.add(ln - 1)
+        kept_decorators[fn] = kept
         if fn.lineno - 2 >= 0 and not lines[fn.lineno - 2].strip():
             drop.add(fn.lineno - 2)
 
@@ -203,7 +223,15 @@ def transform_file(path: pathlib.Path) -> str:
             first,
             count=1,
         )
-        re_indented = [new_first]
+        re_indented: list[str] = []
+        # Re-apply kept decorators (parametrize, given, settings) above
+        # the Checker method. pytest supports these on class methods.
+        for dec_src in kept_decorators.get(fn, []):
+            stripped = dec_src.strip()
+            if not stripped.startswith("@"):
+                stripped = "@" + stripped
+            re_indented.append("    " + stripped)
+        re_indented.append(new_first)
         for line in original_lines[1:]:
             if line.strip():
                 re_indented.append("    " + line)

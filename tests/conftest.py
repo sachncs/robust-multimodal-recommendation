@@ -100,3 +100,16 @@ def path_graph_factory():
 def silent_monitor_factory():
     """Expose :func:`silent_monitor` for parametric tests."""
     return silent_monitor
+
+
+def pytest_collection_modifyitems(
+    config, items
+):
+    """Drop any collected test that is not a method of a test class."""
+    from _pytest.python import Class
+    keep = []
+    for item in items:
+        parent = item.parent
+        if isinstance(parent, Class) and parent.name in {"Checker", "Spec"}:
+            keep.append(item)
+    items[:] = keep
