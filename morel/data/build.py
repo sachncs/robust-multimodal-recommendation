@@ -137,10 +137,10 @@ def interactions(
     if skipped:
         log.warning("skipped malformed review lines", extra={"count": skipped})
 
-    def filter_pairs(keep_users: set[str], keep_items: set[str]) -> list[tuple[str, str]]:
+    def filter(keep_users: set[str], keep_items: set[str]) -> list[tuple[str, str]]:
         return [(u, i) for u, i in user_item_pairs if u in keep_users and i in keep_items]
 
-    filtered = filter_pairs(
+    filtered = filter(
         {u for u, c in user_counts.items() if c >= min_edges},
         {i for i, c in item_counts.items() if c >= min_edges},
     )
