@@ -225,8 +225,14 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
         Array of shape ``(nodes, min(k, n-1))`` with the bottom eigenvectors
         excluding the trivial constant one. ``k`` is clamped to ``n - 1``.
     """
-    if k <= 0:
-        raise GraphError(f"k must be positive, got {k}")
+    if k < 0:
+        raise GraphError(f"k must be non-negative, got {k}")
+    if k == 0:
+        # Zero requested dimensions means no positional encoding at all. This
+        # is a meaningful configuration, not an error: it is the "no_pe"
+        # ablation condition. Callers concatenate the result, and a
+        # zero-width array contributes nothing.
+        return np.zeros((adj.shape[0], 0), dtype=np.float64)
     lap = laplacian(adj)
     nodes = lap.shape[0]
     if nodes <= 1:

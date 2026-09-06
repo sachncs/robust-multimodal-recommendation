@@ -28,10 +28,17 @@ def test_pe_shape_clamps_k() -> None:
     assert out.shape == (2, 1)
 
 
-def test_pe_invalid_k() -> None:
+def test_pe_negative_k_is_rejected() -> None:
     g = sp.csr_matrix(np.array([[0, 1], [1, 0]], dtype=np.float32))
-    with pytest.raises(GraphError):
-        pe(g, k=0)
+    with pytest.raises(GraphError, match="k must be non-negative"):
+        pe(g, k=-1)
+
+
+def test_pe_zero_k_means_no_positional_encoding() -> None:
+    """k=0 is the "no_pe" ablation condition, not an error."""
+    g = sp.csr_matrix(np.array([[0, 1], [1, 0]], dtype=np.float32))
+    out = pe(g, k=0)
+    assert out.shape == (2, 0)
 
 
 def test_laplace_caches_same_content(path3) -> None:
