@@ -120,6 +120,24 @@ the names that are available; registering an existing name raises unless
 combination runs end to end and that a component defined outside the package
 is selectable.
 
+### Ablations
+
+`eval.ablations` names the conditions an ablation sweep compares. Each is
+registered in `morel.eval.ablation.ABLATIONS` as a function from a `Config` to
+an ablated `Config`, so a condition runs through the same pipeline as the
+baseline with only the named component changed.
+
+| Condition | Effect |
+|---|---|
+| `no_retrieval` | `retrieve.kind = "none"` — each item is completed alone, with no graph context |
+| `no_pe` | `encode.pe = 0` — no Laplacian positional encoding |
+| `no_codebook` | `codebook.kind = "identity"` — completion without quantization |
+
+`morel.app.AblationExperiment` runs the baseline plus every configured
+condition and reports recall and NDCG at each cutoff in `eval.ks`. Adding a
+condition means registering a transform and naming it in `eval.ablations`; no
+pipeline change is required.
+
 ## Determinism
 
 `morel.core.seed.seed(value)` sets `torch`, `torch.cuda`, `numpy`, `random`, `PYTHONHASHSEED`, `cudnn.deterministic`, and `cudnn.benchmark` process-wide. `morel.core.seed.deterministic(value)` is the scoped form: it seeds for the duration of a block and restores the caller's RNG state on exit, which is how model constructors are made reproducible without perturbing the surrounding program. `state()` and `restore()` snapshot RNG state for resume.

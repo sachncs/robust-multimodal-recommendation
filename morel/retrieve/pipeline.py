@@ -128,8 +128,8 @@ def strategy_bfs(
 ) -> set[int]:
     """Graph neighbourhood of the query within ``iters`` hops, ignoring features.
 
-    The no-retrieval ablation: it uses only the graph, so subgraph selection
-    does not depend on the modality features at all.
+    Uses only the graph, so subgraph selection does not depend on the modality
+    features at all.
     """
     del features, mask, anchors, fallback
     distances = bfs_distances(adj, [int(query)])

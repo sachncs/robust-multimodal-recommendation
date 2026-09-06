@@ -6,10 +6,12 @@ import json
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+import torch
 
 from morel.app.data import (
     build_completion_loaders,
@@ -25,6 +27,7 @@ from morel.data import MASKS
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import item_cooccurrence
 from morel.data.manifest import Manifest
+from morel.eval import ablate, ablation_results, conditions, ndcg_at_k, recall_at_k
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
 from morel.train.recommendation import Recommendation, RecommendationConfig
@@ -349,6 +352,114 @@ class RecommendationExperiment:
             "config_hash": config_hash,
             "best": history.get("best", None),
             "train_loss": history.get("train_loss", None),
+        }
+
+
+@dataclass
+class AblationExperiment:
+    """Run every condition in ``config.eval.ablations`` and compare them.
+
+    ``eval.ablations`` listed condition names that nothing could act on. This
+    runs the baseline and each named ablation through the same pipeline,
+    changing only the component the condition removes, and reports the ranking
+    metrics at every cutoff in ``eval.ks``.
+    """
+
+    config: Config
+    run_dir: Path
+    items: int = 50
+    users: int = 20
+    dim_visual: int = 8
+    dim_text: int = 4
+    seed: int | None = None
+
+    def score(self, config: Config, dataset: dict[str, Any]) -> np.ndarray:
+        """Build a pipeline under ``config`` and return its ``(users, items)`` scores.
+
+        The completion output is fed into the ranker. Without that the ranker
+        depends only on the interaction graph, every completion-stage ablation
+        scores identically, and the sweep measures nothing.
+        """
+        feature_dim = self.dim_visual + self.dim_text
+        pipeline = Pipeline(config, dims={"visual": self.dim_visual, "text": self.dim_text})
+        pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
+        pipeline.attach_recommender(dataset["ui"], feature_dim=feature_dim)
+        assert pipeline.recommender is not None
+        index = torch.arange(self.items)
+        output = pipeline(
+            {name: torch.from_numpy(value) for name, value in dataset["features"].items()},
+            torch.from_numpy(dataset["mask"]),
+            dataset["item_adj"],
+            index=index,
+            training=False,
+        )
+        completed = torch.cat([output.completed[name] for name in ("visual", "text")], dim=-1)
+        scores = pipeline.recommender(
+            torch.arange(self.users), index, dataset["ui"], item_features=completed
+        )
+        return np.asarray(scores.detach().cpu().numpy())
+
+    def run(self) -> dict[str, Any]:
+        """Run the sweep and write artifacts under ``run_dir``.
+
+        Returns
+        -------
+            Dict with the config hash and a metric-per-condition mapping.
+        """
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+        seed_value = self.seed if self.seed is not None else self.config.seed
+        config_hash = self.config.hash()
+        self.config.to_yaml(self.run_dir / "config.yaml")
+        start = time.time()
+        log.info("ablation.start", extra={"conditions": list(conditions(self.config))})
+
+        dataset = synthetic_dataset(
+            self.items, self.dim_visual, self.dim_text, self.users, self.config.masking
+        )
+        labels = dataset["ui"].sign().toarray()
+
+        scores_by_condition: dict[str, np.ndarray] = {}
+        for name in conditions(self.config):
+            # Reseed per condition so each is scored from the same starting
+            # state; otherwise a condition's numbers would depend on how many
+            # conditions ran before it.
+            seed_everything(seed_value)
+            scores_by_condition[name] = self.score(ablate(self.config, name), dataset)
+
+        metrics: dict[str, dict[str, float]] = {}
+        for k in self.config.eval.ks:
+            metrics[f"recall@{k}"] = ablation_results(
+                scores_by_condition, labels, metric=partial(recall_at_k, k=k)
+            )
+            metrics[f"ndcg@{k}"] = ablation_results(
+                scores_by_condition, labels, metric=partial(ndcg_at_k, k=k)
+            )
+
+        (self.run_dir / "ablations.json").write_text(
+            json.dumps({"config_hash": config_hash, "metrics": metrics}, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+        rows = "\n".join(
+            f"| {name} | " + " | ".join(f"{metrics[m][name]:.4f}" for m in sorted(metrics)) + " |"
+            for name in conditions(self.config)
+        )
+        header = " | ".join(sorted(metrics))
+        divider = " | ".join("---" for _ in sorted(metrics))
+        (self.run_dir / "report.md").write_text(
+            "# morel — Ablation Report\n\n"
+            f"- config_hash: `{config_hash}`\n"
+            f"- seed: {seed_value}\n\n"
+            f"| condition | {header} |\n| --- | {divider} |\n{rows}\n",
+            encoding="utf-8",
+        )
+
+        duration = time.time() - start
+        log.info("ablation.end", extra={"duration": duration})
+        return {
+            "duration": duration,
+            "run_dir": str(self.run_dir),
+            "config_hash": config_hash,
+            "metrics": metrics,
         }
 
 

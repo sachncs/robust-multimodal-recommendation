@@ -123,6 +123,10 @@ def run_eval(argv: list[str]) -> int:
     rank_cmd.add_argument("--config", default=None, help="path to a config YAML")
     robustness_cmd = sub.add_parser("robustness", help="robustness evaluation", add_help=False)
     robustness_cmd.add_argument("--config", default=None, help="path to a config YAML")
+    ablation_cmd = sub.add_parser("ablations", help="run the ablation sweep", add_help=False)
+    ablation_cmd.add_argument("--config", default=None, help="path to a config YAML")
+    ablation_cmd.add_argument("--items", type=int, default=50)
+    ablation_cmd.add_argument("--users", type=int, default=20)
     args = parser.parse_args(argv)
     log.info("eval.start", extra={"sub": args.sub})
     if args.sub == "rank":
@@ -137,7 +141,22 @@ def run_eval(argv: list[str]) -> int:
             ndcg = ndcg_at_k(scores, labels, k=k)
             print(f"recall@{k}={recall:.4f} ndcg@{k}={ndcg:.4f}")
         return 0
+    if args.sub == "ablations":
+        from morel.app import AblationExperiment
+
+        config = load_config_or_default(resolve_config_path(argv))
+        run_dir = Path("runs") / "ablations"
+        result = AblationExperiment(
+            config=config, run_dir=run_dir, items=args.items, users=args.users
+        ).run()
+        for metric in sorted(result["metrics"]):
+            for condition, value in result["metrics"][metric].items():
+                print(f"{metric} {condition}={value:.4f}")
+        return 0
     if args.sub == "robustness":
+        from functools import partial
+
+        from morel.eval import recall_at_k
         from morel.eval.protocol import robustness_sweep
 
         config = load_config_or_default(resolve_config_path(argv))
@@ -145,16 +164,12 @@ def run_eval(argv: list[str]) -> int:
         rng = __import__("numpy").random.default_rng(config.seed)
         scores_by_ratio = {r: rng.random((20, 50)) for r in ratios}
         labels = (rng.random((20, 50)) > 0.7).astype("float32")
-        result = robustness_sweep(
+        sweep = robustness_sweep(
             scores_by_ratio,
             labels,
-            metrics={
-                "recall@10": lambda s, lst: __import__(
-                    "morel.eval", fromlist=["recall_at_k"]
-                ).recall_at_k(s, lst, k=10),
-            },
+            metrics={f"recall@{k}": partial(recall_at_k, k=k) for k in config.eval.ks},
         )
-        print(result)
+        print(sweep)
         return 0
     return 2
 

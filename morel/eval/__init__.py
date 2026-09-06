@@ -1,12 +1,17 @@
 """Public API for the morel.eval package."""
 
+from morel.eval.ablation import ABLATIONS, BASELINE, ablate, conditions
 from morel.eval.completion import explained_variance, mse, per_modality_mse
 from morel.eval.protocol import RobustnessResult, ablation_results, robustness_sweep
 from morel.eval.ranking import map_at_k, mrr, ndcg_at_k, precision_at_k, recall_at_k
 
 __all__ = [
+    "ABLATIONS",
+    "BASELINE",
     "RobustnessResult",
+    "ablate",
     "ablation_results",
+    "conditions",
     "explained_variance",
     "map_at_k",
     "mrr",
