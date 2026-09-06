@@ -67,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
         "train": train,
         "eval": eval,
         "bench": run_bench,
-        "reproduce": run_repro,
+        "reproduce": repro,
         "serve": serve,
         "render-fidelity": render_fidelity,
     }[cmd]
@@ -193,7 +193,7 @@ def run_bench(argv: list[str]) -> int:
     return 0
 
 
-def run_repro(argv: list[str]) -> int:
+def repro(argv: list[str]) -> int:
     """Handle the ``reproduce`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel reproduce", description="reproduce")
     parser.add_argument("config", help="path to config.yaml")
