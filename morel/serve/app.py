@@ -173,7 +173,10 @@ def run_complete(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
         for name, dim in dims.items()
     }
     mask_t = torch.from_numpy(mask)
-    adjacency = sp.csr_matrix(np.zeros((len(items), len(items)), dtype=np.float32))
+    # Build the empty adjacency sparsely. Materializing a dense (n, n) block
+    # first costs O(n^2) memory for a matrix that has no nonzeros at all,
+    # which put a hard ceiling on the number of items a request could carry.
+    adjacency = sp.csr_matrix((len(items), len(items)), dtype=np.float32)
     output = pipeline_obj(features, mask_t, adjacency=adjacency, training=False)
     if payload.modalities:
         return {
