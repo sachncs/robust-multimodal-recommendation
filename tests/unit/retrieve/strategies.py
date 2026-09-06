@@ -16,7 +16,7 @@ import torch
 from morel.core.config import Config
 from morel.core.errors import ConfigError
 from morel.pipeline import Pipeline
-from morel.retrieve import STRATEGIES, retrieve, retrieve_batch
+from morel.retrieve import KIND as STRATEGIES, retrieve, retrieve_batch
 
 
 def corpus() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix]:
@@ -38,7 +38,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     def registered() -> None:
-        assert set(STRATEGIES.available()) >= {"mage", "acs", "anchor", "bfs"}
+        assert set(STRATEGIES) >= {"mage", "acs", "anchor", "bfs"}
 
     def query(kind: str) -> None:
         features, mask, adjacency = corpus()

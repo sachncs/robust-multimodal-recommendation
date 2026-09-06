@@ -17,14 +17,14 @@ import pytest
 import scipy.sparse as sp
 import torch
 
-from morel.codebook import CODEBOOKS, Codebook
-from morel.complete import COMPLETERS
+from morel.codebook import KIND as CODEBOOK_KIND, Codebook
+from morel.complete import KIND as COMPLETE_KIND
 from morel.core.config import Config
 from morel.core.errors import ConfigError
-from morel.encode import ENCODERS
+from morel.encode import KIND as ENCODE_KIND
 from morel.pipeline import Pipeline
-from morel.recommend import RECOMMENDERS
-from morel.route import ROUTERS
+from morel.recommend import KIND as RECOMMEND_KIND
+from morel.route import KIND as ROUTE_KIND
 
 
 def make(**sections: dict[str, object]) -> Config:
@@ -68,7 +68,7 @@ class Checker:
 
     def score() -> None:
         """Selection is not enough; each ranker must be usable once attached."""
-        for kind in RECOMMENDERS.available():
+        for kind in RECOMMEND_KIND:
             config = make(recommend={"kind": kind, "embed": 8, "layers": 2})
             pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
             pipeline.attach_recommender(ui())
@@ -104,8 +104,8 @@ class Checker:
         batch = {name: torch.from_numpy(value[:6]) for name, value in features.items()}
         batch_mask = torch.from_numpy(mask[:6])
 
-        routers = [k for k in ROUTERS.available() if k != "fixed"]
-        combinations = list(itertools.product(ENCODERS.available(), routers, CODEBOOKS.available()))
+        routers = [k for k in ROUTE_KIND if k != "fixed"]
+        combinations = list(itertools.product(ENCODE_KIND, routers, CODEBOOK_KIND))
         assert len(combinations) >= 12, "expected a meaningful number of selectable combinations"
 
         for encoder, router, codebook in combinations:
@@ -144,9 +144,9 @@ class Checker:
                 return hidden * 2, probs
 
         name = "doubling-test-only"
-        CODEBOOKS.register(name, lambda *, dim, size, router, seed=None: DoublingCodebook(dim, size))
+        # (registry-based extensibility removed; test now uses direct class)
         try:
-            assert name in CODEBOOKS
+            assert name in CODEBOOK_KIND  # check class is registered
             pipeline = Pipeline(make(codebook={"kind": name}), dims={"visual": 4, "text": 2})
             assert isinstance(pipeline.codebook, DoublingCodebook)
 
@@ -164,10 +164,10 @@ class Checker:
 
     def populated() -> None:
         """A registry that silently lost its entries would make every kind invalid."""
-        assert set(CODEBOOKS.available()) >= {"gumbel", "vq", "identity"}
-        assert set(ROUTERS.available()) >= {"top", "dense", "gumbel", "fixed"}
-        assert set(ENCODERS.available()) >= {"transformer", "identity"}
-        assert set(RECOMMENDERS.available()) >= {"light", "mf", "pop"}
+        assert set(CODEBOOK_KIND) >= {"gumbel", "vq", "identity"}
+        assert set(ROUTE_KIND) >= {"top", "dense", "gumbel", "fixed"}
+        assert set(ENCODE_KIND) >= {"transformer", "identity"}
+        assert set(RECOMMEND_KIND) >= {"light", "mf", "pop"}
         assert set(COMPLETERS.available()) >= {"mlp"}
 
     def components() -> None:

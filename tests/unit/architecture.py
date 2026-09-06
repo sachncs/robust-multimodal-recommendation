@@ -162,13 +162,13 @@ class Checker:
         from morel.data import EXTRACTORS, MASKS
         from morel.encode import ENCODERS
         from morel.recommend import RECOMMENDERS
-        from morel.retrieve import STRATEGIES
+        from morel.retrieve import KIND as STRATEGIES
         from morel.route import ROUTERS
 
         registries = {
             "MASKS": MASKS,
             "EXTRACTORS": EXTRACTORS,
-            "STRATEGIES": STRATEGIES,
+            "STRATEGIES": STRATEGIES,  # KIND dict from morel.retrieve
             "ENCODERS": ENCODERS,
             "ROUTERS": ROUTERS,
             "CODEBOOKS": CODEBOOKS,

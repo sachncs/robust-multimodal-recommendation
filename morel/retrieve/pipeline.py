@@ -13,19 +13,10 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
-from morel.core.registry import Registry
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import query as anchor_query
 from morel.retrieve.bfs import bfs as bfs_distances
 from morel.retrieve.mage import expand as mage_expand
-
-#: Selectable retrieval strategies, keyed by ``config.retrieve.kind``.
-#:
-#: A strategy takes ``(query, features, mask, adj)`` plus the keyword
-#: arguments below and returns the node ids of one query's subgraph. It takes
-#: the full argument set even if it ignores some, so strategies stay
-#: interchangeable.
-STRATEGIES: Registry[set[int]] = Registry("retrieval strategy")
 
 
 @dataclass(frozen=True)
@@ -62,7 +53,6 @@ def anchors_for(
     return found
 
 
-@STRATEGIES.register("mage")
 def strategy_mage(
     query: int,
     features: dict[str, np.ndarray],
@@ -80,7 +70,6 @@ def strategy_mage(
     return mage_expand(adj, list(anchor_set), query, features, mask, iters=iters, fallback=fallback)
 
 
-@STRATEGIES.register("acs")
 def strategy_acs(
     query: int,
     features: dict[str, np.ndarray],
@@ -99,7 +88,6 @@ def strategy_acs(
     return acs_compute(adj, sorted(anchor_set), fallback=fallback)
 
 
-@STRATEGIES.register("anchor")
 def strategy_anchor(
     query: int,
     features: dict[str, np.ndarray],
@@ -115,7 +103,6 @@ def strategy_anchor(
     return anchors_for(query, features, mask, anchors=anchors)
 
 
-@STRATEGIES.register("bfs")
 def strategy_bfs(
     query: int,
     features: dict[str, np.ndarray],
@@ -136,7 +123,6 @@ def strategy_bfs(
     return {int(node) for node, hops in distances.items() if hops <= max(int(iters), 1)}
 
 
-@STRATEGIES.register("none")
 def strategy_none(
     query: int,
     features: dict[str, np.ndarray],
@@ -155,6 +141,16 @@ def strategy_none(
     """
     del features, mask, adj, anchors, iters, fallback
     return {int(query)}
+
+
+#: Map from config name to strategy function. Module-local; no global registry.
+KIND: dict[str, object] = {
+    "mage": strategy_mage,
+    "acs": strategy_acs,
+    "anchor": strategy_anchor,
+    "bfs": strategy_bfs,
+    "none": strategy_none,
+}
 
 
 def retrieve(
@@ -188,11 +184,14 @@ def retrieve(
     ------
         ConfigError: If ``kind`` is not a registered strategy.
     """
-    strategy = STRATEGIES.get(kind)
+    strategy = KIND[kind]
     observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
     if not observed and kind != "bfs":
         return {int(query)}
-    subgraph = strategy(query, features, mask, adj, anchors=anchors, iters=iters, fallback=fallback)
+    subgraph = strategy(  # type: ignore[operator]
+        query, features, mask, adj,
+        anchors=anchors, iters=iters, fallback=fallback,
+    )
     subgraph = set(subgraph)
     subgraph.add(int(query))
     return subgraph
