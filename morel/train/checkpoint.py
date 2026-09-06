@@ -48,7 +48,7 @@ def load(target: Path | str) -> dict[str, Any]:
     return payload
 
 
-def unsafe_load(target: Path | str) -> dict[str, Any]:
+def unsafe(target: Path | str) -> dict[str, Any]:
     """Load a checkpoint allowing arbitrary pickle deserialization.
 
     Use only for trusted, in-house checkpoints that contain non-Tensor
@@ -121,4 +121,4 @@ def hash_config(config: object) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-__all__ = ["State", "hash_config", "load", "unsafe_load"]
+__all__ = ["State", "hash_config", "load", "unsafe"]

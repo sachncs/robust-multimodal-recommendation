@@ -9,12 +9,12 @@ import torch
 import torch.nn as nn
 
 from morel.core.errors import ConfigError, ModelError
-from morel.train.checkpoint import State, hash_config, load, unsafe_load
+from morel.train.checkpoint import State, hash_config, load, unsafe
 from morel.train.monitor import Monitor
 
 
 class CheckpointMarker:
-    """Module-level marker class used to verify unsafe_load roundtrips."""
+    """Module-level marker class used to verify unsafe roundtrips."""
 
 
 class Checker:
@@ -86,13 +86,13 @@ class Checker:
             load(bad_path)
 
     def exploit(self, tmp_path: Path) -> None:
-        """unsafe_load is the explicit opt-in for non-tensor payloads."""
+        """unsafe is the explicit opt-in for non-tensor payloads."""
         payload_path = tmp_path / "ok.pt"
         torch.save(
             {"model": {"x": torch.zeros(1)}, "obj": CheckpointMarker},
             payload_path,
         )
-        payload = unsafe_load(payload_path)
+        payload = unsafe(payload_path)
         assert "obj" in payload
 
     def dict(self, tmp_path: Path) -> None:
