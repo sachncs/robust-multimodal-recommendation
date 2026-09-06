@@ -23,17 +23,17 @@ from morel.core.errors import ConfigError
 Scope = Literal["read", "admin"]
 
 
-def admin_enabled() -> bool:
+def is_admin() -> bool:
     """Return whether admin-scope auth is configured."""
     return bool(os.environ.get("MOREL_AUTH_TOKEN_ADMIN") or os.environ.get("MOREL_AUTH_TOKEN"))
 
 
-def read_enabled() -> bool:
+def is_read() -> bool:
     """Return whether read-scope auth is configured."""
     return bool(os.environ.get("MOREL_AUTH_TOKEN_READ") or os.environ.get("MOREL_AUTH_TOKEN"))
 
 
-def token_for_scope(scope: Scope) -> str | None:
+def token(scope: Scope) -> str | None:
     """Return the configured token for ``scope``, or ``None`` if auth is off."""
     legacy = os.environ.get("MOREL_AUTH_TOKEN", "").strip()
     if scope == "admin":
@@ -61,7 +61,7 @@ def require(request: Request, scope: Scope = "read") -> None:
     HTTPException
         401 if the token is missing or wrong.
     """
-    expected = token_for_scope(scope)
+    expected = token(scope)
     if not expected:
         return
     header = request.headers.get("authorization", "")
@@ -80,24 +80,24 @@ def dependency(scope: Scope) -> Callable[[Request], None]:
     incoming request.
     """
 
-    def scoped_dependency(request: Request) -> None:
+    def scoped(request: Request) -> None:
         require(request, scope=scope)
 
-    return scoped_dependency
+    return scoped
 
 
-def assert_configured() -> None:
+def assert_set() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
-    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (admin_enabled() or read_enabled()):
+    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (is_admin() or is_read()):
         raise ConfigError("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
 
 
 __all__ = [
     "Scope",
-    "admin_enabled",
-    "assert_configured",
+    "is_admin",
+    "assert_set",
     "dependency",
-    "read_enabled",
+    "is_read",
     "require",
-    "token_for_scope",
+    "token",
 ]

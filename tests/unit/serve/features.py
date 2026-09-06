@@ -10,11 +10,11 @@ import pytest
 import torch.nn as nn
 
 from morel.serve.auth import (
-    admin_enabled,
-    assert_configured,
-    read_enabled,
+    is_admin,
+    assert_set,
+    is_read,
     require,
-    token_for_scope,
+    token,
 )
 from morel.serve.lock import RWLock
 from morel.serve.update import Updater
@@ -52,19 +52,19 @@ class Checker:
         monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
         monkeypatch.delenv("MOREL_AUTH_TOKEN_ADMIN", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "read-tok")
-        assert read_enabled() is True
-        assert admin_enabled() is False
-        assert token_for_scope("read") == "read-tok"
-        assert token_for_scope("admin") is None
+        assert is_read() is True
+        assert is_admin() is False
+        assert token("read") == "read-tok"
+        assert token("admin") is None
 
     def only(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
         monkeypatch.delenv("MOREL_AUTH_TOKEN_READ", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-tok")
-        assert read_enabled() is False
-        assert admin_enabled() is True
-        assert token_for_scope("read") is None
-        assert token_for_scope("admin") == "admin-tok"
+        assert is_read() is False
+        assert is_admin() is True
+        assert token("read") is None
+        assert token("admin") == "admin-tok"
 
     def both(self, monkeypatch: pytest.MonkeyPatch) -> None:
         for var in (
@@ -74,10 +74,10 @@ class Checker:
         ):
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN", "legacy")
-        assert read_enabled() is True
-        assert admin_enabled() is True
-        assert token_for_scope("read") == "legacy"
-        assert token_for_scope("admin") == "legacy"
+        assert is_read() is True
+        assert is_admin() is True
+        assert token("read") == "legacy"
+        assert token("admin") == "legacy"
 
     def without(self, 
         monkeypatch: pytest.MonkeyPatch,
@@ -92,7 +92,7 @@ class Checker:
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("MOREL_AUTH_ENABLED", "1")
         with pytest.raises(ConfigError):
-            assert_configured()
+            assert_set()
 
     def noop(self) -> None:
         class Req:

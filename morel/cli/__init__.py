@@ -67,9 +67,9 @@ def main(argv: list[str] | None = None) -> int:
         "train": train,
         "eval": eval,
         "bench": run_bench,
-        "reproduce": run_reproduce,
+        "reproduce": run_repro,
         "serve": serve,
-        "render-fidelity": run_render_fidelity,
+        "render-fidelity": render_fidelity,
     }[cmd]
     return handler(rest)
 
@@ -89,11 +89,11 @@ def train(argv: list[str]) -> int:
     sub.add_parser("recommendation", help="train the recommendation stage", add_help=False)
     args = parser.parse_args(argv)
 
-    config_path = resolve_config(argv)
+    config_path = resolve_cfg(argv)
     if args.sub == "completion":
         from morel.app import Experiment
 
-        config = load_config_default(config_path)
+        config = load_cfg(config_path)
         run_dir = Path("runs") / "completion"
         # epochs deliberately left unset so config.completion.epochs applies;
         # the run manifest records that config, so overriding it here would
@@ -105,7 +105,7 @@ def train(argv: list[str]) -> int:
     if args.sub == "recommendation":
         from morel.app import Rank
 
-        config = load_config_default(config_path)
+        config = load_cfg(config_path)
         run_dir = Path("runs") / "recommendation"
         rec = Rank(config=config, run_dir=run_dir, items=50, users=20)
         result = rec.run()
@@ -132,7 +132,7 @@ def eval(argv: list[str]) -> int:
     if args.sub == "rank":
         from morel.eval import ndcg_at_k, recall_at_k
 
-        config = load_config_default(resolve_config(argv))
+        config = load_cfg(resolve_cfg(argv))
         rng = __import__("numpy").random.default_rng(config.seed)
         scores = rng.random((20, 50))
         labels = (rng.random((20, 50)) > 0.7).astype("float32")
@@ -144,7 +144,7 @@ def eval(argv: list[str]) -> int:
     if args.sub == "ablations":
         from morel.app import Ablate
 
-        config = load_config_default(resolve_config(argv))
+        config = load_cfg(resolve_cfg(argv))
         run_dir = Path("runs") / "ablations"
         result = Ablate(
             config=config, run_dir=run_dir, items=args.items, users=args.users
@@ -159,7 +159,7 @@ def eval(argv: list[str]) -> int:
         from morel.eval import recall_at_k
         from morel.eval.protocol import robustness_sweep
 
-        config = load_config_default(resolve_config(argv))
+        config = load_cfg(resolve_cfg(argv))
         ratios = list(config.eval.robustness)
         rng = __import__("numpy").random.default_rng(config.seed)
         scores_by_ratio = {r: rng.random((20, 50)) for r in ratios}
@@ -195,7 +195,7 @@ def run_bench(argv: list[str]) -> int:
     return 0
 
 
-def run_reproduce(argv: list[str]) -> int:
+def run_repro(argv: list[str]) -> int:
     """Handle the ``reproduce`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel reproduce", description="reproduce")
     parser.add_argument("config", help="path to config.yaml")
@@ -215,7 +215,7 @@ def run_reproduce(argv: list[str]) -> int:
     return int(bool(rep.run()))
 
 
-def run_render_fidelity(argv: list[str]) -> int:
+def render_fidelity(argv: list[str]) -> int:
     """Handle the ``render-fidelity`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel render-fidelity", description="render fidelity")
     parser.add_argument("markdown", help="output markdown path")
@@ -242,7 +242,7 @@ def serve_inference(argv: list[str]) -> int:
     parser.add_argument("--workers", type=int, default=None, help="overrides serve.workers")
     parser.add_argument("--config", default=None)
     args = parser.parse_args(argv)
-    config = load_config_default(resolve_config(argv))
+    config = load_cfg(resolve_cfg(argv))
     host = args.host if args.host is not None else config.serve.host
     port = args.port if args.port is not None else config.serve.port
     workers = args.workers if args.workers is not None else config.serve.workers
@@ -267,7 +267,7 @@ def configure_logging(argv: list[str]) -> None:
     failure this falls back to the previous hardcoded behaviour.
     """
     try:
-        config = load_config_default(resolve_config(argv))
+        config = load_cfg(resolve_cfg(argv))
     except Exception:
         configure_log(level="INFO", structured=False)
         return
@@ -278,7 +278,7 @@ def configure_logging(argv: list[str]) -> None:
     )
 
 
-def resolve_config(argv: list[str]) -> Path | None:
+def resolve_cfg(argv: list[str]) -> Path | None:
     """Return the ``--config`` path from *argv*, or ``None``."""
     for i, a in enumerate(argv):
         if a == "--config" and i + 1 < len(argv):
@@ -286,7 +286,7 @@ def resolve_config(argv: list[str]) -> Path | None:
     return None
 
 
-def load_config_default(path: Path | None) -> Config:
+def load_cfg(path: Path | None) -> Config:
     """Load a ``Config`` from *path*, or return the default config."""
     from morel.core.config import Config
 

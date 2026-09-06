@@ -9,11 +9,11 @@ from morel.serve.app import (
 )
 from morel.serve.auth import (
     Scope,
-    admin_enabled,
-    assert_configured,
+    is_admin,
+    assert_set,
     dependency,
-    read_enabled,
-    token_for_scope,
+    is_read,
+    token,
 )
 from morel.serve.loader import Loader
 from morel.serve.lock import Read, RWLock, Write, reader, writer
@@ -57,13 +57,13 @@ __all__ = [
     "Step",
     "Updater",
     "Write",
-    "admin_enabled",
-    "assert_configured",
+    "is_admin",
+    "assert_set",
     "create",
     "dependency",
-    "read_enabled",
+    "is_read",
     "reader",
     "serialize_completed",
-    "token_for_scope",
+    "token",
     "writer",
 ]
