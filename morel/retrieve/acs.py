@@ -28,7 +28,7 @@ log = get_logger("retrieve.acs")
 def validate_acs_inputs(adj: sp.csr_matrix, anchors: list[int]) -> None:
     if anchors is None:
         raise GraphError("anchors must not be None")
-    if len(anchors) == 0:
+    if not anchors:
         return
     nodes = adj.shape[0]
     seen: set[int] = set()
@@ -65,7 +65,7 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
         raise GraphError(f"adj must be square, got {adj.shape}")
     validate_acs_inputs(adj, anchors)
     invariants.no_self_loops(adj)
-    if len(anchors) == 0:
+    if not anchors:
         return set()
     if len(anchors) == 1:
         return {int(anchors[0])}
