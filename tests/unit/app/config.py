@@ -105,5 +105,5 @@ class Checker:
         result = Experiment(config=config, run_dir=tmp_path, items=10, users=4).run()
 
         written = Config.load(tmp_path / "config.yaml")
-        assert written.hash() == result["config_hash"]
+        assert written.hash() == result["cfg_hash"]
         assert written.completion.lr == pytest.approx(7e-4)

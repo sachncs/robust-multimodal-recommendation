@@ -48,7 +48,7 @@ class Trainer(ABC):
             Path(checkpoint_dir).resolve() if checkpoint_dir is not None else None
         )
         self.best_metric: float = float("inf")
-        self.config_hash = hash_cfg(config)
+        self.cfg_hash = hash_cfg(config)
         self.scaler = (
             torch.amp.GradScaler(self.device.type)
             if amp and self.device.type in {"cuda", "cpu"}
@@ -95,7 +95,7 @@ class Trainer(ABC):
         """
         start_epoch = 0
         if resume is not None:
-            state = State.load(resume, expected_config_hash=self.config_hash)
+            state = State.load(resume, expected_config_hash=self.cfg_hash)
             self.model.load_state_dict(state.model)
             if self.optimizer is not None and state.optimizer is not None:
                 self.optimizer.load_state_dict(state.optimizer)
@@ -153,7 +153,7 @@ class Trainer(ABC):
             epoch=epoch,
             metric=metric,
             rng=None,
-            config_hash=self.config_hash,
+            cfg_hash=self.cfg_hash,
         )
         state.save(self.checkpoint_dir / "best.pt")
 

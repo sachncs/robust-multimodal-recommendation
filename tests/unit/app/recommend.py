@@ -40,7 +40,7 @@ class Checker:
 
         for name in ("config.yaml", "manifest.json", "metrics.jsonl", "report.md"):
             assert (tmp_path / name).exists(), f"missing {name}"
-        assert set(result) >= {"duration", "run_dir", "config_hash", "best", "train_loss"}
+        assert set(result) >= {"duration", "run_dir", "cfg_hash", "best", "train_loss"}
 
     def it(self, tmp_path: Path) -> None:
         Rank(config=small(), run_dir=tmp_path, items=20, users=8).run()

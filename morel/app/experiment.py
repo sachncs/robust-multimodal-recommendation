@@ -113,15 +113,15 @@ class Experiment:
 
         Returns
         -------
-            Dict with status, duration, metrics, and config_hash.
+            Dict with status, duration, metrics, and cfg_hash.
         """
         self.run_dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed
         seed_everything(seed_value)
-        config_hash = self.config.hash()
+        cfg_hash = self.config.hash()
         log.info(
             "experiment.start",
-            extra={"run_dir": str(self.run_dir), "config_hash": config_hash},
+            extra={"run_dir": str(self.run_dir), "cfg_hash": cfg_hash},
         )
         self.config.save(self.run_dir / "config.yaml")
         start = time.time()
@@ -172,7 +172,7 @@ class Experiment:
                         "duration_s": time.time() - start,
                         "best_loss": history.get("best", None),
                         "train_loss": history.get("train_loss", None),
-                        "config_hash": config_hash,
+                        "cfg_hash": cfg_hash,
                     }
                 )
                 + "\n"
@@ -184,7 +184,7 @@ class Experiment:
             code="morel.experiment",
             seed=seed_value,
             extractor="synthetic",
-            config_hash=config_hash,
+            cfg_hash=cfg_hash,
             parents=[],
             extras={
                 "items": self.items,
@@ -199,7 +199,7 @@ class Experiment:
         report.write_text(
             "# morel — Experiment Report\n\n"
             f"- run_dir: `{self.run_dir}`\n"
-            f"- config_hash: `{config_hash}`\n"
+            f"- cfg_hash: `{cfg_hash}`\n"
             f"- items: {self.items}\n"
             f"- users: {self.users}\n"
             f"- epochs: {epochs}\n"
@@ -219,7 +219,7 @@ class Experiment:
         return {
             "duration": duration,
             "run_dir": str(self.run_dir),
-            "config_hash": config_hash,
+            "cfg_hash": cfg_hash,
             "best": history.get("best", None),
             "train_loss": history.get("train_loss", None),
         }
@@ -253,15 +253,15 @@ class Rank:
 
         Returns
         -------
-            Dict with duration, run_dir, config_hash and best validation loss.
+            Dict with duration, run_dir, cfg_hash and best validation loss.
         """
         self.run_dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed
         seed_everything(seed_value)
-        config_hash = self.config.hash()
+        cfg_hash = self.config.hash()
         log.info(
             "recommendation.start",
-            extra={"run_dir": str(self.run_dir), "config_hash": config_hash},
+            extra={"run_dir": str(self.run_dir), "cfg_hash": cfg_hash},
         )
         self.config.save(self.run_dir / "config.yaml")
         start = time.time()
@@ -306,7 +306,7 @@ class Rank:
                         "duration_s": time.time() - start,
                         "best_loss": history.get("best", None),
                         "train_loss": history.get("train_loss", None),
-                        "config_hash": config_hash,
+                        "cfg_hash": cfg_hash,
                     }
                 )
                 + "\n"
@@ -318,7 +318,7 @@ class Rank:
             code="morel.app.Rank",
             seed=seed_value,
             extractor="synthetic",
-            config_hash=config_hash,
+            cfg_hash=cfg_hash,
             parents=[],
             extras={
                 "items": self.items,
@@ -331,7 +331,7 @@ class Rank:
         (self.run_dir / "report.md").write_text(
             "# morel — Recommendation Report\n\n"
             f"- run_dir: `{self.run_dir}`\n"
-            f"- config_hash: `{config_hash}`\n"
+            f"- cfg_hash: `{cfg_hash}`\n"
             f"- recommender: {self.config.recommend.kind}\n"
             f"- items: {self.items}\n"
             f"- users: {self.users}\n"
@@ -349,7 +349,7 @@ class Rank:
         return {
             "duration": duration,
             "run_dir": str(self.run_dir),
-            "config_hash": config_hash,
+            "cfg_hash": cfg_hash,
             "best": history.get("best", None),
             "train_loss": history.get("train_loss", None),
         }
@@ -408,7 +408,7 @@ class Ablate:
         """
         self.run_dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed
-        config_hash = self.config.hash()
+        cfg_hash = self.config.hash()
         self.config.save(self.run_dir / "config.yaml")
         start = time.time()
         log.info("ablation.start", extra={"conditions": list(conditions(self.config))})
@@ -436,7 +436,7 @@ class Ablate:
             )
 
         (self.run_dir / "ablations.json").write_text(
-            json.dumps({"config_hash": config_hash, "metrics": metrics}, indent=2, sort_keys=True),
+            json.dumps({"cfg_hash": cfg_hash, "metrics": metrics}, indent=2, sort_keys=True),
             encoding="utf-8",
         )
         rows = "\n".join(
@@ -447,7 +447,7 @@ class Ablate:
         divider = " | ".join("---" for _ in sorted(metrics))
         (self.run_dir / "report.md").write_text(
             "# morel — Ablation Report\n\n"
-            f"- config_hash: `{config_hash}`\n"
+            f"- cfg_hash: `{cfg_hash}`\n"
             f"- seed: {seed_value}\n\n"
             f"| condition | {header} |\n| --- | {divider} |\n{rows}\n",
             encoding="utf-8",
@@ -458,7 +458,7 @@ class Ablate:
         return {
             "duration": duration,
             "run_dir": str(self.run_dir),
-            "config_hash": config_hash,
+            "cfg_hash": cfg_hash,
             "metrics": metrics,
         }
 

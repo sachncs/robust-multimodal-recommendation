@@ -116,7 +116,7 @@ class Checker:
         result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         payload = json.loads((tmp_path / "ablations.json").read_text(encoding="utf-8"))
-        assert payload["config_hash"] == result["config_hash"]
+        assert payload["cfg_hash"] == result["cfg_hash"]
         assert payload["metrics"] == result["metrics"]
 
         report = (tmp_path / "report.md").read_text(encoding="utf-8")

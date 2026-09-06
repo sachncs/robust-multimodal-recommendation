@@ -28,19 +28,19 @@ class Checker:
             epoch=3,
             metric=0.5,
             rng=None,
-            config_hash="abc",
+            cfg_hash="abc",
         )
         path = tmp_path / "c.pt"
         state.save(path)
         loaded = State.load(path)
         assert loaded.epoch == 3
         assert loaded.metric == 0.5
-        assert loaded.config_hash == "abc"
+        assert loaded.cfg_hash == "abc"
 
     def mismatch(self, tmp_path: Path) -> None:
         model = nn.Linear(2, 1)
         state = State(
-            model=model.state_dict(), optimizer=None, epoch=0, metric=0.0, rng=None, config_hash="a"
+            model=model.state_dict(), optimizer=None, epoch=0, metric=0.0, rng=None, cfg_hash="a"
         )
         path = tmp_path / "c.pt"
         state.save(path)

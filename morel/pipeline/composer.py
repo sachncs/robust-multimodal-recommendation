@@ -138,9 +138,9 @@ class Pipeline(nn.Module):
                     f"available: {', '.join(sorted(RECOMMEND_KIND))}"
                 )
         self.recommender: nn.Module | None = None
-        self.retrieval_features: dict[str, np.ndarray] | None = None
+        self.corpus_features: dict[str, np.ndarray] | None = None
         self.retrieval_mask: np.ndarray | None = None
-        self.retrieval_adj: sp.csr_matrix | None = None
+        self.corpus_adj: sp.csr_matrix | None = None
 
     def attach_recommend(self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None) -> None:
         """Attach the downstream ranker named by ``config.recommend.kind``.
@@ -191,9 +191,9 @@ class Pipeline(nn.Module):
         PyTorch tensors with the autograd engine. It only stores the corpus
         attributes used by retrieval during :meth:`forward`.
         """
-        self.retrieval_features = features
+        self.corpus_features = features
         self.retrieval_mask = mask
-        self.retrieval_adj = adjacency
+        self.corpus_adj = adjacency
 
     def forward(
         self,
@@ -251,17 +251,17 @@ class Pipeline(nn.Module):
             subgraph_mask: np.ndarray | None = None
 
             if (
-                self.retrieval_features is not None
+                self.corpus_features is not None
                 and self.retrieval_mask is not None
                 and index is not None
             ):
                 queries = [int(i) for i in index.detach().cpu().tolist()]
                 result = batch(
                     queries,
-                    self.retrieval_features,
+                    self.corpus_features,
                     self.retrieval_mask,
-                    self.retrieval_adj
-                    if self.retrieval_adj is not None
+                    self.corpus_adj
+                    if self.corpus_adj is not None
                     else sp.csr_matrix(adjacency),
                     anchors=self.config.retrieve.anchors,
                     iters=self.config.retrieve.iters,
@@ -312,7 +312,7 @@ class Pipeline(nn.Module):
             ModelError: If no corpus has been attached. Call
                 :meth:`attach` before encoding subgraphs.
         """
-        corpus_features = self.retrieval_features
+        corpus_features = self.corpus_features
         corpus_mask = self.retrieval_mask
         if corpus_features is None or corpus_mask is None:
             raise ModelError(

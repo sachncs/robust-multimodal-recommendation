@@ -174,7 +174,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
         code=f"morel.data.extract:{text_kind}+{visual_kind}",
         seed=config.seed,
         extractor="random",
-        config_hash=config.hash(),
+        cfg_hash=config.hash(),
         extras={"items": items},
     )
     saved = (out_dir / "features.npz").resolve()
@@ -186,7 +186,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
             code=f"morel.data.extract:{text_kind}+{visual_kind}",
             seed=config.seed,
             extractor="random",
-            config_hash=config.hash(),
+            cfg_hash=config.hash(),
             extras={"items": items},
         ).to_json(),
         encoding="utf-8",
@@ -229,7 +229,7 @@ def run_build(args: argparse.Namespace, config: Config) -> None:
             code="morel.data.build.bipartite",
             seed=config.seed,
             extractor="random",
-            config_hash=config.hash(),
+            cfg_hash=config.hash(),
             extras={"users": users, "items": items, "min_edges": args.min_edges},
         ).to_json(),
         encoding="utf-8",

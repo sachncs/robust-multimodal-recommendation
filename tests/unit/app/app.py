@@ -17,7 +17,7 @@ class Checker:
         result = exp.run()
         assert "duration" in result
         assert "run_dir" in result
-        assert "config_hash" in result
+        assert "cfg_hash" in result
         assert (tmp_path / "config.yaml").exists()
         assert (tmp_path / "manifest.json").exists()
         assert (tmp_path / "metrics.jsonl").exists()
@@ -31,7 +31,7 @@ class Checker:
         rep = Reproduce(config_path=config_path, run_dir=run_dir, items=10, users=4, epochs=1)
         result = rep.run()
         assert "duration" in result
-        assert "config_hash" in result
+        assert "cfg_hash" in result
 
     def benchmark(self, tmp_path: Path) -> None:
         config = Config()

@@ -22,7 +22,7 @@ class Checker:
             code="abc123",
             seed=0,
             extractor="text",
-            config_hash="deadbeef",
+            cfg_hash="deadbeef",
         )
         sidecar = save(artifact, m)
         assert sidecar.exists()
@@ -40,7 +40,7 @@ class Checker:
             code="abc",
             seed=0,
             extractor="text",
-            config_hash="hash1",
+            cfg_hash="hash1",
         )
         save(artifact, m)
         with pytest.raises(DataError):

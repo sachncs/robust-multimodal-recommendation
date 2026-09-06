@@ -12,7 +12,7 @@ import torch
 
 from morel.core.errors import ConfigError, ModelError
 
-ALLOWED = {"model", "optimizer", "epoch", "metric", "rng", "config_hash", "extras"}
+ALLOWED = {"model", "optimizer", "epoch", "metric", "rng", "cfg_hash", "extras"}
 
 
 def load(target: Path | str) -> dict[str, Any]:
@@ -72,7 +72,7 @@ class State:
     epoch: int
     metric: float
     rng: dict[str, Any] | None
-    config_hash: str
+    cfg_hash: str
     extras: dict[str, Any] = field(default_factory=dict)
 
     def save(self, target: Path | str) -> None:
@@ -85,7 +85,7 @@ class State:
             "epoch": self.epoch,
             "metric": self.metric,
             "rng": self.rng,
-            "config_hash": self.config_hash,
+            "cfg_hash": self.cfg_hash,
             "extras": self.extras,
         }
         tmp = path.with_suffix(path.suffix + ".tmp")
@@ -96,10 +96,10 @@ class State:
     def load(cls, target: Path | str, *, expected_config_hash: str | None = None) -> State:
         """Load a checkpoint, optionally verifying the config hash."""
         payload = load(target)
-        if expected_config_hash is not None and payload.get("config_hash") != expected_config_hash:
+        if expected_config_hash is not None and payload.get("cfg_hash") != expected_config_hash:
             raise ConfigError(
                 f"checkpoint config hash mismatch: "
-                f"got {payload.get('config_hash')}, expected {expected_config_hash}"
+                f"got {payload.get('cfg_hash')}, expected {expected_config_hash}"
             )
         return cls(
             model=payload["model"],
@@ -107,7 +107,7 @@ class State:
             epoch=int(payload.get("epoch", 0)),
             metric=float(payload.get("metric", 0.0)),
             rng=payload.get("rng"),
-            config_hash=str(payload.get("config_hash", "")),
+            cfg_hash=str(payload.get("cfg_hash", "")),
             extras=dict(payload.get("extras", {})),
         )
 

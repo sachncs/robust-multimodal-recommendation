@@ -30,7 +30,7 @@ class Manifest:
     code: str
     seed: int
     extractor: str
-    config_hash: str
+    cfg_hash: str
     parents: list[str] = field(default_factory=list)
     schema: int = VERSION
     timestamp: str = field(default_factory=lambda: dt.datetime.now(dt.timezone.utc).isoformat())
@@ -92,10 +92,10 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
     if not sidecar.exists():
         raise DataError(f"manifest not found for {artifact}: {sidecar}")
     manifest = Manifest.from_json(sidecar.read_text(encoding="utf-8"))
-    if expected_config_hash is not None and manifest.config_hash != expected_config_hash:
+    if expected_config_hash is not None and manifest.cfg_hash != expected_config_hash:
         raise DataError(
             f"manifest config hash mismatch for {artifact}: "
-            f"got {manifest.config_hash}, expected {expected_config_hash}"
+            f"got {manifest.cfg_hash}, expected {expected_config_hash}"
         )
     return manifest
 

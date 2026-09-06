@@ -26,7 +26,7 @@ class Checker:
     def manifest(self, tmp_path: Path) -> None:
         target = tmp_path / "x.npz"
         m = Manifest(
-            dataset="Beauty", version="1", code="c", seed=0, extractor="text", config_hash="abc"
+            dataset="Beauty", version="1", code="c", seed=0, extractor="text", cfg_hash="abc"
         )
         save_npz(target, manifest_obj=m, a=np.arange(2, dtype=np.float32))
         assert load_npz(target).get("a") is not None
