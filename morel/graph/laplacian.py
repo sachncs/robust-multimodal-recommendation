@@ -49,7 +49,7 @@ def coo_hash(matrix: sp.spmatrix) -> str:
 
 def laplacian(adj: sp.spmatrix) -> sp.csr_matrix:
     """Symmetric normalized Laplacian: L = I - D^{-1/2} A D^{-1/2}."""
-    invariants.no_self_loops(adj)
+    invariants.no_loops(adj)
     adj_coo = sp.coo_matrix(adj)
     rowsum = np.asarray(adj_coo.sum(axis=1)).flatten()
     with np.errstate(divide="ignore"):
@@ -59,7 +59,7 @@ def laplacian(adj: sp.spmatrix) -> sp.csr_matrix:
     return laplacian_csr.tocsr()
 
 
-def canonical_signs(eigvecs: np.ndarray) -> np.ndarray:
+def signs(eigvecs: np.ndarray) -> np.ndarray:
     """Fix the arbitrary sign of each eigenvector to a reproducible choice.
 
     An eigenvector is only defined up to sign, so two mathematically correct
@@ -94,7 +94,7 @@ def canonical_signs(eigvecs: np.ndarray) -> np.ndarray:
 TOL = 1e-6
 
 
-def canonical_basis(eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = TOL) -> np.ndarray:
+def basis(eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = TOL) -> np.ndarray:
     """Pick a reproducible basis inside each degenerate eigenspace.
 
     Sign-fixing is not enough when an eigenvalue is repeated: any orthogonal
@@ -154,7 +154,7 @@ def canonical_basis(eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = TO
 LIMIT = 2048
 
 
-def cluster_straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
+def straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
     """Return whether a degenerate cluster is cut in half by the ``want`` cutoff.
 
     If the last kept eigenvalue equals the first discarded one, the solver has
@@ -166,7 +166,7 @@ def cluster_straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bo
     return bool(abs(float(eigvals[want]) - float(eigvals[want - 1])) <= tol)
 
 
-def bottom_eigenpairs(
+def bottom(
     lap: sp.csr_matrix, count: int, nodes: int, *, k: int
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return the ``count`` smallest eigenpairs, sparsely when that is possible.
@@ -245,18 +245,18 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
     # there is no "next" eigenvalue to compare the last kept one against.
     requested = min(nodes, want + 1)
     while True:
-        eigvals, eigvecs = bottom_eigenpairs(lap, requested, nodes, k=k)
+        eigvals, eigvecs = bottom(lap, requested, nodes, k=k)
         order = np.argsort(eigvals)
         eigvals, eigvecs = eigvals[order], eigvecs[:, order]
-        if eigvals.shape[0] >= nodes or not cluster_straddles(eigvals, want):
+        if eigvals.shape[0] >= nodes or not straddles(eigvals, want):
             break
         widened = min(nodes, requested * 2)
         if widened == requested:
             break
         requested = widened
 
-    eigvecs = canonical_basis(eigvals, eigvecs)
-    return canonical_signs(eigvecs[:, 1:want]).astype(np.float64)
+    eigvecs = basis(eigvals, eigvecs)
+    return signs(eigvecs[:, 1:want]).astype(np.float64)
 
 
 class Laplace(nn.Module):
@@ -295,10 +295,10 @@ __all__ = [
     "LIMIT",
     "TOL",
     "Laplace",
-    "bottom_eigenpairs",
-    "canonical_basis",
-    "canonical_signs",
-    "cluster_straddles",
+    "bottom",
+    "basis",
+    "signs",
+    "straddles",
     "laplacian",
     "pe",
     "start",

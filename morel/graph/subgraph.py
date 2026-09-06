@@ -50,7 +50,7 @@ class Subgraph:
         return set(self.nodes.tolist())
 
     @classmethod
-    def from_indices(cls, indices: list[int] | np.ndarray) -> Subgraph:
+    def from_idx(cls, indices: list[int] | np.ndarray) -> Subgraph:
         """Construct from a list of indices, deduplicating and sorting."""
         return cls(nodes=np.unique(np.asarray(indices, dtype=np.int64)))
 

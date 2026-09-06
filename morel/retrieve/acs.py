@@ -64,7 +64,7 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
     if adj.ndim != 2 or adj.shape[0] != adj.shape[1]:
         raise GraphError(f"adj must be square, got {adj.shape}")
     validate_acs_inputs(adj, anchors)
-    invariants.no_self_loops(adj)
+    invariants.no_loops(adj)
     if not anchors:
         return set()
     if len(anchors) == 1:

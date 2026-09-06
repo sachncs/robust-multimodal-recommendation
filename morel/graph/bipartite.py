@@ -41,7 +41,7 @@ class Bipartite:
         """Return the underlying sparse adjacency."""
         return self.matrix
 
-    def to_dense(self) -> np.ndarray:
+    def dense(self) -> np.ndarray:
         """Return a dense copy as a numpy array."""
         dense: np.ndarray = self.matrix.toarray()
         return dense

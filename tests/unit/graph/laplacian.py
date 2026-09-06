@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import GraphError
-from morel.graph.laplacian import Laplace, canonical_signs, laplacian, pe, start
+from morel.graph.laplacian import Laplace, signs, laplacian, pe, start
 
 
 
@@ -92,18 +92,18 @@ class Checker:
 
     def positive(self) -> None:
         vecs = np.array([[0.1, -0.9], [-0.8, 0.2], [0.3, 0.4]])
-        out = canonical_signs(vecs)
+        out = signs(vecs)
         pivot = np.abs(out).argmax(axis=0)
         assert np.all(out[pivot, np.arange(out.shape[1])] > 0)
 
     def idempotent(self) -> None:
         vecs = np.array([[0.1, -0.9], [-0.8, 0.2], [0.3, 0.4]])
-        once = canonical_signs(vecs)
-        assert np.array_equal(once, canonical_signs(once))
+        once = signs(vecs)
+        assert np.array_equal(once, signs(once))
 
     def empty(self) -> None:
         empty = np.zeros((5, 0))
-        assert canonical_signs(empty).shape == (5, 0)
+        assert signs(empty).shape == (5, 0)
 
     def stable(self) -> None:
         assert np.array_equal(start(16), start(16))

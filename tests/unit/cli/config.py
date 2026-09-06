@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from morel.cli import configure_logging, run_eval
+from morel.cli import configure_logging, eval
 from morel.core.config import Config
 
 
@@ -30,7 +30,7 @@ class Checker:
 
     def rank(self, tmp_path: Path, capsys: Any) -> None:
         path = write(tmp_path, eval={"ks": [3, 7]})
-        assert run_eval(["rank", "--config", str(path)]) == 0
+        assert eval(["rank", "--config", str(path)]) == 0
 
         out = capsys.readouterr().out
         assert "recall@3=" in out
@@ -39,14 +39,14 @@ class Checker:
 
     def robustness(self, tmp_path: Path, capsys: Any) -> None:
         path = write(tmp_path, eval={"robustness": [0.2, 0.8]})
-        assert run_eval(["robustness", "--config", str(path)]) == 0
+        assert eval(["robustness", "--config", str(path)]) == 0
         out = capsys.readouterr().out
         assert "0.2" in out
         assert "0.8" in out
         assert "0.7" not in out, "the hardcoded ratio list must be gone"
 
     def defaults(self, capsys: Any) -> None:
-        assert run_eval(["rank"]) == 0
+        assert eval(["rank"]) == 0
         out = capsys.readouterr().out
         for k in Config().eval.ks:
             assert f"recall@{k}=" in out

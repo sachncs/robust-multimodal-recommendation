@@ -63,18 +63,18 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"unknown command {cmd!r}")
         return 2
     handler = {
-        "data": run_data,
+        "data": data,
         "train": train,
-        "eval": run_eval,
+        "eval": eval,
         "bench": run_bench,
         "reproduce": run_reproduce,
-        "serve": run_serve,
+        "serve": serve,
         "render-fidelity": run_render_fidelity,
     }[cmd]
     return handler(rest)
 
 
-def run_data(argv: list[str]) -> int:
+def data(argv: list[str]) -> int:
     """Handle the ``data`` subcommand."""
     from morel.data.__main__ import main as data_main
 
@@ -115,7 +115,7 @@ def train(argv: list[str]) -> int:
     return 2
 
 
-def run_eval(argv: list[str]) -> int:
+def eval(argv: list[str]) -> int:
     """Handle the ``eval`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel eval", description="evaluation")
     sub = parser.add_subparsers(dest="sub", required=True)
@@ -229,7 +229,7 @@ def run_render_fidelity(argv: list[str]) -> int:
     return 0
 
 
-def run_serve(argv: list[str]) -> int:
+def serve(argv: list[str]) -> int:
     """Handle the ``serve`` subcommand."""
     return serve_inference(argv)
 
