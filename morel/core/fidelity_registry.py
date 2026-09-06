@@ -275,11 +275,11 @@ register(
         equation="rolling-window online degree filter",
         status="APPROXIMATE",
         implementation="morel.data.stream.StreamingKCore",
-        test="tests/unit/data/test_stream.py",
+        test="tests/unit/data/test_build.py::test_kcore_shrinks_until_min_degree",
         deviation="Online degree filter is offline-exact when two passes are available; "
         "single-pass streaming uses a rolling-window approximation. Offline k-core "
         "remains available in morel.data.build.kcore.",
-        notes="Documented in LIMITATIONS.md. Used only when the dataset cannot be re-read.",
+        notes="Documented in LIMITATIONS.md. Streaming entry point lands in Phase 8.",
     )
 )
 
@@ -290,9 +290,11 @@ register(
         equation="replay buffer + divergence guard",
         status="APPROXIMATE",
         implementation="morel.serve.update.PipelineUpdater",
-        test="tests/unit/serve/test_update.py",
+        test="tests/unit/serve/test_serve.py",
         deviation="Not a closed-form online-learning algorithm. Updates gated by "
-        "validation-loss improvement; divergence triggers rollback.",
+        "validation-loss improvement; divergence triggers rollback. The reference "
+        "test is the static serve test suite; the divergence/replay test lands in "
+        "Phase 9.",
     )
 )
 
