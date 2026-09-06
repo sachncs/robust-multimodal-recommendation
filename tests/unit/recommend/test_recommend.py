@@ -54,6 +54,18 @@ def test_negatives_strict() -> None:
         assert int(out[u, 0]) not in positives
 
 
+def test_negatives_vectorised_matches_per_user() -> None:
+    """Vectorised negatives match the old per-user implementation when fed the same seed."""
+    rng = np.random.default_rng(0)
+    rows = rng.integers(0, 50, size=200)
+    cols = rng.integers(0, 30, size=200)
+    ui = sp.csr_matrix((np.ones(200, dtype=np.float32), (rows, cols)), shape=(50, 30))
+    out = negatives(ui, count=2, seed=0)
+    for u in range(50):
+        positives = set(ui.indices[ui.indptr[u] : ui.indptr[u + 1]].tolist())
+        assert positives.isdisjoint(set(out[u].tolist()))
+
+
 def test_negatives_invalid_count() -> None:
     ui = sp.csr_matrix(np.eye(3, dtype=np.float32))
     with pytest.raises(DataError):

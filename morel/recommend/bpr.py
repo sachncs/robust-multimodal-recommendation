@@ -12,12 +12,16 @@ from morel.core.errors import DataError
 def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-10) -> torch.Tensor:
     """Bayesian Personalized Ranking loss.
 
-    Args:
-        pos_scores: ``(B,)`` scores for positive items.
-        neg_scores: ``(B,)`` scores for negative items.
+    Args
+    ----
+    pos_scores : torch.Tensor
+        ``(B,)`` scores for positive items.
+    neg_scores : torch.Tensor
+        ``(B,)`` scores for negative items.
 
     Returns
     -------
+    torch.Tensor
         Scalar loss.
     """
     return -torch.log(torch.sigmoid(pos_scores - neg_scores) + eps).mean()
@@ -31,16 +35,22 @@ def negatives(
 ) -> np.ndarray:
     """Sample ``count`` negatives per user.
 
-    Strict: never returns a positive item. Raises if a user has so many
-    interactions that no negatives exist.
+    Vectorised sampler: builds the per-user negative pool once and then
+    draws ``count`` negatives per user. Strict: never returns a positive
+    item. Raises if a user has so many interactions that no negatives exist.
 
-    Args:
-        ui: User-item interaction CSR matrix.
-        count: Number of negatives per user.
-        seed: RNG seed.
+    Args
+    ----
+    ui : sp.csr_matrix
+        User-item interaction CSR matrix.
+    count : int
+        Number of negatives per user.
+    seed : int
+        RNG seed.
 
     Returns
     -------
+    np.ndarray
         Array of shape ``(users, count)`` of int64 item ids.
     """
     users, items = ui.shape
@@ -49,18 +59,17 @@ def negatives(
     if count > items:
         raise DataError(f"count ({count}) > items ({items})")
     rng = np.random.default_rng(seed)
+    positive_dense = np.asarray(ui.toarray(), dtype=bool)
+    neg_pool = np.where(~positive_dense, np.broadcast_to(np.arange(items), positive_dense.shape), -1)
+    pool = [neg_pool[u][neg_pool[u] >= 0] for u in range(users)]
+    min_neg = min(len(p) for p in pool)
+    if min_neg < count:
+        raise DataError(
+            f"at least one user has only {min_neg} negatives available; need {count}"
+        )
     out = np.empty((users, count), dtype=np.int64)
-    all_items = np.arange(items)
     for u in range(users):
-        positives = set(ui.indices[ui.indptr[u] : ui.indptr[u + 1]].tolist())
-        remaining = np.setdiff1d(all_items, list(positives), assume_unique=False)
-        if remaining.size < count:
-            raise DataError(
-                f"user {u} has {len(positives)} positives; "
-                f"only {remaining.size} negatives available, need {count}"
-            )
-        chosen = rng.choice(remaining, size=count, replace=False)
-        out[u] = chosen
+        out[u] = rng.choice(pool[u], size=count, replace=False)
     return out
 
 
