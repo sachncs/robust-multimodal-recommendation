@@ -117,7 +117,7 @@ class Light(nn.Module):
             raise IndexError(f"user index {int(users.max())} >= {self.users}")
         if items.max() >= self.items:
             raise IndexError(f"item index {int(items.max())} >= {self.items}")
-        adj_norm = self.norm_adj(ui_graph)
+        adj_norm = self.normalize_adj(ui_graph)
         item_emb = self.item_emb.weight
         if item_features is not None:
             if self.feature_proj is None:
@@ -141,7 +141,7 @@ class Light(nn.Module):
         i_emb = final[self.users :]
         return u_emb[users] @ i_emb[items].t()
 
-    def norm_adj(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
+    def normalize_adj(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
         """Compute or fetch the cached normalized adjacency tensor.
 
         Behaviour:

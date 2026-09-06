@@ -89,7 +89,7 @@ def train(argv: list[str]) -> int:
     sub.add_parser("recommendation", help="train the recommendation stage", add_help=False)
     args = parser.parse_args(argv)
 
-    config_path = resolve_cfg(argv)
+    config_path = resolve_config(argv)
     if args.sub == "completion":
         from morel.app import Experiment
 
@@ -132,7 +132,7 @@ def eval(argv: list[str]) -> int:
     if args.sub == "rank":
         from morel.eval import ndcg, recall
 
-        config = load_cfg(resolve_cfg(argv))
+        config = load_cfg(resolve_config(argv))
         rng = __import__("numpy").random.default_rng(config.seed)
         scores = rng.random((20, 50))
         labels = (rng.random((20, 50)) > 0.7).astype("float32")
@@ -144,7 +144,7 @@ def eval(argv: list[str]) -> int:
     if args.sub == "ablations":
         from morel.app import Ablate
 
-        config = load_cfg(resolve_cfg(argv))
+        config = load_cfg(resolve_config(argv))
         run_dir = Path("runs") / "ablations"
         result = Ablate(config=config, run_dir=run_dir, items=args.items, users=args.users).run()
         for metric in sorted(result["metrics"]):
@@ -157,7 +157,7 @@ def eval(argv: list[str]) -> int:
         from morel.eval import recall
         from morel.eval.protocol import sweep
 
-        config = load_cfg(resolve_cfg(argv))
+        config = load_cfg(resolve_config(argv))
         ratios = list(config.eval.robustness)
         rng = __import__("numpy").random.default_rng(config.seed)
         scores_by_ratio = {r: rng.random((20, 50)) for r in ratios}
@@ -229,10 +229,10 @@ def fidelity_render(argv: list[str]) -> int:
 
 def serve(argv: list[str]) -> int:
     """Handle the ``serve`` subcommand."""
-    return serve_inference(argv)
+    return serve_api(argv)
 
 
-def serve_inference(argv: list[str]) -> int:
+def serve_api(argv: list[str]) -> int:
     """Launch the uvicorn inference server."""
     parser = argparse.ArgumentParser(prog="morel serve", description="inference server")
     parser.add_argument("--host", default=None, help="overrides serve.host")
@@ -240,7 +240,7 @@ def serve_inference(argv: list[str]) -> int:
     parser.add_argument("--workers", type=int, default=None, help="overrides serve.workers")
     parser.add_argument("--config", default=None)
     args = parser.parse_args(argv)
-    config = load_cfg(resolve_cfg(argv))
+    config = load_cfg(resolve_config(argv))
     host = args.host if args.host is not None else config.serve.host
     port = args.port if args.port is not None else config.serve.port
     workers = args.workers if args.workers is not None else config.serve.workers
@@ -265,7 +265,7 @@ def configure_logging(argv: list[str]) -> None:
     failure this falls back to the previous hardcoded behaviour.
     """
     try:
-        config = load_cfg(resolve_cfg(argv))
+        config = load_cfg(resolve_config(argv))
     except Exception:
         configure_log(level="INFO", structured=False)
         return
@@ -276,7 +276,7 @@ def configure_logging(argv: list[str]) -> None:
     )
 
 
-def resolve_cfg(argv: list[str]) -> Path | None:
+def resolve_config(argv: list[str]) -> Path | None:
     """Return the ``--config`` path from *argv*, or ``None``."""
     for i, a in enumerate(argv):
         if a == "--config" and i + 1 < len(argv):

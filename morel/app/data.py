@@ -14,7 +14,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset, Subset
 
 from morel.core.errors import Datum
-from morel.recommend.bpr import to_items
+from morel.recommend.bpr import to_ranks
 
 
 class Corpus(Dataset[dict[str, Any]]):
@@ -186,7 +186,7 @@ class BPR(Dataset[dict[str, Any]]):
         positives = self.positives[user]
         positive = int(positives[int(rng.integers(0, positives.size))])
         rank = int(rng.integers(0, self.items - positives.size))
-        negative = int(to_items(np.array([rank], dtype=np.int64), positives)[0])
+        negative = int(to_ranks(np.array([rank], dtype=np.int64), positives)[0])
         return {"users": user, "positive": positive, "negative": negative}
 
 

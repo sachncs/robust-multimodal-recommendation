@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import Net
-from morel.retrieve.bfs import bfs, iter_neighbors, neighbor_array, path
+from morel.retrieve.bfs import bfs, iter_neighbors, neighbors_map, path
 
 
 class Checker:
@@ -42,7 +42,7 @@ class Checker:
 
     def array(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 1], [1, 0, 0], [1, 0, 0]], dtype=np.float32))
-        out = neighbor_array(g)
+        out = neighbors_map(g)
         assert out[0].tolist() == [1, 2]
         assert out[1].tolist() == [0]
 

@@ -53,7 +53,7 @@ def distinct(rng: np.random.Generator, high: int, size: int) -> np.ndarray:
     return np.asarray(picked, dtype=np.int64)
 
 
-def to_items(ranks: np.ndarray, positives: np.ndarray) -> np.ndarray:
+def to_ranks(ranks: np.ndarray, positives: np.ndarray) -> np.ndarray:
     """Map ranks over the *negative* items back to actual item ids.
 
     ``ranks`` index the sorted sequence of items that are **not** in
@@ -128,8 +128,8 @@ def negatives(
     out = np.empty((users, count), dtype=np.int64)
     for u, positives in enumerate(per_user):
         ranks = distinct(rng, items - positives.size, count)
-        out[u] = to_items(ranks, positives)
+        out[u] = to_ranks(ranks, positives)
     return out
 
 
-__all__ = ["bpr", "distinct", "negatives", "to_items"]
+__all__ = ["bpr", "distinct", "negatives", "to_ranks"]

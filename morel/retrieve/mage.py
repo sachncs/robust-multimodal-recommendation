@@ -19,7 +19,7 @@ from morel.core.errors import Net
 from morel.core.log import get as logger
 from morel.graph.subgraph import connected
 from morel.retrieve.acs import compute as acs_compute
-from morel.retrieve.bfs import neighbor_array
+from morel.retrieve.bfs import neighbors_map
 from morel.retrieve.relevance import rel
 
 log = logger("retrieve.mage")
@@ -84,7 +84,7 @@ def expand(
     if not subgraph_set:
         subgraph_set = set(anchors_int)
     subgraph_set.add(int(query_item))
-    neighbors = neighbor_array(adj)
+    neighbors = neighbors_map(adj)
     best_score = rel(query_item, np.array(sorted(subgraph_set), dtype=np.int64), features, mask)
 
     for _ in range(iters):

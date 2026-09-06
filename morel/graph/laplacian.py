@@ -36,7 +36,7 @@ def start(nodes: int) -> np.ndarray:
     return np.random.default_rng(SEED).standard_normal(nodes)
 
 
-def coo_hash(matrix: sp.spmatrix) -> str:
+def coo_digest(matrix: sp.spmatrix) -> str:
     """Stable hash of a sparse matrix's nonzero pattern and shape."""
     coo = sp.coo_matrix(matrix)
     h = hashlib.sha256()
@@ -273,7 +273,7 @@ class Laplace(nn.Module):
 
     def forward(self, adjacency: sp.spmatrix) -> torch.Tensor:
         """Compute or retrieve cached Laplacian PE."""
-        key = coo_hash(adjacency)
+        key = coo_digest(adjacency)
         if key in self.cache:
             self.cache.move_to_end(key)
             return self.cache[key]

@@ -86,7 +86,7 @@ def iter_neighbors(adj: sp.csr_matrix, node: int) -> Iterator[int]:
     return iter(int(n) for n in adj.indices[row_start:row_end])
 
 
-def neighbor_array(adj: sp.csr_matrix) -> dict[int, np.ndarray]:
+def neighbors_map(adj: sp.csr_matrix) -> dict[int, np.ndarray]:
     """Precompute neighbor arrays for every node."""
     nodes = adj.shape[0]
     out: dict[int, np.ndarray] = {}
@@ -97,4 +97,4 @@ def neighbor_array(adj: sp.csr_matrix) -> dict[int, np.ndarray]:
     return out
 
 
-__all__ = ["bfs", "iter_neighbors", "neighbor_array", "path"]
+__all__ = ["bfs", "iter_neighbors", "neighbors_map", "path"]

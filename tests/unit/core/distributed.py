@@ -27,7 +27,7 @@ class Checker:
         assert dist.rank() == 0
 
     def zero(self) -> None:
-        assert dist.is_lead() is True
+        assert dist.lead() is True
 
     def init(self) -> None:
         info = dist.init()
@@ -43,7 +43,7 @@ class Checker:
 
     def barrier(self) -> None:
         dist.barrier()
-        assert dist.is_lead() is True
+        assert dist.lead() is True
 
     def reduce(self) -> None:
         dist.init()

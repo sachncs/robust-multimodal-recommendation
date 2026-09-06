@@ -4,7 +4,7 @@ from morel.retrieve.acs import batch as acs_batch
 from morel.retrieve.acs import compute as acs
 from morel.retrieve.anchor import batch as anchor_batch
 from morel.retrieve.anchor import query as anchor
-from morel.retrieve.bfs import bfs, iter_neighbors, neighbor_array, path
+from morel.retrieve.bfs import bfs, iter_neighbors, neighbors_map, path
 from morel.retrieve.mage import batch as mage_batch
 from morel.retrieve.mage import expand as mage
 from morel.retrieve.pipeline import KIND, Result, cast, retrieve
@@ -24,7 +24,7 @@ __all__ = [
     "iter_neighbors",
     "mage",
     "mage_batch",
-    "neighbor_array",
+    "neighbors_map",
     "path",
     "rel",
     "relevance",

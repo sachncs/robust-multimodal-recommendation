@@ -126,7 +126,7 @@ def local() -> int:
     return int(os.environ.get("LOCAL_RANK", "0"))
 
 
-def is_lead() -> bool:
+def lead() -> bool:
     """Return True for the rank-zero process (always True when single-process)."""
     return rank() == 0
 
@@ -172,7 +172,7 @@ __all__ = [
     "cleanup",
     "init",
     "initialized",
-    "is_lead",
+    "lead",
     "local",
     "mean",
     "rank",

@@ -112,7 +112,7 @@ class State:
         )
 
 
-def hash_cfg(config: object) -> str:
+def hash_config(config: object) -> str:
     """Stable SHA256 hash of a configuration object's public attributes."""
     if hasattr(config, "hash") and callable(config.hash):
         digest: str = config.hash()
@@ -121,4 +121,4 @@ def hash_cfg(config: object) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-__all__ = ["State", "hash_cfg", "load", "unsafe"]
+__all__ = ["State", "hash_config", "load", "unsafe"]

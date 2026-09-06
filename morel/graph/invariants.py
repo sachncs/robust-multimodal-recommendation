@@ -40,7 +40,7 @@ def finite(adj: sp.spmatrix) -> None:
         raise Net("graph contains non-finite values")
 
 
-def all_invar(adj: sp.spmatrix) -> None:
+def check_all(adj: sp.spmatrix) -> None:
     """Run the full default invariant suite."""
     finite(adj)
     loopless(adj)
@@ -48,4 +48,4 @@ def all_invar(adj: sp.spmatrix) -> None:
     isoless(adj)
 
 
-__all__ = ["all_invar", "finite", "isoless", "loopless", "symmetric"]
+__all__ = ["check_all", "finite", "isoless", "loopless", "symmetric"]

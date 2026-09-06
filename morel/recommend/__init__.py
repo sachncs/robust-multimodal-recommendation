@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from morel.core.errors import Cfg
 from morel.recommend.baseline import MF, Pop
-from morel.recommend.bpr import bpr, distinct, negatives, to_items
+from morel.recommend.bpr import bpr, distinct, negatives, to_ranks
 from morel.recommend.light import Light
 from morel.recommend.protocol import Recommender
 
@@ -72,5 +72,5 @@ __all__ = [
     "build",
     "distinct",
     "negatives",
-    "to_items",
+    "to_ranks",
 ]

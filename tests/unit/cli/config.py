@@ -92,9 +92,9 @@ class Checker:
         monkeypatch.setitem(sys.modules, "uvicorn", Fake)
         path = write(tmp_path, serve={"host": "127.0.0.1", "port": 9111, "workers": 3})
 
-        from morel.cli import serve_inference
+        from morel.cli import serve_api
 
-        assert serve_inference(["--config", str(path)]) == 0
+        assert serve_api(["--config", str(path)]) == 0
         assert captured["host"] == "127.0.0.1"
         assert captured["port"] == 9111
         assert captured["workers"] == 3
@@ -110,8 +110,8 @@ class Checker:
         monkeypatch.setitem(sys.modules, "uvicorn", Fake)
         path = write(tmp_path, serve={"host": "127.0.0.1", "port": 9111})
 
-        from morel.cli import serve_inference
+        from morel.cli import serve_api
 
-        assert serve_inference(["--config", str(path), "--port", "1234"]) == 0
+        assert serve_api(["--config", str(path), "--port", "1234"]) == 0
         assert captured["host"] == "127.0.0.1", "unspecified flags still come from config"
         assert captured["port"] == 1234, "an explicit flag must win"
