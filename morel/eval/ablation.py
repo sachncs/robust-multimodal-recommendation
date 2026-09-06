@@ -64,9 +64,7 @@ def ablate(config: Config, name: str) -> Config:
     if name == BASELINE:
         return config
     if name not in KIND:
-        raise Cfg(
-            f"unknown ablation {name!r}; available: {', '.join(sorted(KIND)) or '(none)'}"
-        )
+        raise Cfg(f"unknown ablation {name!r}; available: {', '.join(sorted(KIND)) or '(none)'}")
     return KIND[name](config)  # type: ignore[operator,no-any-return]
 
 

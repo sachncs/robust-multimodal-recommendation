@@ -11,12 +11,12 @@ from morel.core.errors import Error
 from morel.serve import auth
 from morel.serve.loader import Loader
 from morel.serve.schema import (
-    Fill,
     Done,
+    Fill,
     Health,
+    List,
     Pick,
     Query,
-    List,
     serialize,
 )
 
@@ -80,9 +80,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         return {"requests": float(request_count(app))}
 
     @app.post("/v1/complete", response_model=Done)
-    def complete(
-        payload: Fill, _: None = Depends(auth.dependency("read"))
-    ) -> Done:
+    def complete(payload: Fill, _: None = Depends(auth.dependency("read"))) -> Done:
         try:
             pipeline = app.state.loader.get("default", default)
         except Error as exc:
@@ -91,9 +89,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         return Done(completed=serialize(completed))
 
     @app.post("/v1/recommend", response_model=List)
-    def recommend(
-        payload: Query, _: None = Depends(auth.dependency("read"))
-    ) -> List:
+    def recommend(payload: Query, _: None = Depends(auth.dependency("read"))) -> List:
         try:
             pipeline = app.state.loader.get("default", default)
         except Error as exc:
@@ -102,9 +98,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         return List(items=items)
 
     @app.post("/v1/feedback", response_model=Tell)
-    def feedback(
-        payload: Ask, _: None = Depends(auth.dependency("admin"))
-    ) -> Tell:
+    def feedback(payload: Ask, _: None = Depends(auth.dependency("admin"))) -> Tell:
         if not getattr(app.state, "updater_enabled", True):
             raise HTTPException(status_code=503, detail="Updater disabled")
         updater = getattr(app.state, "updater", None)
@@ -204,8 +198,8 @@ def request_count(app: FastAPI) -> int:
 
 __all__ = [
     "Ask",
-    "Tell",
     "Rollback",
     "Stats",
+    "Tell",
     "create",
 ]

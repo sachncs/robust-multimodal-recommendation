@@ -18,7 +18,7 @@ import torch.nn as nn
 from morel.codebook import build as build_codebook
 from morel.complete import build as build_complete
 from morel.core.config import Config
-from morel.core.errors import Cfg, Net, Model
+from morel.core.errors import Cfg, Model, Net
 from morel.core.seed import deterministic
 from morel.encode import build as build_encode
 from morel.graph import Laplace
@@ -260,9 +260,7 @@ class Pipeline(nn.Module):
                     queries,
                     self.corpus_features,
                     self.corpus_mask,
-                    self.corpus_adj
-                    if self.corpus_adj is not None
-                    else sp.csr_matrix(adjacency),
+                    self.corpus_adj if self.corpus_adj is not None else sp.csr_matrix(adjacency),
                     anchors=self.config.retrieve.anchors,
                     iters=self.config.retrieve.iters,
                     kind=self.config.retrieve.kind,

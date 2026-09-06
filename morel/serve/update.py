@@ -157,9 +157,7 @@ class Updater:
                 "replay_buffered": replay_buffered,
                 "updates_applied": self.updates,
                 "last_loss": self.last_loss,
-                "valid_loss": self.valid_loss
-                if self.valid_loss is not None
-                else float("nan"),
+                "valid_loss": self.valid_loss if self.valid_loss is not None else float("nan"),
                 "current_version": self.version,
                 "cooldown_until": self.cooldown_until,
             }
