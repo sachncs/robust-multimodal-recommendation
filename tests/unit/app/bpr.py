@@ -8,8 +8,8 @@ import scipy.sparse as sp
 
 from morel.app.data import (
     BPR,
-    build_recommendation_loader,
-    build_recommendation_loaders,
+    recommend_loader,
+    recommend_loaders,
     split,
 )
 from morel.core.errors import DataError
@@ -73,7 +73,7 @@ class Checker:
             BPR(sp.csr_matrix(np.ones((2, 3), dtype=np.float32)), length=5)
 
     def loader(self) -> None:
-        loader = build_recommendation_loader(interactions(), batch_size=32)
+        loader = recommend_loader(interactions(), batch_size=32)
         batch = next(iter(loader))
         assert set(batch) == {"users", "positive", "negative"}
         for value in batch.values():
@@ -81,7 +81,7 @@ class Checker:
 
     def epoch(self) -> None:
         ui = interactions()
-        loader = build_recommendation_loader(ui)
+        loader = recommend_loader(ui)
         assert len(loader.dataset) == ui.nnz
 
     def split(self) -> None:
@@ -124,6 +124,6 @@ class Checker:
 
     def recommendation(self) -> None:
         ui = interactions()
-        train, val = build_recommendation_loaders(ui, batch_size=8, val_fraction=0.25, seed=0)
+        train, val = recommend_loaders(ui, batch_size=8, val_fraction=0.25, seed=0)
         assert val is not None
         assert len(train.dataset) + len(val.dataset) == ui.nnz

@@ -15,7 +15,7 @@ import torch
 
 from morel.app.data import (
     build_loaders,
-    build_recommendation_loaders,
+    recommend_loaders,
     synth_bipartite,
     to_tensor,
 )
@@ -272,7 +272,7 @@ class Rank:
         pipeline.attach_recommend(ui)
         assert pipeline.recommender is not None
 
-        loader, val_loader = build_recommendation_loaders(
+        loader, val_loader = recommend_loaders(
             ui,
             batch_size=self.config.recommendation.batch,
             val_fraction=self.config.recommendation.val,

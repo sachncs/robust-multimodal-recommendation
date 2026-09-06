@@ -117,7 +117,7 @@ class BPR(Dataset):
         }
 
 
-def build_bpr_loader(users: int, items: int, n: int, batch_size: int) -> DataLoader:
+def bpr_loader(users: int, items: int, n: int, batch_size: int) -> DataLoader:
     """Build a default DataLoader for BPR tests."""
     return DataLoader(
         BPR(users=users, items=items, n_batches=n),
@@ -129,7 +129,7 @@ __all__ = [
     "BPR",
     "Corpus",
     "SilentMonitor",
-    "build_bpr_loader",
+    "bpr_loader",
     "build_loader",
     "build_path_graph",
     "collate",
