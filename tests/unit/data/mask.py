@@ -1,3 +1,76 @@
+"""Masking must be selectable and driven by configuration.
+
+``config.masking.kind``, ``ratio`` and ``seed`` were all inert:
+``synthetic_dataset`` hardcoded ``bernoulli(items, 2, 0.4, seed=0)``. The
+missing-modality pattern is the experimental condition for this method, so a
+configured ratio that had no effect meant the run did not match its own record.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from morel.app.experiment import synthetic_dataset
+from morel.core.config import Masking
+from morel.core.errors import ConfigError, DataError
+from morel.data import MASKS
+
+
+class Checker:
+    """Aggregated test methods for this module."""
+
+    def strategies() -> None:
+        assert set(MASKS.available()) >= {"bernoulli", "block"}
+
+    def every(kind: str, ratio: float) -> None:
+        """Completion is impossible for an item with nothing observed."""
+        mask = MASKS.create(kind, items=40, modalities=2, ratio=ratio, seed=0).to_numpy()
+        assert (mask.sum(axis=1) > 0).all()
+
+    def bernoulli() -> None:
+        low = MASKS.create("bernoulli", items=200, modalities=3, ratio=0.1, seed=0).to_numpy()
+        high = MASKS.create("bernoulli", items=200, modalities=3, ratio=0.9, seed=0).to_numpy()
+        assert low.mean() > high.mean()
+
+    def masking() -> None:
+        first = MASKS.create("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).to_numpy()
+        second = MASKS.create("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).to_numpy()
+        assert np.array_equal(first, second)
+
+    def block() -> None:
+        with pytest.raises(DataError, match="at least 2 modalities"):
+            MASKS.create("block", items=5, modalities=1, ratio=0.5, seed=0)
+
+    def unknown() -> None:
+        with pytest.raises(ConfigError, match="unknown masking strategy"):
+            MASKS.create("nope", items=5, modalities=2, ratio=0.5, seed=0)
+
+    def synthetic() -> None:
+        sparse = synthetic_dataset(80, 4, 2, 10, Masking(ratio=0.1))
+        dense = synthetic_dataset(80, 4, 2, 10, Masking(ratio=0.9))
+        assert sparse["mask"].mean() > dense["mask"].mean()
+
+    def dataset() -> None:
+        first = synthetic_dataset(40, 4, 2, 10, Masking(seed=1))["mask"]
+        second = synthetic_dataset(40, 4, 2, 10, Masking(seed=2))["mask"]
+        assert not np.array_equal(first, second)
+        again = synthetic_dataset(40, 4, 2, 10, Masking(seed=1))["mask"]
+        assert np.array_equal(first, again)
+
+    def honours() -> None:
+        bern = synthetic_dataset(40, 4, 2, 10, Masking(kind="bernoulli", ratio=0.5, seed=0))["mask"]
+        blk = synthetic_dataset(40, 4, 2, 10, Masking(kind="block", ratio=0.5, seed=0))["mask"]
+        assert not np.array_equal(bern, blk)
+
+    def defaults() -> None:
+        explicit = synthetic_dataset(40, 4, 2, 10, Masking())["mask"]
+        implicit = synthetic_dataset(40, 4, 2, 10)["mask"]
+        assert np.array_equal(explicit, implicit)
+
+
+# --- merged from tests/unit/data/test_mask.py ---
+
 
 import numpy as np
 import pytest

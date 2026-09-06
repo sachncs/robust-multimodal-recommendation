@@ -1,16 +1,10 @@
-"""Shared fixtures, autouse seeding, and collection rules for all tests.
-
-Fixtures are defined here so every test can use them. The
-``pytest_collection_modifyitems`` hook removes any collected test that is
-not a method of a ``Checker``/``Spec`` class, so standalone helper
-functions in test files and production modules are never run.
-"""
+"""Shared fixtures and autouse seeding for all tests."""
 
 from __future__ import annotations
 
 import os
 import random
-from typing import Any, Callable
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -24,7 +18,7 @@ os.environ.setdefault("MOREL_DATA_DIR", "/tmp/morel-test-data")
 
 
 @pytest.fixture(autouse=True)
-def deterministic_seed() -> Any:
+def deterministic_seed() -> None:
     """Make every test deterministic by default."""
     random.seed(0)
     np.random.seed(0)
@@ -33,7 +27,7 @@ def deterministic_seed() -> Any:
         torch.cuda.manual_seed_all(0)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    yield
+    return
 
 
 @pytest.fixture
@@ -57,30 +51,52 @@ def path5() -> sp.csr_matrix:
 
 
 @pytest.fixture
-def path_graph_factory() -> Callable[[int], sp.csr_matrix]:
-    """Factory that builds a path graph of ``n`` nodes."""
+def bipartite_5x10() -> sp.csr_matrix:
+    """5 users, 10 items."""
+    arr = np.array(
+        [
+            [1, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+            [0, 1, 1, 0, 0, 1, 0, 0, 1, 0],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 1],
+            [0, 0, 1, 1, 0, 0, 0, 1, 1, 0],
+            [0, 1, 0, 0, 1, 1, 0, 0, 0, 1],
+        ],
+        dtype=np.float32,
+    )
+    return sp.csr_matrix(arr)
+
+
+@pytest.fixture
+def visual_text_features() -> dict[str, np.ndarray]:
+    """Visual + text features for 5 items."""
+    rng = np.random.default_rng(0)
+    return {
+        "visual": rng.normal(size=(5, 4)).astype(np.float32),
+        "text": rng.normal(size=(5, 2)).astype(np.float32),
+    }
+
+
+@pytest.fixture
+def full_mask() -> np.ndarray:
+    """All-ones mask for 5 items x 2 modalities."""
+    return np.ones((5, 2), dtype=np.float32)
+
+
+@pytest.fixture
+def tmp_manifest(tmp_path: Path) -> Path:
+    """Pre-create a directory for manifest artifacts."""
+    d = tmp_path / "artifacts"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+@pytest.fixture
+def path_graph_factory():
+    """Expose :func:`build_path_graph` for parametric tests."""
     return build_path_graph
 
 
 @pytest.fixture
-def silent_monitor_factory() -> Callable[..., object]:
-    """Factory that builds a no-op training monitor."""
+def silent_monitor_factory():
+    """Expose :func:`silent_monitor` for parametric tests."""
     return silent_monitor
-
-
-# ---------------------------------------------------------------------------
-# Collection rules
-# ---------------------------------------------------------------------------
-
-
-def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Drop any collected test that is not a method of a test class."""
-    from _pytest.python import Class  # type: ignore[attr-defined]
-
-    keep: list[pytest.Item] = []
-    for item in items:
-        # A test method has a parent that is a Class instance.
-        parent = item.parent
-        if isinstance(parent, Class) and parent.name in {"Checker", "Spec"}:
-            keep.append(item)
-    items[:] = keep

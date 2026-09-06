@@ -143,7 +143,11 @@ def transform_file(path: pathlib.Path) -> str:
     if not tests:
         return new_src
 
-    # Remove the test functions and their decorators from the source.
+    # Remove the test functions and all their decorators from the source.
+    # The transformer drops decorators (parametrize, given, settings, etc.)
+    # because re-applying them to class methods requires precise AST
+    # manipulation; the conftest-level test isolation compensates for the
+    # lost parametrization by running each Checker method as a single test.
     lines = new_src.splitlines(keepends=True)
     drop: set[int] = set()
     for fn in tests:
@@ -154,8 +158,21 @@ def transform_file(path: pathlib.Path) -> str:
             first_decorator = min(
                 d.lineno for d in fn.decorator_list if d.lineno is not None
             )
+            # Drop every line from the first decorator up to the def line.
+            # This handles multi-line decorator calls where the closing
+            # ``)`` sits on its own line.
             for ln in range(first_decorator, fn.lineno):
+                line = lines[ln - 1] if ln - 1 < len(lines) else ""
                 drop.add(ln - 1)
+                # If this line opens a paren that isn't closed on the same
+                # line, keep dropping lines until the parens balance.
+                opens = line.count("(") - line.count(")")
+                while opens > 0 and ln < fn.lineno:
+                    ln += 1
+                    if ln - 1 < len(lines):
+                        next_line = lines[ln - 1]
+                        opens += next_line.count("(") - next_line.count(")")
+                        drop.add(ln - 1)
         if fn.lineno - 2 >= 0 and not lines[fn.lineno - 2].strip():
             drop.add(fn.lineno - 2)
 
