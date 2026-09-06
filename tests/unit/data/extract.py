@@ -23,7 +23,7 @@ import pytest
 
 from morel.core.config import Config
 from morel.core.errors import ConfigError, DataError
-from morel.data import EXTRACTORS
+from morel.data import EXTRACTORS, build_extractor
 from morel.data.__main__ import main
 from morel.data.extract import RandomEncoder
 
@@ -108,15 +108,13 @@ class Checker:
             assert data["text"].shape[1] == 12
             assert data["visual"].shape[1] == 20
 
-    def passes(self, 
+    def passes(self,
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Encoder batch parameter propagates from config to both modalities."""
+        from dataclasses import replace
         monkeypatch.chdir(tmp_path)
-        # Verify the config batch is read from the encoder section
-        config = Config()
-        config.encoder.batch = 7
-        assert config.encoder.batch == 7
-        # Verify the build_extractor function uses the batch parameter
+        config = replace(Config().encoder, batch=7)
+        assert config.batch == 7
         encoder = build_extractor("random", dim=8, batch=7)
         assert encoder is not None
