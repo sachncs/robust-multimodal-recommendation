@@ -18,14 +18,45 @@ from morel.core.seed import seed as seed_everything
 log = get_logger("data.cli")
 
 
+def load_config(args: argparse.Namespace) -> Config:
+    """Load the config named by ``--config``, or the defaults."""
+    path = getattr(args, "config", None)
+    return Config.from_yaml(path) if path else Config()
+
+
+def resolve_paths(args: argparse.Namespace, config: Config) -> None:
+    """Fill unset path, category and masking flags from ``config``.
+
+    Every one of these had a hardcoded default that shadowed the
+    corresponding config field, so configuring data.raw or data.category had
+    no effect on any subcommand.
+    """
+    defaults = {
+        "dest": config.data.raw,
+        "data_dir": config.data.raw if args.cmd in {"extract", "build"} else config.data.processed,
+        "out_dir": config.data.processed,
+        "category": config.data.category,
+        "min_edges": config.data.min,
+        "ratio": config.masking.ratio,
+        "kind": config.masking.kind,
+    }
+    for name, value in defaults.items():
+        if hasattr(args, name) and getattr(args, name) is None:
+            setattr(args, name, value)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Dispatch subcommand."""
     parser = argparse.ArgumentParser(prog="morel.data", description="morel data lifecycle")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
+    # Path and category flags default to None so that the configuration
+    # supplies them; an explicit flag still wins. Hardcoded defaults here
+    # would silently shadow data.raw, data.processed and data.category.
     download_cmd = sub.add_parser("download", help="download Amazon 5-core dataset")
-    download_cmd.add_argument("--category", required=True)
-    download_cmd.add_argument("--dest", default="data/raw")
+    download_cmd.add_argument("--category", default=None, help="overrides data.category")
+    download_cmd.add_argument("--dest", default=None, help="overrides data.raw")
+    download_cmd.add_argument("--config", default=None)
     download_cmd.add_argument(
         "--legacy",
         action="store_true",
@@ -33,28 +64,34 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     extract = sub.add_parser("extract", help="extract features from raw data")
-    extract.add_argument("--data-dir", default="data/raw")
-    extract.add_argument("--out-dir", default="data/processed")
+    extract.add_argument("--data-dir", default=None, help="overrides data.raw")
+    extract.add_argument("--out-dir", default=None, help="overrides data.processed")
     extract.add_argument("--config", default=None)
     extract.add_argument("--synthetic", action="store_true", help="use synthetic features")
 
     build = sub.add_parser("build", help="build bipartite and item graphs")
-    build.add_argument("--data-dir", default="data/raw")
-    build.add_argument("--out-dir", default="data/processed")
+    build.add_argument("--data-dir", default=None, help="overrides data.raw")
+    build.add_argument("--out-dir", default=None, help="overrides data.processed")
+    build.add_argument("--min-edges", type=int, default=None, help="overrides data.min")
     build.add_argument("--config", default=None)
     build.add_argument("--synthetic", action="store_true", help="use synthetic interactions")
 
     mask_cmd = sub.add_parser("mask", help="generate modality mask")
     mask_cmd.add_argument("--items", type=int, required=True)
     mask_cmd.add_argument("--modalities", type=int, required=True)
-    mask_cmd.add_argument("--ratio", type=float, default=0.4)
+    mask_cmd.add_argument("--ratio", type=float, default=None, help="overrides masking.ratio")
+    mask_cmd.add_argument("--kind", default=None, help="overrides masking.kind")
+    mask_cmd.add_argument("--config", default=None)
     mask_cmd.add_argument("--out", required=True)
 
     verify = sub.add_parser("verify", help="verify manifests under a directory")
-    verify.add_argument("--data-dir", default="data/processed")
+    verify.add_argument("--data-dir", default=None, help="overrides data.processed")
+    verify.add_argument("--config", default=None)
 
     args = parser.parse_args(argv)
-    configure_log(level="INFO", structured=False)
+    config = load_config(args)
+    resolve_paths(args, config)
+    configure_log(level=config.log.level, structured=config.log.structured)
     try:
         if args.cmd == "download":
             from morel.data.acquire import download, download_legacy
@@ -64,15 +101,20 @@ def main(argv: list[str] | None = None) -> int:
             for p in paths:
                 print(p)
         elif args.cmd == "extract":
-            run_extract(args)
+            run_extract(args, config)
         elif args.cmd == "build":
-            run_build(args)
+            run_build(args, config)
         elif args.cmd == "mask":
-            from morel.data.mask import bernoulli
+            from morel.data import MASKS
 
-            config = Config()
             seed_everything(config.seed)
-            mask = bernoulli(args.items, args.modalities, args.ratio, seed=config.seed)
+            mask = MASKS.create(
+                args.kind,
+                items=args.items,
+                modalities=args.modalities,
+                ratio=args.ratio,
+                seed=config.masking.seed,
+            )
             out = Path(args.out)
             out.parent.mkdir(parents=True, exist_ok=True)
             import numpy as np
@@ -90,15 +132,13 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def run_extract(args: argparse.Namespace) -> None:
+def run_extract(args: argparse.Namespace, config: Config) -> None:
     """Run the ``extract`` subcommand."""
-    from morel.core.config import Config as _Config
     from morel.data.extract import random as random_features
     from morel.data.manifest import Manifest
     from morel.data.store import save_npz
     from morel.data.validate import features as validate_features
 
-    config = _Config.from_yaml(args.config) if args.config else _Config()
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     items = max(8, config.encode.hidden // 8)
@@ -141,15 +181,13 @@ def run_extract(args: argparse.Namespace) -> None:
     print(out_dir / "features.npz")
 
 
-def run_build(args: argparse.Namespace) -> None:
+def run_build(args: argparse.Namespace, config: Config) -> None:
     """Run the ``build`` subcommand."""
-    from morel.core.config import Config as _Config
     from morel.data.build import bipartite as build_bipartite
-    from morel.data.build import item_cooccurrence
+    from morel.data.build import item_cooccurrence, kcore
     from morel.data.manifest import Manifest
     from morel.data.store import save_graph, save_npz
 
-    config = _Config.from_yaml(args.config) if args.config else _Config()
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     import numpy as np
@@ -160,6 +198,10 @@ def run_build(args: argparse.Namespace) -> None:
     ui = build_bipartite(pairs[0], pairs[1], users, items)
     save_graph(out_dir / "bipartite.npz", ui)
     item_adj = item_cooccurrence(ui)
+    # data.min is the k-core threshold; leaving it unapplied meant the
+    # configured minimum-degree filter never ran.
+    if args.min_edges > 0:
+        item_adj = kcore(item_adj, args.min_edges)
     save_graph(out_dir / "item_graph.npz", item_adj)
     save_npz(
         out_dir / "bipartite_meta.npz",
@@ -175,7 +217,7 @@ def run_build(args: argparse.Namespace) -> None:
             seed=config.seed,
             extractor="random",
             config_hash=config.hash(),
-            extras={"users": users, "items": items},
+            extras={"users": users, "items": items, "min_edges": args.min_edges},
         ).to_json(),
         encoding="utf-8",
     )
