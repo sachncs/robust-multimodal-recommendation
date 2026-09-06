@@ -121,6 +121,7 @@ class Experiment:
             lr=self.config.completion.lr,
             weight_decay=self.config.completion.weight_decay,
             amp=self.config.completion.amp,
+            device=self.config.device,
             monitor=None,
             checkpoint_dir=self.run_dir,
         )
@@ -254,6 +255,7 @@ class RecommendationExperiment:
             lr=self.config.recommendation.lr,
             weight_decay=self.config.recommendation.weight_decay,
             amp=self.config.recommendation.amp,
+            device=self.config.device,
             monitor=None,
             checkpoint_dir=self.run_dir,
         )

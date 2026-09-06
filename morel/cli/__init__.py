@@ -43,8 +43,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     """Dispatch to subcommands."""
-    configure_log(level="INFO", structured=False)
     raw = list(sys.argv[1:] if argv is None else argv)
+    configure_logging(raw)
     parser = build_parser()
     if not raw:
         parser.print_help()
@@ -119,25 +119,30 @@ def run_eval(argv: list[str]) -> int:
     """Handle the ``eval`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel eval", description="evaluation")
     sub = parser.add_subparsers(dest="sub", required=True)
-    sub.add_parser("rank", help="rank evaluation", add_help=False)
-    sub.add_parser("robustness", help="robustness evaluation", add_help=False)
+    rank_cmd = sub.add_parser("rank", help="rank evaluation", add_help=False)
+    rank_cmd.add_argument("--config", default=None, help="path to a config YAML")
+    robustness_cmd = sub.add_parser("robustness", help="robustness evaluation", add_help=False)
+    robustness_cmd.add_argument("--config", default=None, help="path to a config YAML")
     args = parser.parse_args(argv)
     log.info("eval.start", extra={"sub": args.sub})
     if args.sub == "rank":
         from morel.eval import ndcg_at_k, recall_at_k
 
-        rng = __import__("numpy").random.default_rng(0)
+        config = load_config_or_default(resolve_config_path(argv))
+        rng = __import__("numpy").random.default_rng(config.seed)
         scores = rng.random((20, 50))
         labels = (rng.random((20, 50)) > 0.7).astype("float32")
-        r10 = recall_at_k(scores, labels, k=10)
-        n10 = ndcg_at_k(scores, labels, k=10)
-        print(f"recall@10={r10:.4f} ndcg@10={n10:.4f}")
+        for k in config.eval.ks:
+            recall = recall_at_k(scores, labels, k=k)
+            ndcg = ndcg_at_k(scores, labels, k=k)
+            print(f"recall@{k}={recall:.4f} ndcg@{k}={ndcg:.4f}")
         return 0
     if args.sub == "robustness":
         from morel.eval.protocol import robustness_sweep
 
-        ratios = [0.1, 0.3, 0.5, 0.7]
-        rng = __import__("numpy").random.default_rng(0)
+        config = load_config_or_default(resolve_config_path(argv))
+        ratios = list(config.eval.robustness)
+        rng = __import__("numpy").random.default_rng(config.seed)
         scores_by_ratio = {r: rng.random((20, 50)) for r in ratios}
         labels = (rng.random((20, 50)) > 0.7).astype("float32")
         result = robustness_sweep(
@@ -217,9 +222,15 @@ def run_serve(argv: list[str]) -> int:
 def serve_inference(argv: list[str]) -> int:
     """Launch the uvicorn inference server."""
     parser = argparse.ArgumentParser(prog="morel serve", description="inference server")
-    parser.add_argument("--host", default="0.0.0.0")
-    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--host", default=None, help="overrides serve.host")
+    parser.add_argument("--port", type=int, default=None, help="overrides serve.port")
+    parser.add_argument("--workers", type=int, default=None, help="overrides serve.workers")
+    parser.add_argument("--config", default=None)
     args = parser.parse_args(argv)
+    config = load_config_or_default(resolve_config_path(argv))
+    host = args.host if args.host is not None else config.serve.host
+    port = args.port if args.port is not None else config.serve.port
+    workers = args.workers if args.workers is not None else config.serve.workers
     try:
         import uvicorn
     except ImportError:
@@ -228,8 +239,28 @@ def serve_inference(argv: list[str]) -> int:
     from morel.serve.app import create
 
     app = create()
-    uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    uvicorn.run(app, host=host, port=port, workers=workers, log_level=config.log.level.lower())
     return 0
+
+
+def configure_logging(argv: list[str]) -> None:
+    """Configure logging from the config named in ``argv``.
+
+    Logging is set up before any subcommand runs, so a malformed or missing
+    config must not stop the CLI from starting -- the user needs the logger
+    working in order to be told what is wrong with their config. On any
+    failure this falls back to the previous hardcoded behaviour.
+    """
+    try:
+        config = load_config_or_default(resolve_config_path(argv))
+    except Exception:
+        configure_log(level="INFO", structured=False)
+        return
+    configure_log(
+        level=config.log.level,
+        structured=config.log.structured,
+        directory=config.log.directory,
+    )
 
 
 def resolve_config_path(argv: list[str]) -> Path | None:

@@ -42,8 +42,6 @@ def device(prefer: str | torch.device | None = None) -> torch.device:
         if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             return torch.device("mps")
         return torch.device("cpu")
-    if isinstance(prefer, torch.device):
-        return prefer
     text = str(prefer).strip().lower()
     if text == "cuda" and not torch.cuda.is_available():
         return torch.device("cpu")
