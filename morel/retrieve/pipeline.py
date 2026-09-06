@@ -54,7 +54,7 @@ def anchors_for(
     return found
 
 
-def strategy_mage(
+def mage(
     query: int,
     features: dict[str, np.ndarray],
     mask: np.ndarray,
@@ -71,7 +71,7 @@ def strategy_mage(
     return mage_expand(adj, list(anchor_set), query, features, mask, iters=iters, fallback=fallback)
 
 
-def strategy_acs(
+def acs(
     query: int,
     features: dict[str, np.ndarray],
     mask: np.ndarray,
@@ -89,7 +89,7 @@ def strategy_acs(
     return acs_compute(adj, sorted(anchor_set), fallback=fallback)
 
 
-def strategy_anchor(
+def anchor(
     query: int,
     features: dict[str, np.ndarray],
     mask: np.ndarray,
@@ -104,7 +104,7 @@ def strategy_anchor(
     return anchors_for(query, features, mask, anchors=anchors)
 
 
-def strategy_bfs(
+def bfs(
     query: int,
     features: dict[str, np.ndarray],
     mask: np.ndarray,
@@ -124,7 +124,7 @@ def strategy_bfs(
     return {int(node) for node, hops in distances.items() if hops <= max(int(iters), 1)}
 
 
-def strategy_none(
+def none(
     query: int,
     features: dict[str, np.ndarray],
     mask: np.ndarray,
@@ -146,11 +146,11 @@ def strategy_none(
 
 #: Map from config name to strategy function. Module-local; no global registry.
 KIND: dict[str, object] = {
-    "mage": strategy_mage,
-    "acs": strategy_acs,
-    "anchor": strategy_anchor,
-    "bfs": strategy_bfs,
-    "none": strategy_none,
+    "mage": mage,
+    "acs": acs,
+    "anchor": anchor,
+    "bfs": bfs,
+    "none": none,
 }
 
 
