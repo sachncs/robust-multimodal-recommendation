@@ -217,7 +217,7 @@ class Updater:
         step_batch = replay_sample + train_batch
         loss = float(self.loss_step(step_batch))
         valid_loss = self.validation_loss(val_batch)
-        committed, version_after = self.apply_update(loss, valid_loss)
+        committed, version_after = self.apply(loss, valid_loss)
         return Outcome(
             committed=committed,
             loss=loss,
@@ -227,7 +227,7 @@ class Updater:
             n_replay_used=len(replay_sample),
         )
 
-    def apply_update(self, loss: float, valid_loss: float | None) -> tuple[bool, int]:
+    def apply(self, loss: float, valid_loss: float | None) -> tuple[bool, int]:
         """Apply the update guarding against divergence."""
         with self.lock.write():
             if not math.isfinite(loss):
