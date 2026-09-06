@@ -28,7 +28,7 @@ TIMEOUT = 10.0
 class Checker:
     """Aggregated test methods for this module."""
 
-    def once() -> None:
+    def once(self) -> None:
         """Readers must be concurrent, otherwise this is just a mutex."""
         lock = RWLock()
         readers = 4
@@ -51,7 +51,7 @@ class Checker:
         assert not failures, f"readers could not be inside together: {failures}"
         assert lock.active_readers == 0
 
-    def readers() -> None:
+    def readers(self) -> None:
         """Regression: the writer never acquired the lock under sustained reads."""
         lock = RWLock()
         stop = threading.Event()
@@ -76,7 +76,7 @@ class Checker:
             for thread in threads:
                 thread.join(timeout=TIMEOUT)
 
-    def new() -> None:
+    def new(self) -> None:
         """Writer preference is the mechanism that prevents starvation."""
         lock = RWLock()
         lock.acquire_read()
@@ -106,7 +106,7 @@ class Checker:
         assert writer_done.wait(timeout=TIMEOUT)
         thread.join(timeout=TIMEOUT)
 
-    def excludes() -> None:
+    def excludes(self) -> None:
         """No reader may be inside while a writer holds the lock."""
         lock = RWLock()
         overlaps: list[str] = []
@@ -138,7 +138,7 @@ class Checker:
 
         assert not overlaps, overlaps
 
-    def serialised() -> None:
+    def serialised(self) -> None:
         """Two writers must never be inside at once."""
         lock = RWLock()
         concurrent = 0
@@ -168,7 +168,7 @@ class Checker:
         assert not errors, errors
         assert peak == 1
 
-    def load() -> None:
+    def load(self) -> None:
         """A leaked counter would wedge the lock for every later caller."""
         lock = RWLock()
         errors: list[BaseException] = []
@@ -201,7 +201,7 @@ class Checker:
         assert lock.waiting_writers == 0
         assert lock.active_writer is False
 
-    def out() -> None:
+    def out(self) -> None:
         """A writer that gives up must not leave readers queued behind it."""
         lock = RWLock()
         lock.acquire_read()
@@ -213,7 +213,7 @@ class Checker:
         assert lock.acquire_read(timeout=TIMEOUT) is True
         lock.release_read()
 
-    def acquiring() -> None:
+    def acquiring(self) -> None:
         lock = RWLock()
         lock.acquire_write()
         try:
@@ -222,7 +222,7 @@ class Checker:
         finally:
             lock.release_write()
 
-    def without() -> None:
+    def without(self) -> None:
         lock = RWLock()
         lock.acquire_read()
         try:
@@ -231,16 +231,16 @@ class Checker:
         finally:
             lock.release_read()
 
-    def rejected() -> None:
+    def rejected(self) -> None:
         """Going negative would let a writer in while a reader is still inside."""
         with pytest.raises(RuntimeError, match="without holding a read lock"):
             RWLock().release_read()
 
-    def check() -> None:
+    def check(self) -> None:
         with pytest.raises(RuntimeError, match="without holding the write lock"):
             RWLock().release_write()
 
-    def exception() -> None:
+    def exception(self) -> None:
         lock = RWLock()
         with pytest.raises(ValueError, match="boom"), reader(lock):
             raise ValueError("boom")

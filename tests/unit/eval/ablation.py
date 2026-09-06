@@ -37,39 +37,39 @@ def small(**overrides: Any) -> Config:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def registered() -> None:
+    def registered(self) -> None:
         assert set(ABLATIONS.available()) == {"no_retrieval", "no_pe", "no_codebook"}
 
-    def all() -> None:
+    def all(self) -> None:
         """A configured condition that is not registered would fail mid-sweep."""
         for name in Config().eval.ablations:
             assert name in ABLATIONS, f"{name} is named in eval.ablations but not registered"
 
-    def baseline() -> None:
+    def baseline(self) -> None:
         config = small(eval={"ks": [5], "ablations": ["no_pe"]})
         assert conditions(config) == (BASELINE, "no_pe")
 
-    def unchanged() -> None:
+    def unchanged(self) -> None:
         config = small()
         assert ablate(config, BASELINE) is config
 
-    def context() -> None:
+    def context(self) -> None:
         assert ablate(small(), "no_retrieval").retrieve.kind == "none"
 
-    def encoding() -> None:
+    def encoding(self) -> None:
         assert ablate(small(), "no_pe").encode.pe == 0
 
-    def quantization() -> None:
+    def quantization(self) -> None:
         assert ablate(small(), "no_codebook").codebook.kind == "identity"
 
-    def the() -> None:
+    def the(self) -> None:
         config = small()
         before = replace(config)
         for name in ABLATIONS.available():
             ablate(config, name)
         assert config == before
 
-    def component() -> None:
+    def component(self) -> None:
         config = small()
         ablated = ablate(config, "no_pe")
         assert ablated.codebook == config.codebook
@@ -77,11 +77,11 @@ class Checker:
         assert ablated.recommend == config.recommend
         assert ablated.encode.pe != config.encode.pe
 
-    def rejected() -> None:
+    def rejected(self) -> None:
         with pytest.raises(ConfigError, match="unknown ablation 'nope'; available: "):
             ablate(small(), "nope")
 
-    def cutoff(tmp_path: Path) -> None:
+    def cutoff(self, tmp_path: Path) -> None:
         config = small(eval={"ks": [5, 10], "ablations": ["no_pe", "no_codebook"]})
         result = AblationExperiment(config=config, run_dir=tmp_path, items=30, users=10).run()
 
@@ -91,7 +91,7 @@ class Checker:
             for value in values.values():
                 assert 0.0 <= value <= 1.0
 
-    def metrics(tmp_path: Path) -> None:
+    def metrics(self, tmp_path: Path) -> None:
         """Regression: completion output never reached the ranker, so all conditions tied.
 
         A sweep where every condition scores identically measures nothing, and
@@ -105,13 +105,13 @@ class Checker:
             f"every condition scored the same: {recall}"
         )
 
-    def reproducible(tmp_path: Path) -> None:
+    def reproducible(self, tmp_path: Path) -> None:
         config = small()
         first = AblationExperiment(config=config, run_dir=tmp_path / "a", items=30, users=10).run()
         second = AblationExperiment(config=config, run_dir=tmp_path / "b", items=30, users=10).run()
         assert first["metrics"] == second["metrics"]
 
-    def results(tmp_path: Path) -> None:
+    def results(self, tmp_path: Path) -> None:
         config = small()
         result = AblationExperiment(config=config, run_dir=tmp_path, items=30, users=10).run()
 
@@ -124,7 +124,7 @@ class Checker:
         for name in conditions(config):
             assert name in report
 
-    def morel(tmp_path: Path) -> None:
+    def morel(self, tmp_path: Path) -> None:
         name = "shallow-test-only"
 
         @ABLATIONS.register(name)

@@ -14,7 +14,7 @@ from morel.data.acquire import fetch
 class Checker:
     """Aggregated test methods for this module."""
 
-    def fetch(tmp_path: Path) -> None:
+    def fetch(self, tmp_path: Path) -> None:
         target = tmp_path / "x.bin"
         with patch("morel.data.acquire.urllib.request.urlopen") as mocked:
             mocked.return_value.__enter__.return_value.read.side_effect = [b"hello", b""]
@@ -22,7 +22,7 @@ class Checker:
         assert path.exists()
         assert path.read_bytes() == b"hello"
 
-    def retries(tmp_path: Path) -> None:
+    def retries(self, tmp_path: Path) -> None:
         target = tmp_path / "x.bin"
         with (
             patch("morel.data.acquire.urllib.request.urlopen", side_effect=OSError("boom")),

@@ -33,17 +33,17 @@ def small(**completion: Any) -> Config:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def resolved() -> None:
+    def resolved(self) -> None:
         config = small(epochs=7)
         experiment = Experiment(config=config, run_dir=Path("unused"))
         assert experiment.resolved_epochs() == 7
 
-    def explicit() -> None:
+    def explicit(self) -> None:
         config = small(epochs=7)
         experiment = Experiment(config=config, run_dir=Path("unused"), epochs=1)
         assert experiment.resolved_epochs() == 1
 
-    def completion(
+    def completion(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Regression: these were dropped on the floor and defaults used instead."""
@@ -74,7 +74,7 @@ class Checker:
         assert captured["completion_config"].lambda_balance == pytest.approx(0.75)
         assert captured["completion_config"].grad_clip == pytest.approx(2.5)
 
-    def batch(
+    def batch(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         captured: dict[str, Any] = {}
@@ -91,7 +91,7 @@ class Checker:
         Experiment(config=small(batch=3), run_dir=tmp_path, items=10, users=4).run()
         assert captured["batch_size"] == 3
 
-    def manifest(tmp_path: Path) -> None:
+    def manifest(self, tmp_path: Path) -> None:
         config = small(epochs=3)
         Experiment(config=config, run_dir=tmp_path, items=10, users=4).run()
 
@@ -99,7 +99,7 @@ class Checker:
         assert manifest["extras"]["epochs"] == 3
         assert "- epochs: 3" in (tmp_path / "report.md").read_text(encoding="utf-8")
 
-    def written(tmp_path: Path) -> None:
+    def written(self, tmp_path: Path) -> None:
         """The config written beside a run must be the one its hash was taken from."""
         config = small(lr=7e-4, epochs=2)
         result = Experiment(config=config, run_dir=tmp_path, items=10, users=4).run()

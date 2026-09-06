@@ -26,30 +26,30 @@ def setup() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix]:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def query(setup) -> None:
+    def query(self, setup) -> None:
         features, mask, g = setup
         sub = expand(g, [1, 3], 0, features, mask, iters=3)
         assert 0 in sub
 
-    def anchors(setup) -> None:
+    def anchors(self, setup) -> None:
         features, mask, g = setup
         sub = expand(g, [1, 3], 0, features, mask, iters=5)
         # The query (0) is added; if best-improvement never triggers removal
         # of anchors, they stay. We only assert the query is included.
         assert 0 in sub
 
-    def deterministic(setup) -> None:
+    def deterministic(self, setup) -> None:
         features, mask, g = setup
         a = expand(g, [1, 3], 0, features, mask, iters=5)
         b = expand(g, [1, 3], 0, features, mask, iters=5)
         assert a == b
 
-    def iters(setup) -> None:
+    def iters(self, setup) -> None:
         features, mask, g = setup
         with pytest.raises(GraphError):
             expand(g, [1, 3], 0, features, mask, iters=0)
 
-    def loop(setup) -> None:
+    def loop(self, setup) -> None:
         features, mask, _ = setup
         g_loopy = sp.csr_matrix(np.eye(3, dtype=np.float32))
         with pytest.raises(GraphError, match="graph has self-loops"):

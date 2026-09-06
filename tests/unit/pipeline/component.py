@@ -47,26 +47,30 @@ def ui() -> sp.csr_matrix:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def implementation(kind: str, expected: str) -> None:
+    @pytest.mark.parametrize(("kind", "expected"), [("gumbel", "GumbelVQ"), ("vq", "VQ"), ("identity", "IdentityCodebook")])
+    def implementation(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(codebook={"kind": kind}), dims={"visual": 4, "text": 2})
         assert type(pipeline.codebook).__name__ == expected
 
-    def the(kind: str, expected: str) -> None:
+    @pytest.mark.parametrize(("kind", "expected"), [("top", "Top"), ("dense", "Dense"), ("gumbel", "Gumbel"), ("fixed", "Fixed")])
+    def the(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(route={"kind": kind}), dims={"visual": 4, "text": 2})
         assert type(pipeline.router).__name__ == expected
 
-    def selects(kind: str, expected: str) -> None:
+    @pytest.mark.parametrize(("kind", "expected"), [("transformer", "Transformer"), ("identity", "Identity")])
+    def selects(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(encode={"kind": kind}), dims={"visual": 4, "text": 2})
         assert type(pipeline.transformer).__name__ == expected
 
-    def kind(kind: str, expected: str) -> None:
+    @pytest.mark.parametrize(("kind", "expected"), [("light", "Light"), ("mf", "MF"), ("pop", "Pop")])
+    def kind(self, kind: str, expected: str) -> None:
         config = make(recommend={"kind": kind, "embed": 8, "layers": 2})
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
         pipeline.attach_recommender(ui())
         assert pipeline.recommender is not None
         assert type(pipeline.recommender).__name__ == expected
 
-    def score() -> None:
+    def score(self) -> None:
         """Selection is not enough; each ranker must be usable once attached."""
         for kind in RECOMMEND_KIND:
             config = make(recommend={"kind": kind, "embed": 8, "layers": 2})
@@ -76,18 +80,27 @@ class Checker:
             scores = pipeline.recommender(torch.arange(2), torch.arange(3))
             assert scores.shape == (2, 3), f"{kind} produced {scores.shape}"
 
-    def names(section: str, field: str) -> None:
+    @pytest.mark.parametrize(
+        ("section", "field"),
+        [
+            ("codebook", "codebook"),
+            ("encode", "encoder"),
+            ("route", "router"),
+            ("recommend", "recommender"),
+        ],
+    )
+    def names(self, section: str, field: str) -> None:
         config = make(**{section: {"kind": "definitely-not-real"}})
         with pytest.raises(ConfigError, match=rf"unknown {field} 'definitely-not-real'; available: "):
             Pipeline(config, dims={"visual": 4, "text": 2})
 
-    def rejected() -> None:
+    def rejected(self) -> None:
         config = make(recommend={"kind": "definitely-not-real"})
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
         with pytest.raises(ConfigError, match="unknown recommender"):
             pipeline.attach_recommender(ui())
 
-    def end() -> None:
+    def end(self) -> None:
         """Any selectable encoder/router/codebook triple must survive a forward pass."""
         nodes = 32
         rng = np.random.default_rng(0)
@@ -120,7 +133,7 @@ class Checker:
             assert out.completed["visual"].shape == (6, 4), f"{encoder}/{router}/{codebook}"
             assert out.routing.shape[0] == 6, f"{encoder}/{router}/{codebook}"
 
-    def morel() -> None:
+    def morel(self) -> None:
         """The extension point: register a new codebook and select it from config."""
 
         class DoublingCodebook(Codebook):
@@ -158,23 +171,23 @@ class Checker:
             )
             assert out.completed["visual"].shape == (3, 4)
         finally:
-            CODEBOOKS.unregister(name)
+            CODEBOOK_KIND.pop(name, None)
 
-        assert name not in CODEBOOKS
+        assert name not in CODEBOOK_KIND
 
-    def populated() -> None:
+    def populated(self) -> None:
         """A registry that silently lost its entries would make every kind invalid."""
         assert set(CODEBOOK_KIND) >= {"gumbel", "vq", "identity"}
         assert set(ROUTE_KIND) >= {"top", "dense", "gumbel", "fixed"}
         assert set(ENCODE_KIND) >= {"transformer", "identity"}
         assert set(RECOMMEND_KIND) >= {"light", "mf", "pop"}
-        assert set(COMPLETERS.available()) >= {"mlp"}
+        assert set(COMPLETE_KIND) >= {"mlp"}
 
-    def components() -> None:
+    def components(self) -> None:
         """The shipped defaults must not point at implementations that do not exist."""
         config = Config()
-        assert config.encode.kind in ENCODERS
-        assert config.route.kind in ROUTERS
-        assert config.codebook.kind in CODEBOOKS
-        assert config.complete.kind in COMPLETERS
-        assert config.recommend.kind in RECOMMENDERS
+        assert config.encode.kind in ENCODE_KIND
+        assert config.route.kind in ROUTE_KIND
+        assert config.codebook.kind in CODEBOOK_KIND
+        assert config.complete.kind in COMPLETE_KIND
+        assert config.recommend.kind in RECOMMEND_KIND

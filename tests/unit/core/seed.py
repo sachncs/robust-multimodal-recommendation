@@ -14,22 +14,22 @@ from morel.core.seed import deterministic, restore, seed, state
 class Checker:
     """Aggregated test methods for this module."""
 
-    def seed() -> None:
+    def seed(self) -> None:
         with pytest.raises(ValueError, match="seed must be non-negative"):
             seed(-1)
 
-    def non() -> None:
+    def non(self) -> None:
         with pytest.raises(TypeError, match="seed must be int"):
             seed("42")
 
-    def determinism() -> None:
+    def determinism(self) -> None:
         seed(7)
         a = torch.randn(8)
         seed(7)
         b = torch.randn(8)
         assert torch.equal(a, b)
 
-    def state() -> None:
+    def state(self) -> None:
         # Note: torch 2.10 on some platforms does not yield bytewise-identical
         # values after get_rng_state/set_rng_state round-trip even with no
         # intermediate draws. We assert that restore() runs without error and
@@ -45,21 +45,21 @@ class Checker:
         b = torch.randn(4)
         assert torch.allclose(a, b)
 
-    def sets() -> None:
+    def sets(self) -> None:
         seed(42)
         a = np.random.rand(4)
         seed(42)
         b = np.random.rand(4)
         assert np.allclose(a, b)
 
-    def deterministic() -> None:
+    def deterministic(self) -> None:
         with deterministic(0):
             a = torch.randn(8)
         with deterministic(0):
             b = torch.randn(8)
         assert torch.equal(a, b)
 
-    def restores() -> None:
+    def restores(self) -> None:
         """The block must not leak its reseed into the surrounding program."""
         seed(11)
         expected = torch.randn(4)
@@ -71,7 +71,7 @@ class Checker:
 
         assert torch.equal(expected, actual)
 
-    def even() -> None:
+    def even(self) -> None:
         def blow_up() -> None:
             with deterministic(123):
                 torch.randn(50)
@@ -87,7 +87,7 @@ class Checker:
 
         assert torch.equal(expected, actual)
 
-    def covers() -> None:
+    def covers(self) -> None:
         with deterministic(3):
             a_np, a_py = np.random.rand(4), random.random()
         with deterministic(3):

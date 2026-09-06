@@ -11,7 +11,7 @@ from morel.core.config import Config
 class Checker:
     """Aggregated test methods for this module."""
 
-    def experiment(tmp_path: Path) -> None:
+    def experiment(self, tmp_path: Path) -> None:
         config = Config()
         exp = Experiment(config=config, run_dir=tmp_path, items=10, users=4, epochs=1)
         result = exp.run()
@@ -24,7 +24,7 @@ class Checker:
         assert (tmp_path / "FIDELITY.md").exists()
         assert (tmp_path / "report.md").exists()
 
-    def reproduce(tmp_path: Path) -> None:
+    def reproduce(self, tmp_path: Path) -> None:
         config_path = tmp_path / "config.yaml"
         Config().to_yaml(config_path)
         run_dir = tmp_path / "run"
@@ -33,7 +33,7 @@ class Checker:
         assert "duration" in result
         assert "config_hash" in result
 
-    def benchmark(tmp_path: Path) -> None:
+    def benchmark(self, tmp_path: Path) -> None:
         config = Config()
         bench = Benchmark(config=config, run_dir=tmp_path, sizes=[8], epochs=1)
         result = bench.run()

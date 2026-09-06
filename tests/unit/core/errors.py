@@ -20,9 +20,9 @@ from morel.core.errors import (
 class Checker:
     """Aggregated test methods for this module."""
 
-    def specializations(cls: type) -> None:
+    def specializations(self, cls: type) -> None:
         assert issubclass(cls, MorelError)
 
-    def can() -> None:
+    def can(self) -> None:
         with pytest.raises(MorelError):
             raise GraphError("boom")

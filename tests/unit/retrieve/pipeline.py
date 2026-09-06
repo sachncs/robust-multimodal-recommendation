@@ -19,14 +19,14 @@ def path(n: int) -> sp.csr_matrix:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def query() -> None:
+    def query(self) -> None:
         g = path(5)
         features = {"visual": np.eye(5, dtype=np.float32), "text": np.eye(5, dtype=np.float32)}
         mask = np.ones((5, 2), dtype=np.float32)
         sub = retrieve(0, features, mask, g, anchors=2, iters=2)
         assert 0 in sub
 
-    def result() -> None:
+    def result(self) -> None:
         g = path(5)
         features = {"visual": np.eye(5, dtype=np.float32)}
         mask = np.ones((5, 1), dtype=np.float32)
@@ -34,7 +34,7 @@ class Checker:
         assert result.batch == 2
         assert (result.sizes > 0).all()
 
-    def deterministic() -> None:
+    def deterministic(self) -> None:
         g = path(5)
         features = {"visual": np.eye(5, dtype=np.float32), "text": np.eye(5, dtype=np.float32)}
         mask = np.ones((5, 2), dtype=np.float32)
@@ -43,7 +43,7 @@ class Checker:
         assert (a.nodes == b.nodes).all()
         assert (a.mask == b.mask).all()
 
-    def only() -> None:
+    def only(self) -> None:
         g = path(3)
         features = {"visual": np.eye(3, dtype=np.float32), "text": np.eye(3, dtype=np.float32)}
         mask = np.zeros((3, 2), dtype=np.float32)

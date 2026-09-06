@@ -20,36 +20,36 @@ def reset():
 class Checker:
     """Aggregated test methods for this module."""
 
-    def default() -> None:
+    def default(self) -> None:
         assert dist.world_size() == 1
 
-    def rank() -> None:
+    def rank(self) -> None:
         assert dist.rank() == 0
 
-    def zero() -> None:
+    def zero(self) -> None:
         assert dist.is_rank_zero() is True
 
-    def init() -> None:
+    def init(self) -> None:
         info = dist.init()
         assert info["rank"] == 0
         assert info["world_size"] == 1
         assert dist.is_initialized() is True
 
-    def idempotent() -> None:
+    def idempotent(self) -> None:
         dist.init()
         dist.init()
         assert dist.is_initialized() is True
         assert dist.rank() == 0
 
-    def barrier() -> None:
+    def barrier(self) -> None:
         dist.barrier()
         assert dist.is_rank_zero() is True
 
-    def reduce() -> None:
+    def reduce(self) -> None:
         dist.init()
         assert dist.reduce_mean(7.5) == 7.5
 
-    def local() -> None:
+    def local(self) -> None:
         import os
 
         os.environ["LOCAL_RANK"] = "3"
@@ -58,7 +58,7 @@ class Checker:
         finally:
             os.environ.pop("LOCAL_RANK", None)
 
-    def cleanup() -> None:
+    def cleanup(self) -> None:
         dist.init()
         dist.cleanup()
         assert dist.is_initialized() is False

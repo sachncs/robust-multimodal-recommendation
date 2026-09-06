@@ -20,50 +20,50 @@ from morel.data import MASKS
 class Checker:
     """Aggregated test methods for this module."""
 
-    def strategies() -> None:
+    def strategies(self) -> None:
         assert set(MASKS.available()) >= {"bernoulli", "block"}
 
-    def every(kind: str, ratio: float) -> None:
+    def every(self, kind: str, ratio: float) -> None:
         """Completion is impossible for an item with nothing observed."""
         mask = MASKS.create(kind, items=40, modalities=2, ratio=ratio, seed=0).to_numpy()
         assert (mask.sum(axis=1) > 0).all()
 
-    def bernoulli() -> None:
+    def bernoulli(self) -> None:
         low = MASKS.create("bernoulli", items=200, modalities=3, ratio=0.1, seed=0).to_numpy()
         high = MASKS.create("bernoulli", items=200, modalities=3, ratio=0.9, seed=0).to_numpy()
         assert low.mean() > high.mean()
 
-    def masking() -> None:
+    def masking(self) -> None:
         first = MASKS.create("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).to_numpy()
         second = MASKS.create("bernoulli", items=50, modalities=2, ratio=0.4, seed=3).to_numpy()
         assert np.array_equal(first, second)
 
-    def block() -> None:
+    def block(self) -> None:
         with pytest.raises(DataError, match="at least 2 modalities"):
             MASKS.create("block", items=5, modalities=1, ratio=0.5, seed=0)
 
-    def unknown() -> None:
+    def unknown(self) -> None:
         with pytest.raises(ConfigError, match="unknown masking strategy"):
             MASKS.create("nope", items=5, modalities=2, ratio=0.5, seed=0)
 
-    def synthetic() -> None:
+    def synthetic(self) -> None:
         sparse = synthetic_dataset(80, 4, 2, 10, Masking(ratio=0.1))
         dense = synthetic_dataset(80, 4, 2, 10, Masking(ratio=0.9))
         assert sparse["mask"].mean() > dense["mask"].mean()
 
-    def dataset() -> None:
+    def dataset(self) -> None:
         first = synthetic_dataset(40, 4, 2, 10, Masking(seed=1))["mask"]
         second = synthetic_dataset(40, 4, 2, 10, Masking(seed=2))["mask"]
         assert not np.array_equal(first, second)
         again = synthetic_dataset(40, 4, 2, 10, Masking(seed=1))["mask"]
         assert np.array_equal(first, again)
 
-    def honours() -> None:
+    def honours(self) -> None:
         bern = synthetic_dataset(40, 4, 2, 10, Masking(kind="bernoulli", ratio=0.5, seed=0))["mask"]
         blk = synthetic_dataset(40, 4, 2, 10, Masking(kind="block", ratio=0.5, seed=0))["mask"]
         assert not np.array_equal(bern, blk)
 
-    def defaults() -> None:
+    def defaults(self) -> None:
         explicit = synthetic_dataset(40, 4, 2, 10, Masking())["mask"]
         implicit = synthetic_dataset(40, 4, 2, 10)["mask"]
         assert np.array_equal(explicit, implicit)
@@ -82,41 +82,41 @@ from morel.data.mask import Mask, bernoulli, block, stack, structured
 class Checker:
     """Aggregated test methods for this module."""
 
-    def bernoulli() -> None:
+    def bernoulli(self) -> None:
         m = bernoulli(20, 3, 0.4, seed=0)
         assert m.to_numpy().shape == (20, 3)
         assert m.to_numpy().dtype == np.float32
         assert m.items == 20
         assert m.modalities == 3
 
-    def at() -> None:
+    def at(self) -> None:
         m = bernoulli(50, 1, 1.0, seed=1).to_numpy()
         assert (m.sum(axis=1) == 1).all()
 
-    def invalid() -> None:
+    def invalid(self) -> None:
         with pytest.raises(DataError):
             bernoulli(5, 3, 1.5, seed=0)
 
-    def seed() -> None:
+    def seed(self) -> None:
         a = bernoulli(30, 4, 0.3, seed=42).to_numpy()
         b = bernoulli(30, 4, 0.3, seed=42).to_numpy()
         assert np.array_equal(a, b)
 
-    def block() -> None:
+    def block(self) -> None:
         m = block(10, 4, 2, seed=0).to_numpy()
         assert (m.sum(axis=1) == 2).all()
 
-    def structured() -> None:
+    def structured(self) -> None:
         pattern = np.array([[1, 0], [0, 1], [1, 1]], dtype=np.float32)
         m = structured(pattern)
         assert m.items == 3
         assert m.modalities == 2
 
-    def mask() -> None:
+    def mask(self) -> None:
         with pytest.raises(DataError):
             Mask(data=np.array([[0, 0]], dtype=np.float32))
 
-    def stack() -> None:
+    def stack(self) -> None:
         a = bernoulli(4, 2, 0.5, seed=0)
         b = bernoulli(4, 2, 0.5, seed=1)
         c = bernoulli(4, 2, 0.5, seed=2)

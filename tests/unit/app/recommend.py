@@ -33,7 +33,7 @@ def small(**recommendation: Any) -> Config:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def run(tmp_path: Path) -> None:
+    def run(self, tmp_path: Path) -> None:
         result = RecommendationExperiment(
             config=small(), run_dir=tmp_path, items=20, users=8
         ).run()
@@ -42,7 +42,7 @@ class Checker:
             assert (tmp_path / name).exists(), f"missing {name}"
         assert set(result) >= {"duration", "run_dir", "config_hash", "best", "train_loss"}
 
-    def it(tmp_path: Path) -> None:
+    def it(self, tmp_path: Path) -> None:
         RecommendationExperiment(config=small(), run_dir=tmp_path, items=20, users=8).run()
 
         manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
@@ -57,7 +57,7 @@ class Checker:
         assert "recommendation.end" in events
         assert "experiment.end" not in events
 
-    def reported(tmp_path: Path) -> None:
+    def reported(self, tmp_path: Path) -> None:
         """Regression: fit() left best at infinity whenever no val loader was given."""
         result = RecommendationExperiment(
             config=small(), run_dir=tmp_path, items=20, users=8
@@ -65,14 +65,14 @@ class Checker:
         assert 0.0 < float(result["best"]) < 100.0
         assert 0.0 < float(result["train_loss"]) < 100.0
 
-    def no(tmp_path: Path) -> None:
+    def no(self, tmp_path: Path) -> None:
         """With val=0 there is no held-out set, so the train loss is what is tracked."""
         result = RecommendationExperiment(
             config=small(val=0.0), run_dir=tmp_path, items=20, users=8
         ).run()
         assert result["train_loss"] == pytest.approx(result["best"])
 
-    def epochs(tmp_path: Path) -> None:
+    def epochs(self, tmp_path: Path) -> None:
         experiment = RecommendationExperiment(config=small(epochs=5), run_dir=tmp_path)
         assert experiment.resolved_epochs() == 5
         assert (
@@ -82,7 +82,7 @@ class Checker:
             == 1
         )
 
-    def hyperparameters(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def hyperparameters(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
         import morel.app.experiment as module
 
@@ -102,7 +102,7 @@ class Checker:
         assert captured["negatives_count"] == 3
         assert captured["trainer_config"].grad_clip == pytest.approx(1.5)
 
-    def recommender(tmp_path: Path) -> None:
+    def recommender(self, tmp_path: Path) -> None:
         config = Config.from_dict(
             {
                 "encode": {"hidden": 16, "pe": 4, "layers": 1, "heads": 2},
@@ -115,7 +115,7 @@ class Checker:
         manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
         assert manifest["extras"]["recommender"] == "mf"
 
-    def cli(
+    def cli(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """The CLI must not quietly run the completion experiment instead."""

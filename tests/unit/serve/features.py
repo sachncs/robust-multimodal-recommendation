@@ -48,7 +48,7 @@ class TinyModel(nn.Module):
 class Checker:
     """Aggregated test methods for this module."""
 
-    def token(monkeypatch: pytest.MonkeyPatch) -> None:
+    def token(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
         monkeypatch.delenv("MOREL_AUTH_TOKEN_ADMIN", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "read-tok")
@@ -57,7 +57,7 @@ class Checker:
         assert token_for_scope("read") == "read-tok"
         assert token_for_scope("admin") is None
 
-    def only(monkeypatch: pytest.MonkeyPatch) -> None:
+    def only(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
         monkeypatch.delenv("MOREL_AUTH_TOKEN_READ", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-tok")
@@ -66,7 +66,7 @@ class Checker:
         assert token_for_scope("read") is None
         assert token_for_scope("admin") == "admin-tok"
 
-    def both(monkeypatch: pytest.MonkeyPatch) -> None:
+    def both(self, monkeypatch: pytest.MonkeyPatch) -> None:
         for var in (
             "MOREL_AUTH_TOKEN",
             "MOREL_AUTH_TOKEN_READ",
@@ -79,7 +79,7 @@ class Checker:
         assert token_for_scope("read") == "legacy"
         assert token_for_scope("admin") == "legacy"
 
-    def without(
+    def without(self, 
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         from morel.core.errors import ConfigError
@@ -94,13 +94,13 @@ class Checker:
         with pytest.raises(ConfigError):
             assert_configured()
 
-    def noop() -> None:
+    def noop(self) -> None:
         class Req:
             headers: ClassVar[dict[str, str]] = {}
 
         require(Req(), scope="read")
 
-    def raises(monkeypatch: pytest.MonkeyPatch) -> None:
+    def raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from fastapi import HTTPException
 
         monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "real-token")
@@ -111,7 +111,7 @@ class Checker:
         with pytest.raises(HTTPException):
             require(Req(), scope="read")
 
-    def other() -> None:
+    def other(self) -> None:
         lock = RWLock()
         errors: list[Exception] = []
         readers_in = 0
@@ -136,7 +136,7 @@ class Checker:
             t.join()
         assert not errors
 
-    def writers() -> None:
+    def writers(self) -> None:
         lock = RWLock()
         counter = [0]
         counter_lock = threading.Lock()
@@ -157,19 +157,19 @@ class Checker:
             t.join()
         assert counter[0] == 0
 
-    def buffer() -> None:
+    def buffer(self) -> None:
         updater = PipelineUpdater(TinyModel())
         for i in range(8):
             updater.accept(user=i, item=i, signal="like")
         assert updater.stats()["events_buffered"] == 8
         assert updater.stats()["replay_buffered"] == 8
 
-    def returns() -> None:
+    def returns(self) -> None:
         updater = PipelineUpdater(TinyModel())
         result = updater.tick()
         assert result.committed is False
 
-    def commit() -> None:
+    def commit(self) -> None:
         updater = PipelineUpdater(
             TinyModel(),
             cooldown_seconds=0,
@@ -182,7 +182,7 @@ class Checker:
         assert result.version == 1
         assert updater.stats()["updates_applied"] == 1
 
-    def loss() -> None:
+    def loss(self) -> None:
         updater = PipelineUpdater(
             TinyModel(),
             cooldown_seconds=30,
@@ -194,7 +194,7 @@ class Checker:
         assert result.committed is False
         assert updater.cooldown_until > time.time()
 
-    def version() -> None:
+    def version(self) -> None:
         updater = PipelineUpdater(
             TinyModel(),
             cooldown_seconds=0,
@@ -209,7 +209,7 @@ class Checker:
         assert version == 1
         assert updater.version == 1
 
-    def polymorphic() -> None:
+    def polymorphic(self) -> None:
         """LossStep Protocol: DefaultLossStep and a custom callable both work."""
         from morel.serve.update import DefaultLossStep
 

@@ -35,7 +35,7 @@ def updater() -> PipelineUpdater:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def load() -> None:
+    def load(self) -> None:
         """Regression: accept() took the model write lock and starved inference."""
         live = updater()
         stop = threading.Event()
@@ -61,7 +61,7 @@ class Checker:
 
         assert reads > MIN_READS, f"only {reads} model reads completed under feedback load"
 
-    def concurrency() -> None:
+    def concurrency(self) -> None:
         """Every accepted event must land in both rings."""
         live = updater()
         per_thread = 200
@@ -77,7 +77,7 @@ class Checker:
         assert len(live.feedback_ring) == per_thread * 6
         assert len(live.replay_ring) == per_thread * 6
 
-    def arrives() -> None:
+    def arrives(self) -> None:
         """The other direction: the updater must not be starved either."""
         live = updater()
         stop = threading.Event()
@@ -98,7 +98,7 @@ class Checker:
             for thread in threads:
                 thread.join(timeout=TIMEOUT)
 
-    def feedback() -> None:
+    def feedback(self) -> None:
         """stats() must not raise or report nonsense while events arrive."""
         live = updater()
         stop = threading.Event()
@@ -128,7 +128,7 @@ class Checker:
 
         assert not failures, failures
 
-    def use() -> None:
+    def use(self) -> None:
         """A leaked counter would wedge every later caller."""
         live = updater()
         threads = [

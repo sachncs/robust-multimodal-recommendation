@@ -13,7 +13,7 @@ from morel.data.manifest import Manifest, checksum, load, path_for, save
 class Checker:
     """Aggregated test methods for this module."""
 
-    def save(tmp_path: Path) -> None:
+    def save(self, tmp_path: Path) -> None:
         artifact = tmp_path / "x.npz"
         artifact.write_text("hello")
         m = Manifest(
@@ -31,7 +31,7 @@ class Checker:
         assert loaded.seed == 0
         assert loaded.schema == 1
 
-    def load(tmp_path: Path) -> None:
+    def load(self, tmp_path: Path) -> None:
         artifact = tmp_path / "x.npz"
         artifact.write_text("hello")
         m = Manifest(
@@ -46,15 +46,15 @@ class Checker:
         with pytest.raises(DataError):
             load(artifact, expected_config_hash="hash2")
 
-    def missing(tmp_path: Path) -> None:
+    def missing(self, tmp_path: Path) -> None:
         with pytest.raises(DataError):
             load(tmp_path / "missing.npz")
 
-    def checksum(tmp_path: Path) -> None:
+    def checksum(self, tmp_path: Path) -> None:
         p = tmp_path / "x"
         p.write_text("hello world")
         assert checksum(p) == "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
 
-    def path(tmp_path: Path) -> None:
+    def path(self, tmp_path: Path) -> None:
         p = tmp_path / "data.npz"
         assert path_for(p).name == "data.npz.manifest.json"

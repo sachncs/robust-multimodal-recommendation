@@ -12,35 +12,35 @@ from morel.graph import Bipartite, Item, connected
 class Checker:
     """Aggregated test methods for this module."""
 
-    def constructs() -> None:
+    def constructs(self) -> None:
         g = Bipartite(sp.csr_matrix(np.eye(2, dtype=np.float32)))
         assert g.users == 2
         assert g.items == 2
         assert g.edges == 2
 
-    def loops() -> None:
+    def loops(self) -> None:
         bi = Bipartite(sp.csr_matrix(np.array([[1, 1], [1, 1]], dtype=np.float32)))
         item = Item.from_bipartite(bi)
         assert (item.matrix.diagonal() == 0).all()
 
-    def symmetric() -> None:
+    def symmetric(self) -> None:
         bi = Bipartite(sp.csr_matrix(np.array([[1, 1, 0], [1, 0, 1], [0, 1, 1]], dtype=np.float32)))
         item = Item.from_bipartite(bi)
         assert (item.matrix - item.matrix.T).max() == 0
 
-    def self() -> None:
+    def self(self) -> None:
         from morel.core.errors import GraphError
 
         g = sp.csr_matrix(np.eye(3, dtype=np.float32))
         with pytest.raises(GraphError):
             Item(matrix=g)
 
-    def connected() -> None:
+    def connected(self) -> None:
         nodes = np.array([0, 1, 2])
         parent = {0: np.array([1]), 1: np.array([0, 2]), 2: np.array([1])}
         assert connected(nodes, parent)
 
-    def disconnected() -> None:
+    def disconnected(self) -> None:
         nodes = np.array([0, 2])
         parent = {0: np.array([1]), 1: np.array([0, 2]), 2: np.array([1])}
         assert not connected(nodes, parent)

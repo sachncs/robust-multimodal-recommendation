@@ -12,14 +12,14 @@ from morel.core.log import configure, get, log
 class Checker:
     """Aggregated test methods for this module."""
 
-    def configure(caplog: object) -> None:
+    def configure(self, caplog: object) -> None:
         configure(level="DEBUG", structured=True, directory=None)
         logger = get("test")
         logger.info("hello")
         root = logging.getLogger("morel")
         assert root.handlers
 
-    def json() -> None:
+    def json(self) -> None:
         configure(level="INFO", structured=True, directory=None)
         from io import StringIO
 
@@ -37,7 +37,7 @@ class Checker:
         assert payload["message"] == "hello"
         assert payload["metric"] == 1.5
 
-    def log(tmp_path: Path) -> None:
+    def log(self, tmp_path: Path) -> None:
         configure(level="INFO", structured=False, directory=tmp_path)
         log(tmp_path, loss=0.1, step=1)
         log(tmp_path, loss=0.05, step=2)

@@ -11,26 +11,26 @@ from morel.core.path import checkpoints, features, graphs, manifest, processed, 
 class Checker:
     """Aggregated test methods for this module."""
 
-    def root(tmp_path, monkeypatch) -> None:
+    def root(self, tmp_path, monkeypatch) -> None:
         monkeypatch.setenv("MOREL_DATA_DIR", str(tmp_path))
         assert root() == tmp_path.resolve()
 
-    def processed() -> None:
+    def processed(self) -> None:
         with pytest.raises(ConfigError):
             processed("../escape")
         with pytest.raises(ConfigError):
             processed("")
 
-    def manifest(tmp_path) -> None:
+    def manifest(self, tmp_path) -> None:
         target = tmp_path / "x.npz"
         target.write_text("x")
         assert manifest(target).name == "x.npz.manifest.json"
 
-    def checkpoints(tmp_path) -> None:
+    def checkpoints(self, tmp_path) -> None:
         with pytest.raises(ConfigError):
             checkpoints("")
 
-    def features(tmp_path) -> None:
+    def features(self, tmp_path) -> None:
         monkeypatch = pytest.MonkeyPatch()
         monkeypatch.setenv("MOREL_DATA_DIR", str(tmp_path))
         p = processed("Beauty")
@@ -39,6 +39,6 @@ class Checker:
         assert graphs("Beauty") == p / "graphs"
         monkeypatch.undo()
 
-    def runs() -> None:
+    def runs(self) -> None:
         with pytest.raises(ConfigError):
             runs("")

@@ -38,7 +38,7 @@ def exists(test_ref: str) -> bool:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def fidelity() -> None:
+    def fidelity(self) -> None:
         for entry in fidelity_all():
             assert entry.name
             assert entry.paper
@@ -47,7 +47,7 @@ class Checker:
             assert entry.test
             assert entry.status in {"EXACT", "APPROXIMATE", "INCORRECT", "UNKNOWN"}
 
-    def test() -> None:
+    def test(self) -> None:
         """Every registered test path must point to an existing file on disk."""
         missing: list[str] = []
         for entry in fidelity_all():
@@ -55,7 +55,7 @@ class Checker:
                 missing.append(f"{entry.name}: {entry.test}")
         assert not missing, f"missing test files: {missing}"
 
-    def functions() -> None:
+    def functions(self) -> None:
         """Every registered test function name must be importable."""
         missing: list[str] = []
         for entry in fidelity_all():
@@ -63,11 +63,11 @@ class Checker:
                 missing.append(f"{entry.name}: {entry.test}")
         assert not missing, f"missing test functions: {missing}"
 
-    def registry() -> None:
+    def registry(self) -> None:
         """morel.core.__init__ side-effect-imports morel.core.fidelity.register_all."""
         assert len(registry) >= 10
 
-    def render(tmp_path: Path) -> None:
+    def render(self, tmp_path: Path) -> None:
         md_path = tmp_path / "FIDELITY.md"
         json_path = tmp_path / "FIDELITY.json"
         render_markdown(md_path)
@@ -75,7 +75,7 @@ class Checker:
         assert md_path.read_text().count("\n") > 5
         assert json_path.read_text().startswith("{")
 
-    def table(tmp_path: Path) -> None:
+    def table(self, tmp_path: Path) -> None:
         md_path = tmp_path / "FIDELITY.md"
         render_markdown(md_path)
         body = md_path.read_text()

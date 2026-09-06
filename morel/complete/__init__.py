@@ -3,6 +3,7 @@
 import torch.nn as nn
 
 from morel.complete.decoders import Decoders
+from morel.core.errors import ConfigError
 
 
 def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> nn.Module:
@@ -24,7 +25,7 @@ def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> n
     """
     if kind == "mlp":
         return Decoders(latent_dim=latent_dim, dims=dims, hidden=hidden)
-    raise ValueError(f"unknown completer kind {kind!r}; available: mlp")
+    raise ConfigError(f"unknown completer kind {kind!r}; available: mlp")
 
 
 #: Map from config name to completer class for introspection.

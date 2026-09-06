@@ -22,53 +22,53 @@ from morel.eval import (
 class Checker:
     """Aggregated test methods for this module."""
 
-    def perfect() -> None:
+    def perfect(self) -> None:
         labels = np.eye(5, 10, dtype=np.float32)
         s = recall_at_k(labels, labels, k=1)
         assert abs(s - 1.0) < 1e-6
 
-    def k() -> None:
+    def k(self) -> None:
         with pytest.raises(ValueError, match="k must be positive"):
             recall_at_k(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
 
-    def ndcg() -> None:
+    def ndcg(self) -> None:
         labels = np.eye(5, 10, dtype=np.float32)
         s = ndcg_at_k(labels, labels, k=2)
         assert abs(s - 1.0) < 1e-6
 
-    def invalid() -> None:
+    def invalid(self) -> None:
         with pytest.raises(ValueError, match="k must be positive"):
             ndcg_at_k(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
 
-    def shape() -> None:
+    def shape(self) -> None:
         s = precision_at_k(np.eye(3, 5), np.eye(3, 5), k=2)
         assert 0.0 <= s <= 1.0
 
-    def mrr() -> None:
+    def mrr(self) -> None:
         labels = np.eye(3, 5, dtype=np.float32)
         s = mrr(labels, labels)
         assert abs(s - 1.0) < 1e-6
 
-    def range() -> None:
+    def range(self) -> None:
         labels = np.eye(3, 5, dtype=np.float32)
         s = map_at_k(labels, labels, k=3)
         assert 0.0 <= s <= 1.0
 
-    def zero() -> None:
+    def zero(self) -> None:
         arr = np.zeros((3, 4), dtype=np.float32)
         assert mse(arr, arr) == 0.0
 
-    def mse() -> None:
+    def mse(self) -> None:
         a = np.array([[1.0, 2.0]])
         b = np.array([[0.0, 0.0]])
         out = per_modality_mse({"v": a}, {"v": b})
         assert out["v"] == mse(a, b)
 
-    def one() -> None:
+    def one(self) -> None:
         arr = np.random.default_rng(0).normal(size=(10, 4)).astype(np.float32)
         assert abs(explained_variance(arr, arr) - 1.0) < 1e-5
 
-    def sweep() -> None:
+    def sweep(self) -> None:
         scores = np.random.default_rng(0).random((5, 10)).astype(np.float32)
         labels = (np.random.default_rng(1).random((5, 10)) > 0.7).astype(np.float32)
         sweep = robustness_sweep(
@@ -79,7 +79,7 @@ class Checker:
         assert sweep.ratios == [0.1, 0.5, 0.9]
         assert len(sweep.metrics["recall"]) == 3
 
-    def results() -> None:
+    def results(self) -> None:
         s = np.random.default_rng(0).random((3, 5))
         labels = np.eye(3, 5)
         out = ablation_results({"a": s, "b": labels}, labels, metric=lambda x, y: 1.0)

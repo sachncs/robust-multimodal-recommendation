@@ -101,7 +101,7 @@ def documented() -> dict[str, set[str]]:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def layer() -> None:
+    def layer(self) -> None:
         """A new subpackage must be placed in the layering deliberately."""
         packages = {
             path.name
@@ -114,7 +114,7 @@ class Checker:
             f"declared but absent from the tree: {sorted(declared - packages)}"
         )
 
-    def layering() -> None:
+    def layering(self) -> None:
         violations = []
         for source, targets in sorted(graph().items()):
             if source == ROOT:
@@ -127,7 +127,7 @@ class Checker:
                     )
         assert not violations, "layering violations:\n  " + "\n  ".join(violations)
 
-    def acyclic() -> None:
+    def acyclic(self) -> None:
         graph = graph()
         visiting: set[str] = set()
         done: set[str] = set()
@@ -151,11 +151,11 @@ class Checker:
 
         assert not cycles, "import cycles between packages:\n  " + "\n  ".join(cycles)
 
-    def morel() -> None:
+    def morel(self) -> None:
         """The foundation layer must stay free of upward dependencies."""
         assert graph().get("core", set()) == set()
 
-    def registries() -> None:
+    def registries(self) -> None:
         """docs/ARCHITECTURE.md must not drift from what is actually registered."""
         from morel.codebook import CODEBOOKS
         from morel.complete import COMPLETERS

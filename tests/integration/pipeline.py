@@ -26,7 +26,7 @@ class SilentMonitor:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def real(tmp_path) -> None:
+    def real(self, tmp_path) -> None:
         rng = np.random.default_rng(0)
         n = 30
         dim_visual = 6
@@ -58,7 +58,7 @@ class Checker:
         assert "best" in result
         assert torch.isfinite(torch.tensor(result["best"])) or result["best"] == float("inf")
 
-    def pipeline(tmp_path) -> None:
+    def pipeline(self, tmp_path) -> None:
         """Half the items have their text modality masked."""
         rng = np.random.default_rng(1)
         n = 24
@@ -81,7 +81,7 @@ class Checker:
         assert out.completed["text"].shape == (n, 2)
         assert torch.isfinite(out.completed["text"]).all()
 
-    def rejects() -> None:
+    def rejects(self) -> None:
         """Pipeline raises GraphError when an adjacency with self-loops is passed."""
         rng = np.random.default_rng(2)
         n = 8

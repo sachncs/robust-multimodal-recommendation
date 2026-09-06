@@ -20,7 +20,7 @@ from tests.shared import BPRDataset, build_completion_loader, build_path_graph
 class Checker:
     """Aggregated test methods for this module."""
 
-    def pipeline(tmp_path: Path, silent_monitor_factory) -> None:
+    def pipeline(self, tmp_path: Path, silent_monitor_factory) -> None:
         rng = np.random.default_rng(0)
         n = 20
         dim = 4
@@ -41,7 +41,7 @@ class Checker:
         trainer.fit(loader, loader, epochs=2, patience=1)
         assert True
 
-    def runs(tmp_path: Path, silent_monitor_factory) -> None:
+    def runs(self, tmp_path: Path, silent_monitor_factory) -> None:
         users, items = 8, 12
         rng = np.random.default_rng(0)
         user_indices = rng.integers(0, users, size=64)
@@ -62,7 +62,7 @@ class Checker:
         trainer.fit(loader, loader, epochs=2, patience=1)
         assert True
 
-    def device(tmp_path: Path, silent_monitor_factory) -> None:
+    def device(self, tmp_path: Path, silent_monitor_factory) -> None:
         """Trainer accepts a device argument and resolves via morel.core.device.device()."""
         users, items = 4, 6
         rng = np.random.default_rng(0)
@@ -83,7 +83,7 @@ class Checker:
         )
         assert trainer.device == torch.device("cpu")
 
-    def cpu(tmp_path: Path, silent_monitor_factory) -> None:
+    def cpu(self, tmp_path: Path, silent_monitor_factory) -> None:
         """AMP=true on CPU must not crash; AMP path is exercised without device promotion."""
         users, items = 4, 6
         rng = np.random.default_rng(0)

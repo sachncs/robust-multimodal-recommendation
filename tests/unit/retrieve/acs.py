@@ -13,7 +13,7 @@ from morel.retrieve.acs import batch, compute
 class Checker:
     """Aggregated test methods for this module."""
 
-    def path() -> None:
+    def path(self) -> None:
         g = sp.csr_matrix(
             np.array(
                 [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [0, 0, 0, 1, 0]],
@@ -23,30 +23,30 @@ class Checker:
         sub = compute(g, [0, 4])
         assert sub == {0, 1, 2, 3, 4}
 
-    def anchor() -> None:
+    def anchor(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
         assert compute(g, [0]) == {0}
 
-    def empty() -> None:
+    def empty(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
         assert compute(g, []) == set()
 
-    def raises() -> None:
+    def raises(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
         with pytest.raises(GraphError):
             compute(g, [0, 0])
 
-    def range() -> None:
+    def range(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
         with pytest.raises(GraphError):
             compute(g, [0, 99])
 
-    def loops() -> None:
+    def loops(self) -> None:
         g = sp.csr_matrix(np.eye(3, dtype=np.float32))
         with pytest.raises(GraphError):
             compute(g, [0, 2])
 
-    def fallback() -> None:
+    def fallback(self) -> None:
         g = sp.csr_matrix(
             np.array(
                 [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 0, 0], [0, 0, 0, 0, 1], [0, 0, 0, 1, 0]],
@@ -56,7 +56,7 @@ class Checker:
         sub = compute(g, [0, 3], fallback="empty")
         assert sub == set()
 
-    def paths() -> None:
+    def paths(self) -> None:
         n = 4000
         rows = []
         for i in range(n - 1):
@@ -70,7 +70,7 @@ class Checker:
         assert (n - 1) in sub
         assert len(sub) == n
 
-    def batch() -> None:
+    def batch(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
         out = batch(g, [[0], [1]])
         assert out == [{0}, {1}]

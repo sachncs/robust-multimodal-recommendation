@@ -8,6 +8,7 @@ from morel.codebook.codebook import (
     balance,
     usage,
 )
+from morel.core.errors import ConfigError
 from morel.route import Router
 
 
@@ -42,7 +43,7 @@ def build(
         return VQ(dim=dim, size=size, seed=seed)
     if kind == "identity":
         return IdentityCodebook(dim=dim, size=size)
-    raise ValueError(f"unknown codebook kind {kind!r}; available: gumbel, vq, identity")
+    raise ConfigError(f"unknown codebook kind {kind!r}; available: gumbel, vq, identity")
 
 
 #: Map from config name to codebook class for introspection.

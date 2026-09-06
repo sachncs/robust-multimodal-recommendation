@@ -11,7 +11,7 @@ from morel.eval.protocol import robustness_sweep
 class Checker:
     """Aggregated test methods for this module."""
 
-    def robustness() -> None:
+    def robustness(self) -> None:
         rng = np.random.default_rng(0)
         users, items = 20, 50
         labels = (rng.random((users, items)) > 0.7).astype(np.float32)
@@ -29,7 +29,7 @@ class Checker:
         for metric_values in result.metrics.values():
             assert all(np.isfinite(v) for v in metric_values)
 
-    def sweep() -> None:
+    def sweep(self) -> None:
         rng = np.random.default_rng(0)
         labels = (rng.random((10, 20)) > 0.8).astype(np.float32)
         result = robustness_sweep(
@@ -38,7 +38,7 @@ class Checker:
         assert result.ratios == []
         assert result.metrics == {}
 
-    def returns() -> None:
+    def returns(self) -> None:
         rng = np.random.default_rng(0)
         labels = (rng.random((10, 20)) > 0.8).astype(np.float32)
         scores_by_ratio = {

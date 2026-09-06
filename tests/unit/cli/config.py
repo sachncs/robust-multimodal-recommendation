@@ -28,7 +28,7 @@ def write(tmp_path: Path, **payload: Any) -> Path:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def rank(tmp_path: Path, capsys: Any) -> None:
+    def rank(self, tmp_path: Path, capsys: Any) -> None:
         path = write(tmp_path, eval={"ks": [3, 7]})
         assert run_eval(["rank", "--config", str(path)]) == 0
 
@@ -37,7 +37,7 @@ class Checker:
         assert "recall@7=" in out
         assert "recall@10=" not in out, "the hardcoded k=10 must be gone"
 
-    def robustness(tmp_path: Path, capsys: Any) -> None:
+    def robustness(self, tmp_path: Path, capsys: Any) -> None:
         path = write(tmp_path, eval={"robustness": [0.2, 0.8]})
         assert run_eval(["robustness", "--config", str(path)]) == 0
         out = capsys.readouterr().out
@@ -45,13 +45,13 @@ class Checker:
         assert "0.8" in out
         assert "0.7" not in out, "the hardcoded ratio list must be gone"
 
-    def defaults(capsys: Any) -> None:
+    def defaults(self, capsys: Any) -> None:
         assert run_eval(["rank"]) == 0
         out = capsys.readouterr().out
         for k in Config().eval.ks:
             assert f"recall@{k}=" in out
 
-    def logging(tmp_path: Path) -> None:
+    def logging(self, tmp_path: Path) -> None:
         import logging
 
         path = write(tmp_path, log={"level": "ERROR", "structured": True})
@@ -61,7 +61,7 @@ class Checker:
         configure_logging([])
         assert logging.getLogger("morel").level == logging.getLevelName(Config().log.level)
 
-    def survives(tmp_path: Path) -> None:
+    def survives(self, tmp_path: Path) -> None:
         """The logger must come up so the user can be told the config is broken."""
         import logging
 
@@ -70,7 +70,7 @@ class Checker:
         configure_logging(["--config", str(bad)])
         assert logging.getLogger("morel").level == logging.INFO
 
-    def serve() -> None:
+    def serve(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "morel", "serve", "--help"],
             capture_output=True,
@@ -81,7 +81,7 @@ class Checker:
             assert flag in result.stdout, f"{flag} missing from serve --help"
         assert "serve.host" in result.stdout
 
-    def uses(
+    def uses(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         captured: dict[str, Any] = {}
@@ -101,7 +101,7 @@ class Checker:
         assert captured["port"] == 9111
         assert captured["workers"] == 3
 
-    def flags(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def flags(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
 
         class FakeUvicorn:

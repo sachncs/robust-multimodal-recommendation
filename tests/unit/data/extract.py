@@ -46,21 +46,21 @@ def write(tmp_path: Path, **payload: Any) -> Path:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def config() -> None:
+    def config(self) -> None:
         """A configured backbone that is not registered would fail at extract time."""
         config = Config()
         assert config.encoder.text in EXTRACTORS
         assert config.encoder.visual in EXTRACTORS
 
-    def unknown() -> None:
+    def unknown(self) -> None:
         with pytest.raises(ConfigError, match="unknown feature extractor"):
             EXTRACTORS.create("not-a-model", dim=8)
 
-    def random() -> None:
+    def random(self) -> None:
         encoder = RandomEncoder(8, seed=1)
         assert np.array_equal(encoder.encode(["a", "b"]), encoder.encode(["a", "b"]))
 
-    def encoder() -> None:
+    def encoder(self) -> None:
         """An item must encode the same wherever it appears in a batch."""
         encoder = RandomEncoder(8, seed=1)
         forward = encoder.encode(["a", "b"])
@@ -68,20 +68,20 @@ class Checker:
         assert np.allclose(forward[0], reversed_order[1])
         assert np.allclose(forward[1], reversed_order[0])
 
-    def output() -> None:
+    def output(self) -> None:
         rows = RandomEncoder(16, seed=0).encode(["x", "y", "z"])
         assert np.allclose(np.linalg.norm(rows, axis=1), 1.0)
 
-    def seed() -> None:
+    def seed(self) -> None:
         assert not np.array_equal(
             RandomEncoder(8, seed=1).encode(["a"]), RandomEncoder(8, seed=2).encode(["a"])
         )
 
-    def rejects() -> None:
+    def rejects(self) -> None:
         with pytest.raises(DataError, match="dim must be positive"):
             RandomEncoder(0)
 
-    def synthetic(
+    def synthetic(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.chdir(tmp_path)
@@ -93,7 +93,7 @@ class Checker:
         )
         assert manifest["code"] == "morel.data.extract:random+random"
 
-    def extract(
+    def extract(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.chdir(tmp_path)
@@ -108,7 +108,7 @@ class Checker:
             assert data["text"].shape[1] == 12
             assert data["visual"].shape[1] == 20
 
-    def passes(
+    def passes(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.chdir(tmp_path)

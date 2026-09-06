@@ -30,7 +30,7 @@ def write(tmp_path: Path, **payload: Any) -> Path:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def build(
+    def build(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.chdir(tmp_path)
@@ -38,7 +38,7 @@ class Checker:
         assert main(["build", "--config", str(path)]) == 0
         assert (tmp_path / "custom-out" / "bipartite.npz").exists()
 
-    def applies(
+    def applies(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """data.min is the k-core threshold and was never applied."""
@@ -51,7 +51,7 @@ class Checker:
         )
         assert manifest["extras"]["min_edges"] == 4
 
-    def kcore(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def kcore(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         from morel.data.store import load_graph
 
         monkeypatch.chdir(tmp_path)
@@ -67,7 +67,7 @@ class Checker:
         filtered = load_graph(tmp_path / "strict" / "item_graph.npz")
         assert filtered.nnz < unfiltered.nnz, "a higher k-core must remove edges"
 
-    def explicit(
+    def explicit(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.chdir(tmp_path)
@@ -76,7 +76,7 @@ class Checker:
         assert (tmp_path / "from-flag" / "bipartite.npz").exists()
         assert not (tmp_path / "from-config").exists()
 
-    def mask(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def mask(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         sparse = write(tmp_path, masking={"ratio": 0.1})
         assert (
@@ -115,7 +115,7 @@ class Checker:
 
         assert np.load(tmp_path / "a.npy").mean() > np.load(tmp_path / "b.npy").mean()
 
-    def uses(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def uses(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         one = write(tmp_path, masking={"seed": 1})
         two = write(tmp_path / "t", masking={"seed": 2})
@@ -129,7 +129,7 @@ class Checker:
         )
         assert not np.array_equal(np.load(tmp_path / "a.npy"), np.load(tmp_path / "b.npy"))
 
-    def kind(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def kind(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         path = write(tmp_path, masking={"kind": "block", "ratio": 0.5})
         assert (
@@ -141,7 +141,7 @@ class Checker:
         mask = np.load(tmp_path / "m.npy")
         assert (mask.sum(axis=1) > 0).all()
 
-    def download(tmp_path: Path) -> None:
+    def download(self, tmp_path: Path) -> None:
         """--category used to be required, ignoring data.category entirely."""
         import argparse
 

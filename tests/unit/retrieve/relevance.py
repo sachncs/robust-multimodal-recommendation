@@ -10,33 +10,33 @@ from morel.retrieve.relevance import mean_relevance, relevance
 class Checker:
     """Aggregated test methods for this module."""
 
-    def one() -> None:
+    def one(self) -> None:
         f = {"v": np.eye(3, dtype=np.float32)}
         m = np.ones((3, 1), dtype=np.float32)
         assert relevance(0, 0, f, m) == 1.0
 
-    def zero() -> None:
+    def zero(self) -> None:
         f = {"v": np.eye(2, dtype=np.float32)}
         m = np.ones((2, 1), dtype=np.float32)
         assert relevance(0, 1, f, m) == 0.0
 
-    def modality() -> None:
+    def modality(self) -> None:
         f = {"v": np.eye(2, dtype=np.float32)}
         m = np.zeros((2, 1), dtype=np.float32)
         assert relevance(0, 1, f, m) == 0.0
 
-    def self() -> None:
+    def self(self) -> None:
         f = {"v": np.eye(2, dtype=np.float32)}
         m = np.ones((2, 1), dtype=np.float32)
         val = mean_relevance(0, np.array([0, 1]), f, m)
         assert val == 0.0
 
-    def returns() -> None:
+    def returns(self) -> None:
         f = {"v": np.eye(2, dtype=np.float32)}
         m = np.ones((2, 1), dtype=np.float32)
         assert mean_relevance(0, np.array([], dtype=np.int64), f, m) == 0.0
 
-    def python() -> None:
+    def python(self) -> None:
         """Vectorised mean_relevance produces the same numerical result as the legacy loop."""
         rng = np.random.default_rng(0)
         items, dim = 16, 5

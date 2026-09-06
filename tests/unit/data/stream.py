@@ -27,7 +27,7 @@ def write(tmp_path: Path, records: list[dict]) -> Path:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def records(tmp_path: Path) -> None:
+    def records(self, tmp_path: Path) -> None:
         records = [
             {"reviewerID": "u1", "asin": "i1"},
             {"reviewerID": "u1", "asin": "i2"},
@@ -39,13 +39,13 @@ class Checker:
         flat = [r for chunk in chunks for r in chunk]
         assert len(flat) == len(records)
 
-    def raises(tmp_path: Path) -> None:
+    def raises(self, tmp_path: Path) -> None:
         from morel.core.errors import DataError
 
         with pytest.raises(DataError):
             list(review_stream(tmp_path / "nope.json"))
 
-    def memory(tmp_path: Path) -> None:
+    def memory(self, tmp_path: Path) -> None:
         records = [
             {"reviewerID": "u1", "asin": "i1"},
             {"reviewerID": "u1", "asin": "i2"},
@@ -58,7 +58,7 @@ class Checker:
         ui, _, _ = exact_two_pass_interactions(path, min_edges=2, chunk_size=2)
         assert ui.nnz >= 4
 
-    def construction() -> None:
+    def construction(self) -> None:
         chunks = iter(
             [
                 (np.array([0, 0]), np.array([0, 1])),
@@ -77,7 +77,7 @@ class Checker:
         assert cooc[0, 2] == 0
         assert cooc[2, 2] == 0
 
-    def pairs(tmp_path: Path) -> None:
+    def pairs(self, tmp_path: Path) -> None:
         records = [
             {"reviewerID": "u1", "asin": "i1"},
             {"reviewerID": "u1", "asin": "i2"},

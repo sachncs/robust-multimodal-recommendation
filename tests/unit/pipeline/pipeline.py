@@ -13,7 +13,7 @@ from morel.pipeline import Pipeline
 class Checker:
     """Aggregated test methods for this module."""
 
-    def end() -> None:
+    def end(self) -> None:
         config = Config.defaults()
         config = Config()
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
@@ -28,7 +28,7 @@ class Checker:
         assert out.completed["text"].shape == (3, 2)
         assert out.routing.shape == (3, config.codebook.size)
 
-    def retrieval() -> None:
+    def retrieval(self) -> None:
         config = Config()
         # Use a larger graph so PE has enough dimensions.
         n = 32
@@ -53,7 +53,7 @@ class Checker:
         assert out.subgraph_indices is not None
         assert out.subgraph_mask is not None
 
-    def seed() -> None:
+    def seed(self) -> None:
         """Two pipelines from one config must match despite differing ambient RNG."""
         config = Config()
         torch.manual_seed(1)
@@ -66,7 +66,7 @@ class Checker:
         for key in left:
             assert torch.equal(left[key], right[key]), f"parameter {key} differs"
 
-    def state() -> None:
+    def state(self) -> None:
         config = Config()
         torch.manual_seed(7)
         expected = torch.randn(4)
@@ -77,7 +77,7 @@ class Checker:
 
         assert torch.equal(expected, actual)
 
-    def instances() -> None:
+    def instances(self) -> None:
         config = Config()
         features = {"visual": torch.randn(3, 4), "text": torch.randn(3, 2)}
         mask = torch.tensor([[1.0, 1.0], [1.0, 0.0], [0.0, 1.0]])
@@ -94,7 +94,7 @@ class Checker:
         for name in first.completed:
             assert torch.equal(first.completed[name], second.completed[name])
 
-    def dropout() -> None:
+    def dropout(self) -> None:
         """Regression: training=False left nn.Dropout active, so inference was noisy."""
         config = Config()
         assert config.encode.dropout > 0, "test needs a nonzero dropout to be meaningful"
@@ -110,7 +110,7 @@ class Checker:
         for name in first.completed:
             assert torch.equal(first.completed[name], second.completed[name])
 
-    def mode() -> None:
+    def mode(self) -> None:
         config = Config()
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
         features = {"visual": torch.randn(3, 4), "text": torch.randn(3, 2)}
@@ -125,7 +125,7 @@ class Checker:
         pipeline(features, mask, adjacency, training=True)
         assert pipeline.training is False, "a training pass must not leave the module in train mode"
 
-    def cache() -> None:
+    def cache(self) -> None:
         """Regression: attach_recommender used to raise AttributeError."""
         config = Config()
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
@@ -140,7 +140,7 @@ class Checker:
         scores = pipeline.recommender(torch.arange(2), torch.arange(3))
         assert scores.shape == (2, 3)
 
-    def config() -> None:
+    def config(self) -> None:
         config = Config()
         ui = sp.csr_matrix(np.array([[1, 0, 1], [0, 1, 1]], dtype=np.float32))
 

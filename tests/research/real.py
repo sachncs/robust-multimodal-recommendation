@@ -35,7 +35,7 @@ def build(n: int) -> sp.csr_matrix:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def real() -> None:
+    def real(self) -> None:
         seed_everything(0)
         rng = np.random.default_rng(0)
         n = 60
@@ -95,7 +95,7 @@ class Checker:
         assert len(final_losses) >= 1
         assert all(np.isfinite(v) for v in initial_losses + final_losses)
 
-    def pipeline() -> None:
+    def pipeline(self) -> None:
         seed_everything(1)
         rng = np.random.default_rng(1)
         n = 32

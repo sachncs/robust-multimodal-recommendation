@@ -11,7 +11,7 @@ from morel.core.fidelity import Entry, clear, register, render_json, render_mark
 class Checker:
     """Aggregated test methods for this module."""
 
-    def register(tmp_path: Path) -> None:
+    def register(self, tmp_path: Path) -> None:
         clear()
         entry = Entry(
             name="ACS",

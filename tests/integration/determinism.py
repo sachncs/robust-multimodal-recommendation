@@ -63,7 +63,7 @@ def run(config: Config) -> tuple[dict[str, torch.Tensor], torch.Tensor, float, f
 class Checker:
     """Aggregated test methods for this module."""
 
-    def same() -> None:
+    def same(self) -> None:
         config = Config()
         torch.manual_seed(1)
         _, _, recall_a, ndcg_a = run(config)
@@ -73,7 +73,7 @@ class Checker:
         assert recall_a == recall_b
         assert ndcg_a == ndcg_b
 
-    def config() -> None:
+    def config(self) -> None:
         config = Config()
         torch.manual_seed(1)
         completed_a, routing_a, _, _ = run(config)
@@ -85,7 +85,7 @@ class Checker:
         for name in completed_a:
             assert torch.equal(completed_a[name], completed_b[name]), f"modality {name} differs"
 
-    def different() -> None:
+    def different(self) -> None:
         """Determinism must come from the seed, not from the model being constant."""
         _, routing_a, _, _ = run(Config())
         _, routing_b, _, _ = run(Config(seed=7))

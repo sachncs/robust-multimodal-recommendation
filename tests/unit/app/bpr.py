@@ -35,7 +35,7 @@ def positives(ui: sp.csr_matrix, user: int) -> set[int]:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def triples() -> None:
+    def triples(self) -> None:
         """The positive must be a real interaction and the negative must not be."""
         ui = interactions()
         dataset = BPRDataset(ui, length=400, seed=0)
@@ -45,53 +45,53 @@ class Checker:
             assert sample["positive"] in pos
             assert sample["negative"] not in pos
 
-    def sampling() -> None:
+    def sampling(self) -> None:
         ui = interactions()
         first = BPRDataset(ui, length=50, seed=0)
         second = BPRDataset(ui, length=50, seed=0)
         assert [first[i] for i in range(50)] == [second[i] for i in range(50)]
 
-    def a() -> None:
+    def a(self) -> None:
         ui = interactions()
         first = BPRDataset(ui, length=50, seed=0)
         second = BPRDataset(ui, length=50, seed=1)
         assert [first[i] for i in range(50)] != [second[i] for i in range(50)]
 
-    def users() -> None:
+    def users(self) -> None:
         arr = np.zeros((4, 5), dtype=np.float32)
         arr[1, 2] = arr[3, 0] = 1.0
         dataset = BPRDataset(sp.csr_matrix(arr), length=40, seed=0)
         assert dataset.users == [1, 3]
         assert {dataset[i]["users"] for i in range(40)} <= {1, 3}
 
-    def graph() -> None:
+    def graph(self) -> None:
         with pytest.raises(DataError, match="no user has any interaction"):
             BPRDataset(sp.csr_matrix((3, 4), dtype=np.float32), length=5)
 
-    def user() -> None:
+    def user(self) -> None:
         with pytest.raises(DataError, match="no negative can be sampled"):
             BPRDataset(sp.csr_matrix(np.ones((2, 3), dtype=np.float32)), length=5)
 
-    def loader() -> None:
+    def loader(self) -> None:
         loader = build_recommendation_loader(interactions(), batch_size=32)
         batch = next(iter(loader))
         assert set(batch) == {"users", "positive", "negative"}
         for value in batch.values():
             assert value.shape == (32,)
 
-    def epoch() -> None:
+    def epoch(self) -> None:
         ui = interactions()
         loader = build_recommendation_loader(ui)
         assert len(loader.dataset) == ui.nnz
 
-    def split() -> None:
+    def split(self) -> None:
         dataset = BPRDataset(interactions(), length=100, seed=0)
         train, val = split_dataset(dataset, val_fraction=0.2, seed=0)
         assert val is not None
         assert len(val) == 20
         assert len(train) == 80
 
-    def disjoint() -> None:
+    def disjoint(self) -> None:
         dataset = BPRDataset(interactions(), length=100, seed=0)
         train, val = split_dataset(dataset, val_fraction=0.25, seed=0)
         assert val is not None
@@ -99,30 +99,30 @@ class Checker:
         assert not (train_idx & val_idx), "a sample must not be in both splits"
         assert train_idx | val_idx == set(range(100))
 
-    def reproducible() -> None:
+    def reproducible(self) -> None:
         dataset = BPRDataset(interactions(), length=100, seed=0)
         first, _ = split_dataset(dataset, val_fraction=0.3, seed=5)
         second, _ = split_dataset(dataset, val_fraction=0.3, seed=5)
         assert first.indices == second.indices
 
-    def zero() -> None:
+    def zero(self) -> None:
         dataset = BPRDataset(interactions(), length=100, seed=0)
         train, val = split_dataset(dataset, val_fraction=0.0, seed=0)
         assert val is None
         assert train is dataset
 
-    def fraction() -> None:
+    def fraction(self) -> None:
         dataset = BPRDataset(interactions(), length=4, seed=0)
         _, val = split_dataset(dataset, val_fraction=0.01, seed=0)
         assert val is None, "rather than build an empty validation loader"
 
-    def invalid() -> None:
+    def invalid(self) -> None:
         dataset = BPRDataset(interactions(), length=10, seed=0)
         for bad in (-0.1, 1.0, 1.5):
             with pytest.raises(DataError, match=r"validation fraction must be in \[0, 1\)"):
                 split_dataset(dataset, val_fraction=bad, seed=0)
 
-    def recommendation() -> None:
+    def recommendation(self) -> None:
         ui = interactions()
         train, val = build_recommendation_loaders(ui, batch_size=8, val_fraction=0.25, seed=0)
         assert val is not None

@@ -24,38 +24,38 @@ def setup() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix]:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def self(setup) -> None:
+    def self(self, setup) -> None:
         features, mask, _ = setup
         anchors = query(0, "visual", features, mask, top=2)
         assert 0 not in anchors
         assert anchors.tolist() == [1, 2]
 
-    def modality(setup) -> None:
+    def modality(self, setup) -> None:
         features, mask, _ = setup
         assert query(0, "missing", features, mask, top=2).tolist() == []
 
-    def range(setup) -> None:
+    def range(self, setup) -> None:
         features, mask, _ = setup
         with pytest.raises(GraphError):
             query(99, "visual", features, mask, top=2)
 
-    def top(setup) -> None:
+    def top(self, setup) -> None:
         features, mask, _ = setup
         with pytest.raises(GraphError):
             query(0, "visual", features, mask, top=0)
 
-    def list(setup) -> None:
+    def list(self, setup) -> None:
         features, mask, _ = setup
         out = batch([0, 1, 2], "visual", features, mask, top=2)
         assert len(out) == 3
 
-    def norm() -> None:
+    def norm(self) -> None:
         features = {"visual": np.zeros((3, 4), dtype=np.float32)}
         mask = np.ones((3, 1), dtype=np.float32)
         out = query(0, "visual", features, mask, top=2)
         assert out.tolist() == []
 
-    def mask() -> None:
+    def mask(self) -> None:
         features = {"a": np.zeros((3, 4), dtype=np.float32)}
         mask = np.ones((4, 1), dtype=np.float32)
         with pytest.raises(ShapeError):

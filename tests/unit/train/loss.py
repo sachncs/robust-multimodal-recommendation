@@ -10,7 +10,7 @@ from morel.train.loss import BPR, Composite, Reconstruction, ce
 class Checker:
     """Aggregated test methods for this module."""
 
-    def mask() -> None:
+    def mask(self) -> None:
         # When mask is all-ones, no missing elements -> loss is 0
         pred = {"v": torch.zeros(2, 4), "t": torch.zeros(2, 2)}
         target = {"v": torch.zeros(2, 4), "t": torch.zeros(2, 2)}
@@ -19,7 +19,7 @@ class Checker:
         val = float(loss.forward(pred, target, mask))
         assert abs(val) < 1e-6
 
-    def missing() -> None:
+    def missing(self) -> None:
         pred = {"v": torch.zeros(2, 4)}
         target = {"v": torch.ones(2, 4)}
         mask = torch.zeros(2, 1)  # modality missing everywhere
@@ -27,14 +27,14 @@ class Checker:
         val = float(loss.forward(pred, target, mask))
         assert val > 0
 
-    def shape() -> None:
+    def shape(self) -> None:
         pos = torch.tensor([0.5, 0.3])
         neg = torch.tensor([0.1, 0.2])
         b = BPR(pos=pos, neg=neg)
         loss = b.forward({}, {}, torch.zeros(1))
         assert loss.dim() == 0
 
-    def components() -> None:
+    def components(self) -> None:
         pred = {"v": torch.zeros(2, 4)}
         target = {"v": torch.ones(2, 4)}
         mask = torch.zeros(2, 1)
@@ -45,7 +45,7 @@ class Checker:
         total = float(comp.forward(pred, target, mask))
         assert abs(total - 2.0 * single) < 1e-5
 
-    def helper() -> None:
+    def helper(self) -> None:
         logits = torch.tensor([[2.0, 1.0, 0.5]])
         target = torch.tensor([0])
         loss = ce(logits, target)

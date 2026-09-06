@@ -24,7 +24,7 @@ class SilentMonitor:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def end(tmp_path) -> None:
+    def end(self, tmp_path) -> None:
         rng = np.random.default_rng(0)
         users, items = 30, 50
         uids = rng.integers(0, users, size=300)
@@ -51,7 +51,7 @@ class Checker:
         assert out.completed["visual"].shape == (items, 4)
         assert out.completed["text"].shape == (items, 2)
 
-    def trainer(tmp_path) -> None:
+    def trainer(self, tmp_path) -> None:
         rng = np.random.default_rng(0)
         n = 20
         features = {

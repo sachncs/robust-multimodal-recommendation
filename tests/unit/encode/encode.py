@@ -10,7 +10,7 @@ from morel.encode import Attention, Layer, Mean, Token, Transformer
 class Checker:
     """Aggregated test methods for this module."""
 
-    def shape() -> None:
+    def shape(self) -> None:
         from morel.encode.input import Input
 
         emb = Input(dims={"v": 4, "t": 2}, pe_dim=2, hidden=8)
@@ -20,14 +20,14 @@ class Checker:
         out = emb(feats, mask, pe)
         assert out.shape == (3, 8)
 
-    def mask() -> None:
+    def mask(self) -> None:
         layer = Layer(dim=8, heads=2)
         x = torch.randn(2, 5, 8)
         mask = torch.tensor([[True, True, False, False, False], [True, True, True, True, False]])
         out = layer(x, mask)
         assert out.shape == (2, 5, 8)
 
-    def preln() -> None:
+    def preln(self) -> None:
         """When norm1 is zeroed, the residual term dominates and output equals input + ffn(norm2(input))."""
         layer = Layer(dim=8, heads=2, dropout=0.0)
         torch.manual_seed(0)
@@ -48,7 +48,7 @@ class Checker:
         expected = expected_after_attn + expected_ffn
         assert torch.allclose(out, expected, atol=1e-5)
 
-    def attention() -> None:
+    def attention(self) -> None:
         tf = Transformer(dims={"v": 4, "t": 2}, pe_dim=2, hidden=8, layers=2, heads=2, pool="attention")
         feats = {"v": torch.randn(3, 4), "t": torch.randn(3, 2)}
         mask = torch.tensor([[1.0, 1.0], [1.0, 0.0], [0.0, 1.0]])
@@ -56,27 +56,27 @@ class Checker:
         out = tf(feats, mask, pe)
         assert out.shape == (3, 8)
 
-    def mean() -> None:
+    def mean(self) -> None:
         tf = Transformer(dims={"v": 4, "t": 2}, pe_dim=2, hidden=8, layers=2, heads=2, pool="mean")
         feats = {"v": torch.randn(2, 4), "t": torch.randn(2, 2)}
         mask = torch.tensor([[1.0, 1.0], [0.0, 1.0]])
         pe = torch.randn(2, 2)
         assert tf(feats, mask, pe).shape == (2, 8)
 
-    def token() -> None:
+    def token(self) -> None:
         tf = Transformer(dims={"v": 4}, pe_dim=2, hidden=8, layers=1, heads=2, pool="token")
         feats = {"v": torch.randn(2, 4)}
         mask = torch.ones(2, 1)
         pe = torch.randn(2, 2)
         assert tf(feats, mask, pe).shape == (2, 8)
 
-    def pool() -> None:
+    def pool(self) -> None:
         import pytest
 
         with pytest.raises(ValueError, match="unknown pool"):
             Transformer(dims={"v": 4}, pe_dim=2, hidden=8, layers=1, heads=2, pool="bogus")
 
-    def identity() -> None:
+    def identity(self) -> None:
         from morel.encode import GraphEncoderBaseline
 
         base = GraphEncoderBaseline("identity", dims={"v": 4}, pe_dim=2, hidden=8)
@@ -85,7 +85,7 @@ class Checker:
         pe = torch.randn(3, 2)
         assert base(feats, mask, pe).shape == (3, 8)
 
-    def sum() -> None:
+    def sum(self) -> None:
         from morel.encode import GraphEncoderBaseline
 
         base = GraphEncoderBaseline("sum", dims={"v": 4, "t": 2}, pe_dim=2, hidden=8)
@@ -94,7 +94,7 @@ class Checker:
         pe = torch.randn(3, 2)
         assert base(feats, mask, pe).shape == (3, 8)
 
-    def kind() -> None:
+    def kind(self) -> None:
         import pytest
 
         from morel.encode import GraphEncoderBaseline
@@ -102,14 +102,14 @@ class Checker:
         with pytest.raises(ValueError, match="unknown baseline kind"):
             GraphEncoderBaseline("nope", dims={"v": 4}, pe_dim=2, hidden=8)
 
-    def one() -> None:
+    def one(self) -> None:
         pool = Attention(dim=8)
         h = torch.randn(2, 5, 8)
         mask = torch.ones(2, 5, dtype=torch.bool)
         out = pool(h, mask)
         assert out.shape == (2, 8)
 
-    def masked() -> None:
+    def masked(self) -> None:
         """All-masked rows must not produce NaN."""
         pool = Attention(dim=8)
         h = torch.randn(2, 5, 8)
@@ -118,7 +118,7 @@ class Checker:
         assert torch.isfinite(out).all()
         assert out.shape == (2, 8)
 
-    def finite() -> None:
+    def finite(self) -> None:
         pool = Attention(dim=4)
         h = torch.randn(3, 6, 4)
         mask = torch.tensor(
@@ -132,14 +132,14 @@ class Checker:
         assert torch.isfinite(out).all()
         assert out.shape == (3, 4)
 
-    def run() -> None:
+    def run(self) -> None:
         pool = Mean()
         h = torch.randn(2, 4, 3)
         mask = torch.tensor([[True, True, True, False], [True, True, False, False]])
         out = pool(h, mask)
         assert out.shape == (2, 3)
 
-    def first() -> None:
+    def first(self) -> None:
         pool = Token()
         h = torch.randn(2, 5, 3)
         out = pool(h)

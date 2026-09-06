@@ -34,11 +34,11 @@ def make(app) -> httpx.AsyncClient:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def capacity() -> None:
+    def capacity(self) -> None:
         with pytest.raises(ValueError, match="capacity must be positive"):
             Loader(capacity=0)
 
-    def caches() -> None:
+    def caches(self) -> None:
         loader = Loader(capacity=2)
         calls = []
 
@@ -51,14 +51,14 @@ class Checker:
         assert a is b
         assert len(calls) == 1
 
-    def evicts() -> None:
+    def evicts(self) -> None:
         loader = Loader(capacity=2)
         loader.get("a", lambda: object())
         loader.get("b", lambda: object())
         loader.get("c", lambda: object())
         assert "a" not in loader.cache
 
-    def key() -> None:
+    def key(self) -> None:
         loader = Loader()
         with pytest.raises(ValueError, match="key must be a non-empty string"):
             loader.get("", lambda: object())

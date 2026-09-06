@@ -37,16 +37,16 @@ def corpus() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix]:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def registered() -> None:
+    def registered(self) -> None:
         assert set(STRATEGIES) >= {"mage", "acs", "anchor", "bfs"}
 
-    def query(kind: str) -> None:
+    def query(self, kind: str) -> None:
         features, mask, adjacency = corpus()
         subgraph = retrieve(5, features, mask, adjacency, anchors=4, iters=2, kind=kind)
         assert 5 in subgraph, "the query item must always be part of its own subgraph"
         assert subgraph <= set(range(adjacency.shape[0]))
 
-    def differ() -> None:
+    def differ(self) -> None:
         """Selection would be meaningless if every kind returned the same thing."""
         features, mask, adjacency = corpus()
         results = {
@@ -55,7 +55,7 @@ class Checker:
         }
         assert len(set(results.values())) > 1, f"all strategies agreed: {results}"
 
-    def features() -> None:
+    def features(self) -> None:
         """The no-retrieval ablation must depend on the graph only."""
         features, mask, adjacency = corpus()
         baseline = retrieve(5, features, mask, adjacency, anchors=4, iters=2, kind="bfs")
@@ -68,18 +68,18 @@ class Checker:
 
         assert baseline == other
 
-    def budget() -> None:
+    def budget(self) -> None:
         features, mask, adjacency = corpus()
         near = retrieve(10, features, mask, adjacency, anchors=4, iters=1, kind="bfs")
         far = retrieve(10, features, mask, adjacency, anchors=4, iters=3, kind="bfs")
         assert near < far, "a larger hop budget must reach at least as far"
 
-    def rejected() -> None:
+    def rejected(self) -> None:
         features, mask, adjacency = corpus()
         with pytest.raises(ConfigError, match="unknown retrieval strategy 'nope'; available: "):
             retrieve(0, features, mask, adjacency, kind="nope")
 
-    def strategy() -> None:
+    def strategy(self) -> None:
         features, mask, adjacency = corpus()
         queries = list(range(6))
         batched = retrieve_batch(queries, features, mask, adjacency, anchors=4, iters=2, kind="bfs")
@@ -88,7 +88,7 @@ class Checker:
             got = set(batched.nodes[row, : batched.sizes[row]].tolist())
             assert got == expected
 
-    def kind(kind: str) -> None:
+    def kind(self, kind: str) -> None:
         features, mask, adjacency = corpus()
         config = Config.from_dict(
             {
