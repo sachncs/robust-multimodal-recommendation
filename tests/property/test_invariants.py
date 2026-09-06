@@ -11,7 +11,7 @@ from hypothesis import strategies as st
 from morel.data.mask import bernoulli
 from morel.retrieve.acs import compute
 from morel.retrieve.bfs import path
-from morel.route import Top
+from morel.route import Dense, Gumbel, Top
 
 
 @st.composite
@@ -49,6 +49,35 @@ def test_top_router_sums_to_one() -> None:
         x = torch.randn(4, 8)
         out = r(x, training=True)
         assert torch.allclose(out.probs.sum(-1), torch.ones(4), atol=1e-5)
+
+
+def test_dense_router_sums_to_one() -> None:
+    r = Dense(dim=8, k=10, tau=0.5)
+    torch.manual_seed(0)
+    for _ in range(5):
+        x = torch.randn(4, 8)
+        out = r(x, training=True)
+        assert torch.allclose(out.probs.sum(-1), torch.ones(4), atol=1e-5)
+
+
+def test_gumbel_router_sums_to_one() -> None:
+    r = Gumbel(dim=8, k=10, tau=0.5)
+    torch.manual_seed(0)
+    for _ in range(5):
+        x = torch.randn(4, 8)
+        out = r(x, training=True)
+        assert torch.allclose(out.probs.sum(-1), torch.ones(4), atol=1e-5)
+
+
+def test_gumbel_temperature_monotonic() -> None:
+    """Lower temperature sharpens the routing distribution."""
+    torch.manual_seed(0)
+    x = torch.randn(8, 8)
+    soft = Gumbel(dim=8, k=10, tau=2.0)(x, training=False).probs
+    sharp = Gumbel(dim=8, k=10, tau=0.1)(x, training=False).probs
+    soft_entropy = -(soft * torch.log(soft + 1e-12)).sum(-1).mean()
+    sharp_entropy = -(sharp * torch.log(sharp + 1e-12)).sum(-1).mean()
+    assert sharp_entropy < soft_entropy
 
 
 @given(_path_graphs(), st.integers(min_value=0, max_value=10), st.integers(min_value=0, max_value=10))
