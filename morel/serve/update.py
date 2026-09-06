@@ -15,6 +15,7 @@ from __future__ import annotations
 import copy
 import logging
 import math
+import threading
 import time
 from collections import deque
 from dataclasses import dataclass
@@ -111,7 +112,18 @@ class PipelineUpdater:
         loss_step: LossStep | None = None,
     ) -> None:
         self.pipeline = pipeline
+        # Two locks for two concerns. ``lock`` guards model state -- weights,
+        # version, rollback history -- where readers must never observe a
+        # half-applied update. ``buffer_lock`` guards only the feedback and
+        # replay rings.
+        #
+        # Appending a feedback event used to take the model write lock, which
+        # made every event exclusive against every inference request. With a
+        # correctly writer-preferring RWLock that collapsed read throughput to
+        # about 4% of its unloaded rate. Buffer appends are not model updates
+        # and do not need the model lock.
         self.lock = RWLock()
+        self.buffer_lock = threading.Lock()
         self.feedback_ring: deque[FeedbackEvent] = deque(maxlen=feedback_capacity)
         self.replay_ring: deque[FeedbackEvent] = deque(maxlen=replay_capacity)
         self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
@@ -128,16 +140,21 @@ class PipelineUpdater:
     def accept(self, user: int, item: int, signal: Signal) -> None:
         """Append a feedback event to the feedback ring (thread-safe)."""
         event = FeedbackEvent(user=user, item=item, signal=signal, timestamp=time.time())
-        with self.lock.write():
+        with self.buffer_lock:
             self.feedback_ring.append(event)
             self.replay_ring.append(event)
 
     def stats(self) -> dict[str, Any]:
         """Return a snapshot of the updater state."""
+        # Take the buffer lock first and release it before the model lock, so
+        # the two are always acquired in the same order and cannot deadlock.
+        with self.buffer_lock:
+            events_buffered = len(self.feedback_ring)
+            replay_buffered = len(self.replay_ring)
         with self.lock.read():
             return {
-                "events_buffered": len(self.feedback_ring),
-                "replay_buffered": len(self.replay_ring),
+                "events_buffered": events_buffered,
+                "replay_buffered": replay_buffered,
                 "updates_applied": self.n_updates_applied,
                 "last_loss": self.last_loss,
                 "last_valid_loss": self.last_valid_loss
@@ -187,6 +204,7 @@ class PipelineUpdater:
                     n_events_used=0,
                     n_replay_used=0,
                 )
+        with self.buffer_lock:
             events = list(self.feedback_ring)
             replay = list(self.replay_ring)
         if not events:
