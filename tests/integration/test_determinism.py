@@ -40,7 +40,7 @@ def run_once(config: Config) -> tuple[dict[str, torch.Tensor], torch.Tensor, flo
     users = ui.shape[0]
 
     pipeline = Pipeline(config, dims={"visual": 16, "text": 8})
-    pipeline.attach_corpus(features, mask, adjacency)
+    pipeline.attach(features, mask, adjacency)
     output = pipeline(
         {name: torch.from_numpy(value) for name, value in features.items()},
         torch.from_numpy(mask),

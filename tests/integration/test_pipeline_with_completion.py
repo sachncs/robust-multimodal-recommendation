@@ -37,7 +37,7 @@ def test_real_pipeline_completion_fit(tmp_path) -> None:
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": dim_visual, "text": dim_text})
-    pipeline.attach_corpus(features_np, mask_np, adj)
+    pipeline.attach(features_np, mask_np, adj)
 
     loader = DataLoader(
         CompletionDataset(features_np, mask_np, adj),
@@ -69,7 +69,7 @@ def test_real_pipeline_with_one_modality_missing(tmp_path) -> None:
     adj = build_path_graph(n)
 
     pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
-    pipeline.attach_corpus(features_np, mask_np, adj)
+    pipeline.attach(features_np, mask_np, adj)
 
     features_t = {k: torch.from_numpy(v) for k, v in features_np.items()}
     mask_t = torch.from_numpy(mask_np)
@@ -91,7 +91,7 @@ def test_real_pipeline_rejects_self_loops() -> None:
     mask_np = np.ones((n, 2), dtype=np.float32)
     bad = sp.csr_matrix(np.eye(n, dtype=np.float32))
     pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
-    pipeline.attach_corpus(features_np, mask_np, bad)
+    pipeline.attach(features_np, mask_np, bad)
 
     features_t = {k: torch.from_numpy(v) for k, v in features_np.items()}
     mask_t = torch.from_numpy(mask_np)

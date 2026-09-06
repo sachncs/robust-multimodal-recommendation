@@ -39,7 +39,7 @@ def test_end_to_end_synthetic(tmp_path) -> None:
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
-    pipeline.attach_corpus(features_np, mask_np, item_graph)
+    pipeline.attach(features_np, mask_np, item_graph)
 
     features = {k: torch.from_numpy(v) for k, v in features_np.items()}
     mask = torch.from_numpy(mask_np)
@@ -67,6 +67,6 @@ def test_trainer_decreases_loss_on_synthetic(tmp_path) -> None:
     )
     cfg = CompletionConfig()
     pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
-    pipeline.attach_corpus(features, mask, adj)
+    pipeline.attach(features, mask, adj)
     trainer = Completion(pipeline, cfg, monitor=SilentMonitor(), checkpoint_dir=tmp_path)
     trainer.fit(loader, loader, epochs=3, patience=5)

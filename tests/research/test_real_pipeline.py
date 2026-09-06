@@ -45,7 +45,7 @@ def test_real_pipeline_completion_loss_decreases() -> None:
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 8, "text": 4})
-    pipeline.attach_corpus(features_np, mask_np, adj)
+    pipeline.attach(features_np, mask_np, adj)
 
     class CompletionBatchDataset(Dataset):
         def __len__(self) -> int:
@@ -106,7 +106,7 @@ def test_real_pipeline_gumbel_routing_is_non_degenerate_after_training() -> None
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 6, "text": 3})
-    pipeline.attach_corpus(features_np, mask_np, adj)
+    pipeline.attach(features_np, mask_np, adj)
     pipeline.train()
 
     features = {k: torch.from_numpy(v) for k, v in features_np.items()}

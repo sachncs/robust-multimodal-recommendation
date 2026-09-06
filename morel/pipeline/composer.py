@@ -172,7 +172,7 @@ class Pipeline(nn.Module):
             fit(ui_graph)
         self.recommender = recommender
 
-    def attach_corpus(
+    def attach(
         self,
         features: dict[str, np.ndarray],
         mask: np.ndarray,
@@ -303,14 +303,14 @@ class Pipeline(nn.Module):
         Raises
         ------
             ModelError: If no corpus has been attached. Call
-                :meth:`attach_corpus` before encoding subgraphs.
+                :meth:`attach` before encoding subgraphs.
         """
         corpus_features = self.retrieval_features
         corpus_mask = self.retrieval_mask
         if corpus_features is None or corpus_mask is None:
             raise ModelError(
                 "encode_subgraph needs a bound corpus; "
-                "call Pipeline.attach_corpus(features, mask, adjacency) first"
+                "call Pipeline.attach(features, mask, adjacency) first"
             )
         max_size = max(int(result.max_size), 1)
         batch = int(result.batch)

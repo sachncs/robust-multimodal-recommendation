@@ -47,7 +47,7 @@ def bench_epoch_5k(tmp_path, benchmark) -> None:
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 8, "text": 4})
-    pipeline.attach_corpus(features, mask, adjacency)
+    pipeline.attach(features, mask, adjacency)
     trainer = Completion(
         pipeline,
         CompletionConfig(),

@@ -133,7 +133,7 @@ class Experiment:
             self.config,
             dims={"visual": self.dim_visual, "text": self.dim_text},
         )
-        pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
+        pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
 
         loader, val_loader = build_completion_loaders(
             dataset["features"],
@@ -382,7 +382,7 @@ class AblationExperiment:
         """
         feature_dim = self.dim_visual + self.dim_text
         pipeline = Pipeline(config, dims={"visual": self.dim_visual, "text": self.dim_text})
-        pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
+        pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
         pipeline.attach_recommender(dataset["ui"], feature_dim=feature_dim)
         assert pipeline.recommender is not None
         index = torch.arange(self.items)
@@ -482,7 +482,7 @@ class Benchmark:
                 self.config,
                 dims={"visual": 4, "text": 2},
             )
-            pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
+            pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
             features = {k: numpy_to_tensor(v) for k, v in dataset["features"].items()}
             mask = numpy_to_tensor(dataset["mask"])
             index_t = numpy_to_tensor(np.arange(size))

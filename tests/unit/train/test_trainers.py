@@ -30,7 +30,7 @@ def test_completion_trainer_runs_with_real_pipeline(tmp_path: Path, silent_monit
 
     config = Config()
     model = Pipeline(config, dims={"visual": dim, "text": dim})
-    model.attach_corpus(features, mask, adj)
+    model.attach(features, mask, adj)
 
     loader = build_completion_loader(features, mask, adj, batch_size=4)
     cfg = CompletionConfig()

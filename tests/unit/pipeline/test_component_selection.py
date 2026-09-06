@@ -140,7 +140,7 @@ def test_registered_combinations_all_run_end_to_end() -> None:
             codebook={"kind": codebook},
         )
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
-        pipeline.attach_corpus(features, mask, adjacency)
+        pipeline.attach(features, mask, adjacency)
         out = pipeline(batch, batch_mask, adjacency, index=index, training=False)
         assert out.completed["visual"].shape == (6, 4), f"{encoder}/{router}/{codebook}"
         assert out.routing.shape[0] == 6, f"{encoder}/{router}/{codebook}"

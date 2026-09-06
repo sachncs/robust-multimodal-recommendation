@@ -104,7 +104,7 @@ def test_pipeline_honours_retrieve_kind(kind: str) -> None:
         }
     )
     pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
-    pipeline.attach_corpus(features, mask, adjacency)
+    pipeline.attach(features, mask, adjacency)
     out = pipeline(
         {name: torch.from_numpy(value[:6]) for name, value in features.items()},
         torch.from_numpy(mask[:6]),
