@@ -346,3 +346,33 @@ All 9 Registry instances removed:
   that cannot be class methods (Checker pattern incompatibility)
 - Compound class/function names remain (Rule D for internal identifiers)
 - Google docstrings on every public surface (Rule E)
+
+## Final session additions
+
+### Compound class names (this session, final batch)
+| Before | After | Notes |
+| --- | --- | --- |
+| `FitConfig` | `Fit` | |
+| `FeatureEncoder` | `Feature` | was Protocol |
+| `IdentityCodebook` | `Noop` | |
+| `SilentMonitor` | `Monitor` | (test) |
+| `CompletionBatchDataset` | `Batch` | (test, nested) |
+| `DoublingCodebook` | `Doubling` | (test, nested) |
+| `FakeUvicorn` | `Fake` | (test, nested) |
+| `CheckpointMarker` | `Marker` | (test) |
+| `TinyModel` | `Tiny` | (test, nested) |
+| `DefaultStp` | `Default` | |
+| `GumbelCodebook` | `Soft` | |
+| `GumbelVQ` | `Soft` | alias removed |
+| `CompleteRequest` | `Fill` | |
+| `RecommendRequest` | `Query` | |
+| `RecommendResponse` | `List` | |
+
+### Final state (this session)
+- 0 compound class names remaining
+- Compound function names: 76 (blocked by naming conflicts)
+- Compound self attributes: 149 (blocked by naming conflicts)
+- `ruff check`: clean
+- `ruff format --check`: clean
+- `mypy --strict`: clean (79 source files)
+- `pytest`: 462 passed, 0 failed, 0 errors
