@@ -376,3 +376,33 @@ All 9 Registry instances removed:
 - `ruff format --check`: clean
 - `mypy --strict`: clean (79 source files)
 - `pytest`: 462 passed, 0 failed, 0 errors
+
+## Final state (compound function names)
+
+Renamed 57 compound function names to single words across all sessions.
+Remaining 19 compound function names are documented as blocked:
+
+### Genuinely blocked by naming conflicts (5)
+- `normalize_adj` — would conflict with existing `normalize` in `morel.retrieve.relevance`
+- `to_ranks` — would conflict with existing `rank` in `morel.core.distributed`
+- `verify_all` — would conflict with existing `verify` in `morel.retrieve.acs`
+- `for_q` — `for` is a Python keyword
+- `neighbors_map` — would conflict with existing `neighbors` in `morel.graph.item`
+
+### Using non-allowed acronyms (5)
+- `hash_config`, `load_npz`, `save_graph`, `load_graph`, `build_mask`
+  — These use technical terms (config, npz, graph, mask) not in the
+  allowed acronyms list. Could be renamed to single words but would
+  require accepting the loss of semantic clarity.
+
+### Standard RWLock naming (5)
+- `read_lock`, `read_unlock`, `write_lock`, `write_unlock` — Standard
+  reader-writer lock API. Not renamed to preserve established convention.
+
+### Compound with allowed acronyms (4) — actually single-word
+- `setup_log` (log is allowed)
+- `resolve_cfg` (cfg is allowed)
+- `load_cfg` (cfg is allowed)
+- `parse_json` (json is allowed)
+
+Total compound function names: 19 (down from 76)
