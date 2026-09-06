@@ -12,7 +12,7 @@ from morel.serve import auth
 from morel.serve.loader import Loader
 from morel.serve.schema import (
     CompleteRequest,
-    CompleteResponse,
+    Done,
     HealthResponse,
     Pick,
     RecommendRequest,
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from morel.pipeline import Pipeline
 
 
-class FeedbackRequest(BaseModel):
+class Ask(BaseModel):
     """One feedback event submitted by a client."""
 
     user: int = Field(..., description="User id.")
@@ -32,20 +32,20 @@ class FeedbackRequest(BaseModel):
     signal: str = Field(..., description="One of 'like', 'dislike', 'view', 'purchase'.")
 
 
-class FeedbackResponse(BaseModel):
+class Tell(BaseModel):
     """Response from /v1/feedback."""
 
     queued: bool
     buffer_size: int
 
 
-class RollbackResponse(BaseModel):
+class Rollback(BaseModel):
     """Response from /v1/rollback."""
 
     restored_version: int
 
 
-class StatsResponse(BaseModel):
+class Stats(BaseModel):
     """Response from /v1/stats."""
 
     events_buffered: int
@@ -79,16 +79,16 @@ def create(loader: Loader | None = None) -> FastAPI:
     def metrics() -> dict[str, float]:
         return {"requests": float(request_count(app))}
 
-    @app.post("/v1/complete", response_model=CompleteResponse)
+    @app.post("/v1/complete", response_model=Done)
     def complete(
         payload: CompleteRequest, _: None = Depends(auth.dependency("read"))
-    ) -> CompleteResponse:
+    ) -> Done:
         try:
             pipeline = app.state.loader.get("default", default)
         except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         completed = run(pipeline, payload)
-        return CompleteResponse(completed=serialize(completed))
+        return Done(completed=serialize(completed))
 
     @app.post("/v1/recommend", response_model=RecommendResponse)
     def recommend(
@@ -101,32 +101,32 @@ def create(loader: Loader | None = None) -> FastAPI:
         items = recommend_items(pipeline, payload)
         return RecommendResponse(items=items)
 
-    @app.post("/v1/feedback", response_model=FeedbackResponse)
+    @app.post("/v1/feedback", response_model=Tell)
     def feedback(
-        payload: FeedbackRequest, _: None = Depends(auth.dependency("admin"))
-    ) -> FeedbackResponse:
+        payload: Ask, _: None = Depends(auth.dependency("admin"))
+    ) -> Tell:
         if not getattr(app.state, "updater_enabled", True):
             raise HTTPException(status_code=503, detail="Updater disabled")
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
         updater.accept(user=payload.user, item=payload.item, signal=payload.signal)
-        return FeedbackResponse(queued=True, buffer_size=updater.stats()["events_buffered"])
+        return Tell(queued=True, buffer_size=updater.stats()["events_buffered"])
 
-    @app.post("/v1/rollback", response_model=RollbackResponse)
-    def rollback(steps: int = 1, _: None = Depends(auth.dependency("admin"))) -> RollbackResponse:
+    @app.post("/v1/rollback", response_model=Rollback)
+    def rollback(steps: int = 1, _: None = Depends(auth.dependency("admin"))) -> Rollback:
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
-        return RollbackResponse(restored_version=updater.rollback(steps=steps))
+        return Rollback(restored_version=updater.rollback(steps=steps))
 
-    @app.get("/v1/stats", response_model=StatsResponse)
-    def stats(_: None = Depends(auth.dependency("admin"))) -> StatsResponse:
+    @app.get("/v1/stats", response_model=Stats)
+    def stats(_: None = Depends(auth.dependency("admin"))) -> Stats:
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
         s = updater.stats()
-        return StatsResponse(
+        return Stats(
             events_buffered=int(s["events_buffered"]),
             updates_applied=int(s["updates_applied"]),
             last_loss=float(s["last_loss"]),
@@ -203,9 +203,9 @@ def request_count(app: FastAPI) -> int:
 
 
 __all__ = [
-    "FeedbackRequest",
-    "FeedbackResponse",
-    "RollbackResponse",
-    "StatsResponse",
+    "Ask",
+    "Tell",
+    "Rollback",
+    "Stats",
     "create",
 ]

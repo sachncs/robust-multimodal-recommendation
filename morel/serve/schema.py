@@ -17,7 +17,7 @@ class CompleteRequest(BaseModel):
     )
 
 
-class CompleteResponse(BaseModel):
+class Done(BaseModel):
     """Response containing the completed modalities per item."""
 
     completed: dict[str, list[list[float]]] = Field(
@@ -59,7 +59,7 @@ def serialize(completed: dict[str, Any]) -> dict[str, list[list[float]]]:
 
 __all__ = [
     "CompleteRequest",
-    "CompleteResponse",
+    "Done",
     "HealthResponse",
     "Pick",
     "RecommendRequest",

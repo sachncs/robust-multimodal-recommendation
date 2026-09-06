@@ -1,10 +1,10 @@
 """Public API for the morel.serve package."""
 
 from morel.serve.app import (
-    FeedbackRequest,
-    FeedbackResponse,
-    RollbackResponse,
-    StatsResponse,
+    Ask,
+    Tell,
+    Rollback,
+    Stats,
     create,
 )
 from morel.serve.auth import (
@@ -19,7 +19,7 @@ from morel.serve.loader import Loader
 from morel.serve.lock import Read, RWLock, Write, reader, writer
 from morel.serve.schema import (
     CompleteRequest,
-    CompleteResponse,
+    Done,
     HealthResponse,
     Pick,
     RecommendRequest,
@@ -37,11 +37,11 @@ from morel.serve.update import (
 
 __all__ = [
     "CompleteRequest",
-    "CompleteResponse",
+    "Done",
     "DefaultStp",
     "Event",
-    "FeedbackRequest",
-    "FeedbackResponse",
+    "Ask",
+    "Tell",
     "HealthResponse",
     "Loader",
     "Outcome",
@@ -50,10 +50,10 @@ __all__ = [
     "Read",
     "RecommendRequest",
     "RecommendResponse",
-    "RollbackResponse",
+    "Rollback",
     "Scope",
     "Signal",
-    "StatsResponse",
+    "Stats",
     "Step",
     "Updater",
     "Write",
