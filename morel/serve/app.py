@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from morel.core.errors import MorelError
@@ -109,9 +109,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         return FeedbackResponse(queued=True, buffer_size=updater.stats()["events_buffered"])
 
     @app.post("/v1/rollback", response_model=RollbackResponse)
-    def rollback(
-        steps: int = 1, _: None = Depends(auth.dependency("admin"))
-    ) -> RollbackResponse:
+    def rollback(steps: int = 1, _: None = Depends(auth.dependency("admin"))) -> RollbackResponse:
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")

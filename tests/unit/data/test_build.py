@@ -32,7 +32,7 @@ def test_item_cooccurrence_is_symmetric() -> None:
     item = np.array([0, 1, 2, 1, 2])
     g = bipartite(user, item, 3, 3)
     cooc = item_cooccurrence(g)
-    diff = (cooc - cooc.T)
+    diff = cooc - cooc.T
     assert abs(diff).max() == 0
 
 

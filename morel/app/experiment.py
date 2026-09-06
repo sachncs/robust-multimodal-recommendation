@@ -9,10 +9,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
-import torch
 
 from morel.app.data import (
-    CompletionDataset,
     build_completion_loader,
     numpy_to_tensor,
     synth_bipartite,

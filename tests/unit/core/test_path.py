@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from morel.core.errors import ConfigError
-from morel.core.path import checkpoints, features, graphs, manifest, processed, raw, root, runs
+from morel.core.path import checkpoints, features, graphs, manifest, processed, root, runs
 
 
 def test_root_default(tmp_path, monkeypatch) -> None:

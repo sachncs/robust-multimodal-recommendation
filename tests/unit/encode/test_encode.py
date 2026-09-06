@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import torch
 
-from morel.encode import Attention, Identity, Layer, Mean, Token, Transformer
+from morel.encode import Attention, Layer, Mean, Token, Transformer
 
 
 def test_input_embedding_shape() -> None:
@@ -38,7 +38,9 @@ def test_layer_is_preln() -> None:
     x = torch.randn(1, 3, 8)
     out = layer(x)
     expected_normed1 = torch.zeros_like(x)
-    expected_attn, _ = layer.attn(expected_normed1, expected_normed1, expected_normed1, need_weights=False)
+    expected_attn, _ = layer.attn(
+        expected_normed1, expected_normed1, expected_normed1, need_weights=False
+    )
     expected_after_attn = x + expected_attn
     expected_normed2 = torch.zeros_like(expected_after_attn)
     expected_ffn = layer.ffn(expected_normed2)

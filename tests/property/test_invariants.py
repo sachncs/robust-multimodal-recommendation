@@ -80,7 +80,11 @@ def test_gumbel_temperature_monotonic() -> None:
     assert sharp_entropy < soft_entropy
 
 
-@given(random_path_graphs(), st.integers(min_value=0, max_value=10), st.integers(min_value=0, max_value=10))
+@given(
+    random_path_graphs(),
+    st.integers(min_value=0, max_value=10),
+    st.integers(min_value=0, max_value=10),
+)
 @settings(max_examples=10, deadline=None)
 def test_bfs_path_matches_path_function(graph: sp.csr_matrix, start: int, end: int) -> None:
     if graph.shape[0] == 0:

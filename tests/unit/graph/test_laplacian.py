@@ -44,7 +44,9 @@ def test_laplace_caches_same_content(path3) -> None:
 def test_laplace_evicts_when_full(path3) -> None:
     lap = Laplace(k=2, capacity=2)
     lap(path3)
-    other = sp.csr_matrix(np.array([[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], dtype=np.float32))
+    other = sp.csr_matrix(
+        np.array([[0, 1, 1, 0], [1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 1, 0]], dtype=np.float32)
+    )
     lap(other)
     assert len(lap.cache) <= 2
 

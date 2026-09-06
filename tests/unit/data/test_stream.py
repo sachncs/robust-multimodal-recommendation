@@ -7,9 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import scipy.sparse as sp
 
-from morel.data.build import item_cooccurrence
 from morel.data.stream import (
     exact_two_pass_interactions,
     review_stream,
@@ -18,7 +16,7 @@ from morel.data.stream import (
 )
 
 
-def _write_review_file(tmp_path: Path, records: list[dict]) -> Path:
+def write_review_file(tmp_path: Path, records: list[dict]) -> Path:
     path = tmp_path / "reviews.json"
     with path.open("w", encoding="utf-8") as handle:
         for record in records:
@@ -33,7 +31,7 @@ def test_review_stream_chunks_records(tmp_path: Path) -> None:
         {"reviewerID": "u2", "asin": "i1"},
         {"reviewerID": "u2", "asin": "i2"},
     ]
-    path = _write_review_file(tmp_path, records)
+    path = write_review_file(tmp_path, records)
     chunks = list(review_stream(path, chunk_size=2))
     flat = [r for chunk in chunks for r in chunk]
     assert len(flat) == len(records)
@@ -55,7 +53,7 @@ def test_exact_two_pass_interactions_matches_in_memory(tmp_path: Path) -> None:
         {"reviewerID": "u2", "asin": "i2"},
         {"reviewerID": "u3", "asin": "i1"},
     ]
-    path = _write_review_file(tmp_path, records)
+    path = write_review_file(tmp_path, records)
     ui, _, _ = exact_two_pass_interactions(path, min_edges=2, chunk_size=2)
     assert ui.nnz >= 4
 
@@ -89,7 +87,7 @@ def test_streaming_interactions_emits_pairs(tmp_path: Path) -> None:
         {"reviewerID": "u2", "asin": "i2"},
         {"reviewerID": "u3", "asin": "i1"},
     ]
-    path = _write_review_file(tmp_path, records)
+    path = write_review_file(tmp_path, records)
     emitted = []
     for user_ids, item_ids in streaming_interactions(path, min_edges=2, chunk_size=10):
         emitted.append((user_ids, item_ids))

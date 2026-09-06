@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from morel.core.errors import DataError
-from morel.data.acquire import download, fetch
+from morel.data.acquire import fetch
 
 
 def test_fetch_writes_file(tmp_path: Path) -> None:

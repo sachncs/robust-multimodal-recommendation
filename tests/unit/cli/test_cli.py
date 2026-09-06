@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 from morel.cli import main
 
 
@@ -22,8 +20,39 @@ def test_cli_unknown_command() -> None:
 
 
 def test_cli_data_mask(tmp_path, monkeypatch) -> None:
-    monkeypatch.setattr("sys.argv", ["morel", "data", "mask", "--items", "5", "--modalities", "3", "--ratio", "0.4", "--out", str(tmp_path / "m.npy")])
-    assert main(["data", "mask", "--items", "5", "--modalities", "3", "--ratio", "0.4", "--out", str(tmp_path / "m.npy")]) == 0
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "morel",
+            "data",
+            "mask",
+            "--items",
+            "5",
+            "--modalities",
+            "3",
+            "--ratio",
+            "0.4",
+            "--out",
+            str(tmp_path / "m.npy"),
+        ],
+    )
+    assert (
+        main(
+            [
+                "data",
+                "mask",
+                "--items",
+                "5",
+                "--modalities",
+                "3",
+                "--ratio",
+                "0.4",
+                "--out",
+                str(tmp_path / "m.npy"),
+            ]
+        )
+        == 0
+    )
     import numpy as np
 
     assert (tmp_path / "m.npy").exists()

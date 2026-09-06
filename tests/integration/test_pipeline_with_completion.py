@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import scipy.sparse as sp
 import torch
 from torch.utils.data import DataLoader
 
-import pytest
-
-from tests.shared import CompletionDataset, build_path_graph, make_completion_collate
 from morel.core.config import Config
 from morel.core.errors import GraphError
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
+from tests.shared import CompletionDataset, build_path_graph, make_completion_collate
 
 
 class SilentMonitor:

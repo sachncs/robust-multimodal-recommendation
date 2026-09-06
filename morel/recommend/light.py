@@ -59,7 +59,8 @@ class Light(nn.Module):
             items: ``(B_i,)`` long tensor of item ids.
             ui_graph: Optional new bipartite graph; uses cached one if None.
 
-        Returns:
+        Returns
+        -------
             ``(B_u, B_i)`` score matrix.
         """
         if users.max() >= self.users:
@@ -90,11 +91,13 @@ class Light(nn.Module):
         Args:
             ui_graph: New bipartite CSR, or ``None`` to use the cache.
 
-        Returns:
+        Returns
+        -------
             Sparse ``(users + items, users + items)`` tensor on the model's
             device.
 
-        Raises:
+        Raises
+        ------
             ValueError: If ``ui_graph is None`` and the cache is empty.
         """
         if ui_graph is None and self.adj_cache is not None:

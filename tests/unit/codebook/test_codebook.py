@@ -5,10 +5,10 @@ from __future__ import annotations
 import torch
 
 from morel.codebook import (
+    VQ,
     Codebook,
     GumbelVQ,
     IdentityCodebook,
-    VQ,
     balance,
     usage,
 )

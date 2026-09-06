@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 import torch
 
-from morel.core.errors import ConfigError
 from morel.core.seed import restore, seed, state
 
 

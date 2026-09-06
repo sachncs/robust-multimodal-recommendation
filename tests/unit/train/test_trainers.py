@@ -17,9 +17,7 @@ from morel.train.recommendation import Recommendation, RecommendationConfig
 from tests.shared import BPRDataset, build_completion_loader, build_path_graph
 
 
-def test_completion_trainer_runs_with_real_pipeline(
-    tmp_path: Path, silent_monitor_factory
-) -> None:
+def test_completion_trainer_runs_with_real_pipeline(tmp_path: Path, silent_monitor_factory) -> None:
     rng = np.random.default_rng(0)
     n = 20
     dim = 4
@@ -36,16 +34,12 @@ def test_completion_trainer_runs_with_real_pipeline(
 
     loader = build_completion_loader(features, mask, adj, batch_size=4)
     cfg = CompletionConfig()
-    trainer = Completion(
-        model, cfg, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path
-    )
+    trainer = Completion(model, cfg, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path)
     trainer.fit(loader, loader, epochs=2, patience=1)
     assert True
 
 
-def test_recommendation_trainer_runs(
-    tmp_path: Path, silent_monitor_factory
-) -> None:
+def test_recommendation_trainer_runs(tmp_path: Path, silent_monitor_factory) -> None:
     users, items = 8, 12
     rng = np.random.default_rng(0)
     user_indices = rng.integers(0, users, size=64)
@@ -67,9 +61,7 @@ def test_recommendation_trainer_runs(
     assert True
 
 
-def test_trainer_honours_config_device(
-    tmp_path: Path, silent_monitor_factory
-) -> None:
+def test_trainer_honours_config_device(tmp_path: Path, silent_monitor_factory) -> None:
     """Trainer accepts a device argument and resolves via morel.core.device.device()."""
     users, items = 4, 6
     rng = np.random.default_rng(0)
@@ -91,9 +83,7 @@ def test_trainer_honours_config_device(
     assert trainer.device == torch.device("cpu")
 
 
-def test_trainer_amp_cpu_runs(
-    tmp_path: Path, silent_monitor_factory
-) -> None:
+def test_trainer_amp_cpu_runs(tmp_path: Path, silent_monitor_factory) -> None:
     """AMP=true on CPU must not crash; AMP path is exercised without device promotion."""
     users, items = 4, 6
     rng = np.random.default_rng(0)

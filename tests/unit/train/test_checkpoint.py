@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -38,7 +37,9 @@ def test_state_roundtrip(tmp_path: Path) -> None:
 
 def test_state_rejects_hash_mismatch(tmp_path: Path) -> None:
     model = nn.Linear(2, 1)
-    state = State(model=model.state_dict(), optimizer=None, epoch=0, metric=0.0, rng=None, config_hash="a")
+    state = State(
+        model=model.state_dict(), optimizer=None, epoch=0, metric=0.0, rng=None, config_hash="a"
+    )
     path = tmp_path / "c.pt"
     state.save(path)
     with __import__("pytest").raises(ConfigError):
@@ -46,7 +47,6 @@ def test_state_rejects_hash_mismatch(tmp_path: Path) -> None:
 
 
 def test_hash_config_for_dataclass() -> None:
-    from dataclasses import dataclass
 
     from morel.core.config import Config
 

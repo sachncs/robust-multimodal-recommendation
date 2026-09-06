@@ -6,6 +6,8 @@ import threading
 from collections import OrderedDict
 from typing import Any
 
+from morel.core.errors import ModelError
+
 
 class Loader:
     """Cache of named model pipelines keyed by their checkpoint path.

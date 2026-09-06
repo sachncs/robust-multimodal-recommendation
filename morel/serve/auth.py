@@ -87,9 +87,7 @@ def dependency(scope: Scope):
 
 def assert_configured() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
-    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (
-        admin_enabled() or read_enabled()
-    ):
+    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (admin_enabled() or read_enabled()):
         raise ConfigError("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
 
 

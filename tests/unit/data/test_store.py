@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import numpy as np
@@ -24,7 +23,9 @@ def test_save_load_npz_roundtrip(tmp_path: Path) -> None:
 
 def test_save_load_npz_with_manifest(tmp_path: Path) -> None:
     target = tmp_path / "x.npz"
-    m = Manifest(dataset="Beauty", version="1", code="c", seed=0, extractor="text", config_hash="abc")
+    m = Manifest(
+        dataset="Beauty", version="1", code="c", seed=0, extractor="text", config_hash="abc"
+    )
     save_npz(target, manifest_obj=m, a=np.arange(2, dtype=np.float32))
     assert load_npz(target).get("a") is not None
 

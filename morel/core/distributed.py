@@ -156,7 +156,11 @@ def reduce_mean(value: float | torch.Tensor) -> float:
 
 def cleanup() -> None:
     """Destroy the default process group if initialised."""
-    if state.initialized and torch.distributed.is_available() and torch.distributed.is_initialized():
+    if (
+        state.initialized
+        and torch.distributed.is_available()
+        and torch.distributed.is_initialized()
+    ):
         torch.distributed.destroy_process_group()
     state.initialized = False
     state.backend = None

@@ -6,8 +6,6 @@ neither layer has to redeclare them.
 
 from __future__ import annotations
 
-from typing import Callable
-
 import numpy as np
 import scipy.sparse as sp
 import torch
@@ -76,7 +74,9 @@ def build_completion_loader(
     )
 
 
-def synth_bipartite(rng: np.random.Generator, items: int, users: int) -> tuple[np.ndarray, np.ndarray]:
+def synth_bipartite(
+    rng: np.random.Generator, items: int, users: int
+) -> tuple[np.ndarray, np.ndarray]:
     """Generate one random (user_ids, item_ids) sample.
 
     Used by the experiment's synthetic dataset builder.

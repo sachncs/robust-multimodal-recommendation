@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 import torch
 
-from morel.route import Dense, Fixed, Gumbel, Router, Top, Weights, build
+from morel.route import Dense, Fixed, Gumbel, Top, Weights, build
 
 
 def test_dense_routing() -> None:

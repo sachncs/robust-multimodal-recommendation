@@ -167,9 +167,7 @@ class Pipeline(nn.Module):
                 queries,
                 self.retrieval_features,
                 self.retrieval_mask,
-                self.retrieval_adj
-                if self.retrieval_adj is not None
-                else sp.csr_matrix(adjacency),
+                self.retrieval_adj if self.retrieval_adj is not None else sp.csr_matrix(adjacency),
                 anchors=self.config.retrieve.anchors,
                 iters=self.config.retrieve.iters,
             )
@@ -234,12 +232,12 @@ class Pipeline(nn.Module):
                 continue
             node_ids_np = result.nodes[b, :size]
             for k, name in enumerate(modalities):
-                node_features[name][b, :size] = torch.from_numpy(
-                    self.retrieval_features[name][node_ids_np]
-                ).to(device).float()
-            node_mask[b, :size] = torch.from_numpy(
-                self.retrieval_mask[node_ids_np]
-            ).to(device).float()
+                node_features[name][b, :size] = (
+                    torch.from_numpy(self.retrieval_features[name][node_ids_np]).to(device).float()
+                )
+            node_mask[b, :size] = (
+                torch.from_numpy(self.retrieval_mask[node_ids_np]).to(device).float()
+            )
             pe[b, :size] = pe_full[node_ids_np]
             attention[b, :size] = torch.from_numpy(result.mask[b, :size]).bool().to(device)
 

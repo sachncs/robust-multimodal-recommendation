@@ -20,7 +20,6 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Protocol
 
-import numpy as np
 import torch.nn as nn
 
 from morel.serve.lock import RWLock
@@ -59,8 +58,7 @@ class LossStep(Protocol):
     surrogate, or the ``DefaultLossStep`` baseline.
     """
 
-    def __call__(self, batch: list[FeedbackEvent]) -> float:
-        ...
+    def __call__(self, batch: list[FeedbackEvent]) -> float: ...
 
 
 class DefaultLossStep:
@@ -140,7 +138,9 @@ class PipelineUpdater:
                 "replay_buffered": len(self.replay_ring),
                 "updates_applied": self.n_updates_applied,
                 "last_loss": self.last_loss,
-                "last_valid_loss": self.last_valid_loss if self.last_valid_loss is not None else float("nan"),
+                "last_valid_loss": self.last_valid_loss
+                if self.last_valid_loss is not None
+                else float("nan"),
                 "current_version": self.version,
                 "cooldown_until": self.cooldown_until,
             }

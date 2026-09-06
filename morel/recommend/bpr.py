@@ -60,13 +60,13 @@ def negatives(
         raise DataError(f"count ({count}) > items ({items})")
     rng = np.random.default_rng(seed)
     positive_dense = np.asarray(ui.toarray(), dtype=bool)
-    neg_pool = np.where(~positive_dense, np.broadcast_to(np.arange(items), positive_dense.shape), -1)
+    neg_pool = np.where(
+        ~positive_dense, np.broadcast_to(np.arange(items), positive_dense.shape), -1
+    )
     pool = [neg_pool[u][neg_pool[u] >= 0] for u in range(users)]
     min_neg = min(len(p) for p in pool)
     if min_neg < count:
-        raise DataError(
-            f"at least one user has only {min_neg} negatives available; need {count}"
-        )
+        raise DataError(f"at least one user has only {min_neg} negatives available; need {count}")
     out = np.empty((users, count), dtype=np.int64)
     for u in range(users):
         out[u] = rng.choice(pool[u], size=count, replace=False)

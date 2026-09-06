@@ -63,7 +63,8 @@ def test_real_pipeline_completion_loss_decreases() -> None:
             "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
             "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
             "features": {
-                k: torch.from_numpy(np.stack([b["features"][k] for b in batch])) for k in features_np
+                k: torch.from_numpy(np.stack([b["features"][k] for b in batch]))
+                for k in features_np
             },
             "adjacency": batch[0]["adjacency"],
         },

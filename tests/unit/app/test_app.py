@@ -4,11 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import numpy as np
-import pytest
-import scipy.sparse as sp
-import torch
-
 from morel.app import Benchmark, Experiment, Reproduce
 from morel.core.config import Config
 

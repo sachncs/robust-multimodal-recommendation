@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import numpy as np
-import scipy.sparse as sp
 from torch.utils.data import DataLoader
 
-from tests.shared import CompletionDataset, build_path_graph, make_completion_collate
 from morel.core.config import Config
 from morel.data.build import bipartite, item_cooccurrence
 from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
+from tests.shared import CompletionDataset, build_path_graph, make_completion_collate
 
 
 class SilentMonitor:
@@ -66,7 +65,5 @@ def test_trainer_decreases_loss_on_synthetic(tmp_path) -> None:
     cfg = CompletionConfig()
     pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
     pipeline.attach_corpus(features, mask, adj)
-    trainer = Completion(
-        pipeline, cfg, monitor=SilentMonitor(), checkpoint_dir=tmp_path
-    )
+    trainer = Completion(pipeline, cfg, monitor=SilentMonitor(), checkpoint_dir=tmp_path)
     trainer.fit(loader, loader, epochs=3, patience=5)

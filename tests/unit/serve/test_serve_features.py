@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import threading
 import time
-from pathlib import Path
 
 import pytest
 import torch.nn as nn
@@ -17,7 +16,7 @@ from morel.serve.auth import (
     token_for_scope,
 )
 from morel.serve.lock import RWLock
-from morel.serve.update import FeedbackEvent, PipelineUpdater
+from morel.serve.update import PipelineUpdater
 
 
 class TinyModel(nn.Module):
@@ -80,10 +79,10 @@ def test_auth_assert_configured_errors_when_enabled_without_token(
 
 
 def test_auth_require_no_token_is_noop() -> None:
-    class _Req:
+    class Req:
         headers: dict[str, str] = {}
 
-    require(_Req(), scope="read")  # no token configured → no-op
+    require(Req(), scope="read")  # no token configured → no-op
 
 
 def test_auth_require_wrong_token_raises(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -91,11 +90,11 @@ def test_auth_require_wrong_token_raises(monkeypatch: pytest.MonkeyPatch) -> Non
 
     monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "real-token")
 
-    class _Req:
+    class Req:
         headers = {"authorization": "Bearer wrong"}
 
     with pytest.raises(HTTPException):
-        require(_Req(), scope="read")
+        require(Req(), scope="read")
 
 
 # ---- RWLock ----
@@ -104,7 +103,6 @@ def test_auth_require_wrong_token_raises(monkeypatch: pytest.MonkeyPatch) -> Non
 def test_rwlock_readers_dont_block_each_other() -> None:
     lock = RWLock()
     errors: list[Exception] = []
-    in_section = threading.Event()
     readers_in = 0
     readers_in_lock = threading.Lock()
 

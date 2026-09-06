@@ -12,10 +12,12 @@ from morel.retrieve.mage import expand
 
 @pytest.fixture
 def setup() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix]:
-    g = sp.csr_matrix(np.array(
-        [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [0, 0, 0, 1, 0]],
-        dtype=np.float32,
-    ))
+    g = sp.csr_matrix(
+        np.array(
+            [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [0, 0, 0, 1, 0]],
+            dtype=np.float32,
+        )
+    )
     features = {"visual": np.eye(5, dtype=np.float32), "text": np.eye(5, dtype=np.float32)}
     mask = np.ones((5, 2), dtype=np.float32)
     return features, mask, g

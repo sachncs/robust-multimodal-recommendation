@@ -16,7 +16,7 @@ from morel.serve.auth import (
     token_for_scope,
 )
 from morel.serve.loader import Loader
-from morel.serve.lock import RWLock, ReadGuard, WriteGuard, reader, writer
+from morel.serve.lock import ReadGuard, RWLock, WriteGuard, reader, writer
 from morel.serve.schema import (
     CompleteRequest,
     CompleteResponse,
@@ -26,8 +26,14 @@ from morel.serve.schema import (
     RecommendResponse,
     serialize_completed,
 )
-from morel.serve.update import DefaultLossStep, FeedbackEvent, LossStep, PipelineUpdater, Signal, UpdateResult
-
+from morel.serve.update import (
+    DefaultLossStep,
+    FeedbackEvent,
+    LossStep,
+    PipelineUpdater,
+    Signal,
+    UpdateResult,
+)
 
 __all__ = [
     "CompleteRequest",

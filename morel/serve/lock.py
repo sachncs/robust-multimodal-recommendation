@@ -33,9 +33,7 @@ class RWLock:
                     self.condition.wait()
                 self.active_readers += 1
                 return True
-            self.condition.wait_for(
-                lambda: not self.active_writer, timeout=timeout
-            )
+            self.condition.wait_for(lambda: not self.active_writer, timeout=timeout)
             if self.active_writer:
                 return False
             self.active_readers += 1

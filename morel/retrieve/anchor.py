@@ -23,13 +23,9 @@ def validate_anchor_features(features: dict[str, np.ndarray], mask: np.ndarray) 
         raise ShapeError("feature arrays have inconsistent row counts")
     items = next(iter(items_seen))
     if mask.shape[0] != items:
-        raise ShapeError(
-            f"mask rows {mask.shape[0]} != feature rows {items}"
-        )
+        raise ShapeError(f"mask rows {mask.shape[0]} != feature rows {items}")
     if mask.ndim != 2 or mask.shape[1] != len(features):
-        raise ShapeError(
-            f"mask shape {mask.shape} incompatible with {len(features)} modalities"
-        )
+        raise ShapeError(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
     return items
 
 

@@ -14,25 +14,35 @@ from morel.retrieve.acs import compute
 
 def test_acs_bitmask_correctness_on_path() -> None:
     """ACS(0, 4) on a 5-node path should be the full path."""
-    g = sp.csr_matrix(np.array([
-        [0, 1, 0, 0, 0],
-        [1, 0, 1, 0, 0],
-        [0, 1, 0, 1, 0],
-        [0, 0, 1, 0, 1],
-        [0, 0, 0, 1, 0],
-    ], dtype=np.float32))
+    g = sp.csr_matrix(
+        np.array(
+            [
+                [0, 1, 0, 0, 0],
+                [1, 0, 1, 0, 0],
+                [0, 1, 0, 1, 0],
+                [0, 0, 1, 0, 1],
+                [0, 0, 0, 1, 0],
+            ],
+            dtype=np.float32,
+        )
+    )
     sub = compute(g, [0, 4])
     assert sub == {0, 1, 2, 3, 4}
 
 
 def test_acs_fallback_to_anchors() -> None:
-    g = sp.csr_matrix(np.array([
-        [0, 1, 0, 0, 0],
-        [1, 0, 0, 0, 0],
-        [0, 0, 0, 1, 0],
-        [0, 0, 1, 0, 1],
-        [0, 0, 0, 1, 0],
-    ], dtype=np.float32))
+    g = sp.csr_matrix(
+        np.array(
+            [
+                [0, 1, 0, 0, 0],
+                [1, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0],
+                [0, 0, 1, 0, 1],
+                [0, 0, 0, 1, 0],
+            ],
+            dtype=np.float32,
+        )
+    )
     sub = compute(g, [0, 2], fallback="anchors")
     assert sub == {0, 2}
 

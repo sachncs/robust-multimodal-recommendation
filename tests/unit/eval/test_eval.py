@@ -6,15 +6,15 @@ import numpy as np
 import pytest
 
 from morel.eval import (
+    ablation_results,
+    explained_variance,
     map_at_k,
+    mrr,
     mse,
     ndcg_at_k,
     per_modality_mse,
     precision_at_k,
     recall_at_k,
-    mrr,
-    explained_variance,
-    ablation_results,
     robustness_sweep,
 )
 

@@ -17,7 +17,10 @@ def test_robustness_sweep_no_nan_across_ratios() -> None:
     result = robustness_sweep(
         scores_by_ratio,
         labels,
-        metrics={"recall@10": lambda s, l: recall_at_k(s, l, k=10), "ndcg@10": lambda s, l: ndcg_at_k(s, l, k=10)},
+        metrics={
+            "recall@10": lambda s, l: recall_at_k(s, l, k=10),
+            "ndcg@10": lambda s, l: ndcg_at_k(s, l, k=10),
+        },
     )
     assert len(result.ratios) == len(ratios)
     for metric_values in result.metrics.values():
@@ -35,7 +38,11 @@ def test_robustness_sweep_handles_empty_scores_dict() -> None:
 def test_robustness_sweep_returns_one_metric_per_ratio() -> None:
     rng = np.random.default_rng(0)
     labels = (rng.random((10, 20)) > 0.8).astype(np.float32)
-    scores_by_ratio = {0.2: rng.random((10, 20)), 0.5: rng.random((10, 20)), 0.8: rng.random((10, 20))}
+    scores_by_ratio = {
+        0.2: rng.random((10, 20)),
+        0.5: rng.random((10, 20)),
+        0.8: rng.random((10, 20)),
+    }
     result = robustness_sweep(
         scores_by_ratio, labels, metrics={"recall@5": lambda s, l: recall_at_k(s, l, k=5)}
     )

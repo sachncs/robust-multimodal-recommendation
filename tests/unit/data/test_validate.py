@@ -7,7 +7,8 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import DataError
-from morel.data.validate import features, graph, interactions, mask as validate_mask
+from morel.data.validate import features, graph, interactions
+from morel.data.validate import mask as validate_mask
 
 
 def test_interactions_ok() -> None:

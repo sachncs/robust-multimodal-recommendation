@@ -8,7 +8,7 @@ import scipy.sparse as sp
 import torch
 
 from morel.core.errors import DataError
-from morel.recommend import Light, MF, Pop, bpr, negatives
+from morel.recommend import MF, Light, Pop, bpr, negatives
 
 
 def test_light_l0_equals_dot() -> None:

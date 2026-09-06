@@ -55,6 +55,7 @@ def make_completion_collate(features_keys: list[str]) -> Callable:
     Callable
         A function suitable for ``DataLoader(collate_fn=...)``.
     """
+
     def collate(batch: list[dict]) -> dict:
         return {
             "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),

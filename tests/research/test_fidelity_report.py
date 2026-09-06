@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import importlib
-import os
 from pathlib import Path
 
-import pytest
-
-from morel.core.fidelity import all as fidelity_all, registry, render_markdown, render_json
+from morel.core.fidelity import all as fidelity_all
+from morel.core.fidelity import registry, render_json, render_markdown
 
 
 def split_test_ref(test_ref: str) -> tuple[str, str]:

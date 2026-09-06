@@ -11,10 +11,12 @@ from morel.retrieve.acs import batch, compute
 
 
 def test_acs_two_anchors_on_path() -> None:
-    g = sp.csr_matrix(np.array(
-        [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [0, 0, 0, 1, 0]],
-        dtype=np.float32,
-    ))
+    g = sp.csr_matrix(
+        np.array(
+            [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 1], [0, 0, 0, 1, 0]],
+            dtype=np.float32,
+        )
+    )
     sub = compute(g, [0, 4])
     assert sub == {0, 1, 2, 3, 4}
 
@@ -48,10 +50,12 @@ def test_acs_self_loops_raises() -> None:
 
 
 def test_acs_fallback_empty() -> None:
-    g = sp.csr_matrix(np.array(
-        [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 0, 0], [0, 0, 0, 0, 1], [0, 0, 0, 1, 0]],
-        dtype=np.float32,
-    ))
+    g = sp.csr_matrix(
+        np.array(
+            [[0, 1, 0, 0, 0], [1, 0, 1, 0, 0], [0, 1, 0, 0, 0], [0, 0, 0, 0, 1], [0, 0, 0, 1, 0]],
+            dtype=np.float32,
+        )
+    )
     sub = compute(g, [0, 3], fallback="empty")
     assert sub == set()
 

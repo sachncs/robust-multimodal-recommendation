@@ -89,9 +89,7 @@ def fetch(
     raise DataError(f"failed to fetch {url} after {retries + 1} attempts: {last_error}")
 
 
-def download_from_base(
-    base: str, category: str, dest: Path | str, *, timeout: float
-) -> list[Path]:
+def download_from_base(base: str, category: str, dest: Path | str, *, timeout: float) -> list[Path]:
     files = [f"{category}_5.json.gz", f"{category}_metadata.json.gz"]
     root = Path(dest).resolve()
     root.mkdir(parents=True, exist_ok=True)

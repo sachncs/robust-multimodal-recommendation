@@ -10,15 +10,15 @@ from __future__ import annotations
 
 from morel.core.fidelity import Entry, register
 
-_register_done = False
+REGISTRATION_DONE = False
 
 
 def register_all() -> None:
     """Register every paper-component fidelity entry. Idempotent."""
-    global _register_done
-    if _register_done:
+    global REGISTRATION_DONE
+    if REGISTRATION_DONE:
         return
-    _register_done = True
+    REGISTRATION_DONE = True
 
     register(
         Entry(
