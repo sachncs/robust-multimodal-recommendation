@@ -24,7 +24,7 @@ from morel.encode import ENCODERS
 from morel.graph import Laplace
 from morel.recommend import RECOMMENDERS
 from morel.retrieve import Result, retrieve_batch
-from morel.route import ROUTERS
+from morel.route import build as build_route
 
 
 @dataclass
@@ -109,7 +109,7 @@ class Pipeline(nn.Module):
                 heads=config.encode.heads,
                 dropout=config.encode.dropout,
             )
-            self.router = ROUTERS.create(
+            self.router = build_route(
                 config.route.kind,
                 dim=config.encode.hidden,
                 k=config.codebook.size,
