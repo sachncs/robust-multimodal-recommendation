@@ -70,7 +70,7 @@ def relevance(
     return numerator / denominator
 
 
-def mean_rel(
+def rel(
     i: int,
     nodes: np.ndarray,
     features: dict[str, np.ndarray],
@@ -130,4 +130,4 @@ def mean_rel(
     return float(final[valid].mean())
 
 
-__all__ = ["mean_rel", "relevance"]
+__all__ = ["rel", "relevance"]

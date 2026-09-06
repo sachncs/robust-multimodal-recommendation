@@ -20,7 +20,7 @@ from morel.core.log import get as get_logger
 from morel.graph.subgraph import connected
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.bfs import neighbor_array
-from morel.retrieve.relevance import mean_rel
+from morel.retrieve.relevance import rel
 
 log = get_logger("retrieve.mage")
 
@@ -85,7 +85,7 @@ def expand(
         subgraph_set = set(anchors_int)
     subgraph_set.add(int(query_item))
     neighbors = neighbor_array(adj)
-    best_score = mean_rel(
+    best_score = rel(
         query_item, np.array(sorted(subgraph_set), dtype=np.int64), features, mask
     )
 
@@ -98,7 +98,7 @@ def expand(
             trial = subgraph_set | {node}
             if not connected(np.array(sorted(trial), dtype=np.int64), neighbors):
                 continue
-            score = mean_rel(
+            score = rel(
                 query_item,
                 np.array(sorted(trial), dtype=np.int64),
                 features,
@@ -122,7 +122,7 @@ def expand(
                     continue
                 if not connected(np.array(sorted(trial), dtype=np.int64), neighbors):
                     continue
-                score = mean_rel(
+                score = rel(
                     query_item,
                     np.array(sorted(trial), dtype=np.int64),
                     features,

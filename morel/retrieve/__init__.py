@@ -9,7 +9,7 @@ from morel.retrieve.mage import batch as mage_batch
 from morel.retrieve.mage import expand as mage
 from morel.retrieve.pipeline import KIND, Result, as_tensor, retrieve
 from morel.retrieve.pipeline import batch as batch
-from morel.retrieve.relevance import mean_rel, relevance
+from morel.retrieve.relevance import rel, relevance
 
 __all__ = [
     "KIND",
@@ -23,7 +23,7 @@ __all__ = [
     "bfs",
     "mage",
     "mage_batch",
-    "mean_rel",
+    "rel",
     "neighbor_array",
     "neighbor_iter",
     "path",

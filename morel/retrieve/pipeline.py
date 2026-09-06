@@ -39,7 +39,7 @@ class Result:
         return int(self.nodes.shape[1])
 
 
-def anchors_for(
+def for_query(
     query: int,
     features: dict[str, np.ndarray],
     mask: np.ndarray,
@@ -65,7 +65,7 @@ def mage(
     fallback: str,
 ) -> set[int]:
     """Anchor retrieval followed by MAGE expansion; the method's default."""
-    anchor_set = anchors_for(query, features, mask, anchors=anchors)
+    anchor_set = for_query(query, features, mask, anchors=anchors)
     if not anchor_set:
         return {int(query)}
     return mage_expand(adj, list(anchor_set), query, features, mask, iters=iters, fallback=fallback)
@@ -83,7 +83,7 @@ def acs(
 ) -> set[int]:
     """Anchor retrieval followed by the Anchor Connecting Subgraph, without MAGE."""
     del iters
-    anchor_set = anchors_for(query, features, mask, anchors=anchors)
+    anchor_set = for_query(query, features, mask, anchors=anchors)
     if not anchor_set:
         return {int(query)}
     return acs_compute(adj, sorted(anchor_set), fallback=fallback)
@@ -101,7 +101,7 @@ def anchor(
 ) -> set[int]:
     """Anchors only, with no graph expansion; the no-expansion ablation."""
     del adj, iters, fallback
-    return anchors_for(query, features, mask, anchors=anchors)
+    return for_query(query, features, mask, anchors=anchors)
 
 
 def bfs(

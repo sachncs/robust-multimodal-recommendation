@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from morel.retrieve.relevance import mean_rel, relevance
+from morel.retrieve.relevance import rel, relevance
 
 
 class Checker:
@@ -28,16 +28,16 @@ class Checker:
     def self(self) -> None:
         f = {"v": np.eye(2, dtype=np.float32)}
         m = np.ones((2, 1), dtype=np.float32)
-        val = mean_rel(0, np.array([0, 1]), f, m)
+        val = rel(0, np.array([0, 1]), f, m)
         assert val == 0.0
 
     def returns(self) -> None:
         f = {"v": np.eye(2, dtype=np.float32)}
         m = np.ones((2, 1), dtype=np.float32)
-        assert mean_rel(0, np.array([], dtype=np.int64), f, m) == 0.0
+        assert rel(0, np.array([], dtype=np.int64), f, m) == 0.0
 
     def python(self) -> None:
-        """Vectorised mean_rel produces the same numerical result as the legacy loop."""
+        """Vectorised rel produces the same numerical result as the legacy loop."""
         rng = np.random.default_rng(0)
         items, dim = 16, 5
         features = {
@@ -49,5 +49,5 @@ class Checker:
         nodes = np.array([3, 5, 7, 9, 0], dtype=np.int64)
 
         expected = float(np.mean([relevance(2, int(v), features, mask) for v in nodes if int(v) != 2]))
-        actual = mean_rel(2, nodes, features, mask)
+        actual = rel(2, nodes, features, mask)
         assert abs(actual - expected) < 1e-6
