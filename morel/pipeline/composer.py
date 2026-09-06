@@ -18,10 +18,11 @@ import torch.nn as nn
 from morel.codebook import build as build_codebook
 from morel.complete import build as build_complete
 from morel.core.config import Config
-from morel.core.errors import GraphError, ModelError
+from morel.core.errors import ConfigError, GraphError, ModelError
 from morel.core.seed import deterministic
 from morel.encode import build as build_encode
 from morel.graph import Laplace
+from morel.recommend import KIND as RECOMMEND_KIND
 from morel.recommend import build as build_recommend
 from morel.retrieve import Result, retrieve_batch
 from morel.route import build as build_route
@@ -129,6 +130,13 @@ class Pipeline(nn.Module):
                 dims=dims,
                 hidden=config.complete.hidden,
             )
+            # Validate the recommend kind eagerly so a bad config fails
+            # at Pipeline construction, matching the other components.
+            if config.recommend.kind not in RECOMMEND_KIND:
+                raise ConfigError(
+                    f"unknown recommender '{config.recommend.kind}'; "
+                    f"available: {', '.join(sorted(RECOMMEND_KIND))}"
+                )
         self.recommender: nn.Module | None = None
         self.retrieval_features: dict[str, np.ndarray] | None = None
         self.retrieval_mask: np.ndarray | None = None

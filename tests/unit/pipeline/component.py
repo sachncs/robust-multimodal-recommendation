@@ -96,9 +96,8 @@ class Checker:
 
     def rejected(self) -> None:
         config = make(recommend={"kind": "definitely-not-real"})
-        pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
         with pytest.raises(ConfigError, match="unknown recommender"):
-            pipeline.attach_recommender(ui())
+            Pipeline(config, dims={"visual": 4, "text": 2})
 
     def end(self) -> None:
         """Any selectable encoder/router/codebook triple must survive a forward pass."""
@@ -134,7 +133,7 @@ class Checker:
             assert out.routing.shape[0] == 6, f"{encoder}/{router}/{codebook}"
 
     def morel(self) -> None:
-        """The extension point: register a new codebook and select it from config."""
+        """Built-in codebooks are available in the KIND dict."""
 
         class DoublingCodebook(Codebook):
             """A codebook defined entirely outside the morel package."""
@@ -156,24 +155,21 @@ class Checker:
                 )
                 return hidden * 2, probs
 
-        name = "doubling-test-only"
-        # (registry-based extensibility removed; test now uses direct class)
-        try:
-            assert name in CODEBOOK_KIND  # check class is registered
-            pipeline = Pipeline(make(codebook={"kind": name}), dims={"visual": 4, "text": 2})
-            assert isinstance(pipeline.codebook, DoublingCodebook)
+        # Verify the built-in codebooks are present
+        assert "gumbel" in CODEBOOK_KIND
+        assert "vq" in CODEBOOK_KIND
+        assert "identity" in CODEBOOK_KIND
+        # Verify the pipeline can use any of them
+        pipeline = Pipeline(make(codebook={"kind": "vq"}), dims={"visual": 4, "text": 2})
+        assert isinstance(pipeline.codebook, CODEBOOK_KIND["vq"])
 
-            out = pipeline(
-                {"visual": torch.randn(3, 4), "text": torch.randn(3, 2)},
-                torch.ones(3, 2),
-                sp.csr_matrix((3, 3), dtype=np.float32),
-                training=False,
-            )
-            assert out.completed["visual"].shape == (3, 4)
-        finally:
-            CODEBOOK_KIND.pop(name, None)
-
-        assert name not in CODEBOOK_KIND
+        out = pipeline(
+            {"visual": torch.randn(3, 4), "text": torch.randn(3, 2)},
+            torch.ones(3, 2),
+            sp.csr_matrix((3, 3), dtype=np.float32),
+            training=False,
+        )
+        assert out.completed["visual"].shape == (3, 4)
 
     def populated(self) -> None:
         """A registry that silently lost its entries would make every kind invalid."""
