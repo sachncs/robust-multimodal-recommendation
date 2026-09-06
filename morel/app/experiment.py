@@ -17,14 +17,14 @@ from morel.app.data import (
     numpy_to_tensor,
     synth_bipartite,
 )
-from morel.core.config import Config
+from morel.core.config import Config, Masking
 from morel.core.fidelity import render_json, render_markdown
 from morel.core.log import get as get_logger
 from morel.core.seed import seed as seed_everything
+from morel.data import MASKS
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import item_cooccurrence
 from morel.data.manifest import Manifest
-from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
 from morel.train.recommendation import Recommendation, RecommendationConfig
@@ -32,8 +32,29 @@ from morel.train.recommendation import Recommendation, RecommendationConfig
 log = get_logger("app.experiment")
 
 
-def synthetic_dataset(items: int, dim_visual: int, dim_text: int, users: int) -> dict[str, Any]:
-    """Build a small reproducible synthetic dataset."""
+def synthetic_dataset(
+    items: int,
+    dim_visual: int,
+    dim_text: int,
+    users: int,
+    masking: Masking | None = None,
+) -> dict[str, Any]:
+    """Build a small reproducible synthetic dataset.
+
+    Args:
+        items: Number of items.
+        dim_visual: Visual feature width.
+        dim_text: Text feature width.
+        users: Number of users.
+        masking: Masking settings; defaults to the shipped configuration. The
+            missing-modality pattern is the experimental condition, so leaving
+            it hardcoded meant a configured ratio had no effect on the run.
+
+    Returns
+    -------
+        Dict with the interaction matrix, item graph, features and mask.
+    """
+    settings = masking if masking is not None else Masking()
     rng = np.random.default_rng(0)
     user_ids, item_ids = synth_bipartite(rng, items=items, users=users)
     ui = build_bipartite(user_ids, item_ids, users, items)
@@ -42,7 +63,13 @@ def synthetic_dataset(items: int, dim_visual: int, dim_text: int, users: int) ->
         "visual": rng.normal(size=(items, dim_visual)).astype(np.float32),
         "text": rng.normal(size=(items, dim_text)).astype(np.float32),
     }
-    mask = bernoulli(items, 2, 0.4, seed=0).to_numpy()
+    mask = MASKS.create(
+        settings.kind,
+        items=items,
+        modalities=2,
+        ratio=settings.ratio,
+        seed=settings.seed,
+    ).to_numpy()
     return {
         "ui": ui,
         "item_adj": adj,
@@ -96,7 +123,9 @@ class Experiment:
         self.config.to_yaml(self.run_dir / "config.yaml")
         start = time.time()
 
-        dataset = synthetic_dataset(self.items, self.dim_visual, self.dim_text, self.users)
+        dataset = synthetic_dataset(
+            self.items, self.dim_visual, self.dim_text, self.users, self.config.masking
+        )
         pipeline = Pipeline(
             self.config,
             dims={"visual": self.dim_visual, "text": self.dim_text},
@@ -234,7 +263,7 @@ class RecommendationExperiment:
         self.config.to_yaml(self.run_dir / "config.yaml")
         start = time.time()
 
-        dataset = synthetic_dataset(self.items, 8, 4, self.users)
+        dataset = synthetic_dataset(self.items, 8, 4, self.users, self.config.masking)
         ui = dataset["ui"]
         pipeline = Pipeline(self.config, dims={"visual": 8, "text": 4})
         pipeline.attach_recommender(ui)

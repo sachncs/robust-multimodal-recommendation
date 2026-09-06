@@ -153,12 +153,14 @@ def test_documented_extension_points_match_the_registries() -> None:
     """docs/ARCHITECTURE.md must not drift from what is actually registered."""
     from morel.codebook import CODEBOOKS
     from morel.complete import COMPLETERS
+    from morel.data import MASKS
     from morel.encode import ENCODERS
     from morel.recommend import RECOMMENDERS
     from morel.retrieve import STRATEGIES
     from morel.route import ROUTERS
 
     registries = {
+        "MASKS": MASKS,
         "STRATEGIES": STRATEGIES,
         "ENCODERS": ENCODERS,
         "ROUTERS": ROUTERS,
