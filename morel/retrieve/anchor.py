@@ -29,7 +29,7 @@ def validate_anchor_features(features: dict[str, np.ndarray], mask: np.ndarray) 
     return items
 
 
-def cosine_topk(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.ndarray:
+def cosine(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.ndarray:
     """Return top-k indices into ``candidates`` by cosine similarity to ``query_vec``.
 
     Assumes candidates are L2-normalizable. Zero-norm rows are skipped.
@@ -89,7 +89,7 @@ def query(
         return np.empty(0, dtype=np.int64)
     query_vec = features[query_modality][query_item]
     candidate_features = features[query_modality][candidates]
-    top_local = cosine_topk(query_vec, candidate_features, top)
+    top_local = cosine(query_vec, candidate_features, top)
     selected: np.ndarray = candidates[top_local]
     return selected
 
