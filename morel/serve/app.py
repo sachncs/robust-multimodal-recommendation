@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from morel.core.errors import MorelError
 from morel.serve import auth
@@ -18,6 +19,38 @@ from morel.serve.schema import (
 )
 
 
+class FeedbackRequest(BaseModel):
+    """One feedback event submitted by a client."""
+
+    user: int = Field(..., description="User id.")
+    item: int = Field(..., description="Item id.")
+    signal: str = Field(..., description="One of 'like', 'dislike', 'view', 'purchase'.")
+
+
+class FeedbackResponse(BaseModel):
+    """Response from /v1/feedback."""
+
+    queued: bool
+    buffer_size: int
+
+
+class RollbackResponse(BaseModel):
+    """Response from /v1/rollback."""
+
+    restored_version: int
+
+
+class StatsResponse(BaseModel):
+    """Response from /v1/stats."""
+
+    events_buffered: int
+    updates_applied: int
+    last_loss: float
+    last_valid_loss: float
+    current_version: int
+    cooldown_until: float
+
+
 def create(loader: Loader | None = None) -> FastAPI:
     """Create a FastAPI app.
 
@@ -31,6 +64,7 @@ def create(loader: Loader | None = None) -> FastAPI:
     """
     app = FastAPI(title="morel inference", version="0.1.0")
     app.state.loader = loader or Loader()
+    app.state.updater_enabled = True
 
     @app.get("/health", response_model=HealthResponse)
     def health() -> HealthResponse:
@@ -41,7 +75,9 @@ def create(loader: Loader | None = None) -> FastAPI:
         return {"requests": float(request_count(app))}
 
     @app.post("/v1/complete", response_model=CompleteResponse)
-    def complete(payload: CompleteRequest, _: None = Depends(auth.require)) -> CompleteResponse:
+    def complete(
+        payload: CompleteRequest, _: None = Depends(_require_read)
+    ) -> CompleteResponse:
         try:
             pipeline = app.state.loader.get("default", build_default_pipeline)
         except MorelError as exc:
@@ -50,7 +86,9 @@ def create(loader: Loader | None = None) -> FastAPI:
         return CompleteResponse(completed=serialize_completed(completed))
 
     @app.post("/v1/recommend", response_model=RecommendResponse)
-    def recommend(payload: RecommendRequest, _: None = Depends(auth.require)) -> RecommendResponse:
+    def recommend(
+        payload: RecommendRequest, _: None = Depends(_require_read)
+    ) -> RecommendResponse:
         try:
             pipeline = app.state.loader.get("default", build_default_pipeline)
         except MorelError as exc:
@@ -58,7 +96,49 @@ def create(loader: Loader | None = None) -> FastAPI:
         items = run_recommend(pipeline, payload)
         return RecommendResponse(items=items)
 
+    @app.post("/v1/feedback", response_model=FeedbackResponse)
+    def feedback(
+        payload: FeedbackRequest, _: None = Depends(_require_admin)
+    ) -> FeedbackResponse:
+        if not getattr(app.state, "updater_enabled", True):
+            raise HTTPException(status_code=503, detail="Updater disabled")
+        updater = getattr(app.state, "updater", None)
+        if updater is None:
+            raise HTTPException(status_code=503, detail="Updater not mounted")
+        updater.accept(user=payload.user, item=payload.item, signal=payload.signal)
+        return FeedbackResponse(queued=True, buffer_size=updater.stats()["events_buffered"])
+
+    @app.post("/v1/rollback", response_model=RollbackResponse)
+    def rollback(_: None = Depends(_require_admin)) -> RollbackResponse:
+        updater = getattr(app.state, "updater", None)
+        if updater is None:
+            raise HTTPException(status_code=503, detail="Updater not mounted")
+        return RollbackResponse(restored_version=updater.rollback())
+
+    @app.get("/v1/stats", response_model=StatsResponse)
+    def stats(_: None = Depends(_require_admin)) -> StatsResponse:
+        updater = getattr(app.state, "updater", None)
+        if updater is None:
+            raise HTTPException(status_code=503, detail="Updater not mounted")
+        s = updater.stats()
+        return StatsResponse(
+            events_buffered=int(s["events_buffered"]),
+            updates_applied=int(s["updates_applied"]),
+            last_loss=float(s["last_loss"]),
+            last_valid_loss=float(s["last_valid_loss"]),
+            current_version=int(s["current_version"]),
+            cooldown_until=float(s["cooldown_until"]),
+        )
+
     return app
+
+
+def _require_read(request: Request) -> None:
+    auth.require(request, scope="read")
+
+
+def _require_admin(request: Request) -> None:
+    auth.require(request, scope="admin")
 
 
 def build_default_pipeline() -> object:
@@ -113,4 +193,13 @@ def request_count(app: FastAPI) -> int:
     return int(getattr(app.state, "request_count", 0))
 
 
-__all__ = ["create"]
+# (Dependencies are installed directly via Depends(_require_read).)
+
+
+__all__ = [
+    "FeedbackRequest",
+    "FeedbackResponse",
+    "RollbackResponse",
+    "StatsResponse",
+    "create",
+]

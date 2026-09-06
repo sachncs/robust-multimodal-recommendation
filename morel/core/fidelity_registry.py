@@ -290,11 +290,9 @@ register(
         equation="replay buffer + divergence guard",
         status="APPROXIMATE",
         implementation="morel.serve.update.PipelineUpdater",
-        test="tests/unit/serve/test_serve.py",
+        test="tests/unit/serve/test_serve_features.py",
         deviation="Not a closed-form online-learning algorithm. Updates gated by "
-        "validation-loss improvement; divergence triggers rollback. The reference "
-        "test is the static serve test suite; the divergence/replay test lands in "
-        "Phase 9.",
+        "validation-loss improvement; divergence triggers rollback.",
     )
 )
 
