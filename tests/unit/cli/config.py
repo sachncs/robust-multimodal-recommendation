@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from morel.cli import setup_log, eval
+from morel.cli import eval, setup_log
 from morel.core.config import Config
 
 

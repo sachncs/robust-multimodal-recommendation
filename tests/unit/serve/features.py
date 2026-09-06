@@ -11,7 +11,7 @@ import torch.nn as nn
 
 from morel.serve.auth import (
     admin,
-    assert_state,
+    assert_,
     require,
     token,
     viewer,
@@ -85,7 +85,7 @@ class Checker:
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("MOREL_AUTH_ENABLED", "1")
         with pytest.raises(Cfg):
-            assert_state()
+            assert_()
 
     def noop(self) -> None:
         class Req:

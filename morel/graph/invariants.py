@@ -48,4 +48,4 @@ def verify_all(adj: sp.spmatrix) -> None:
     isoless(adj)
 
 
-__all__ = ["verify_all", "finite", "isoless", "loopless", "symmetric"]
+__all__ = ["finite", "isoless", "loopless", "symmetric", "verify_all"]

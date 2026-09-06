@@ -193,7 +193,7 @@ class Experiment:
             },
         )
         manifest_path = self.run_dir / "manifest.json"
-        manifest_path.write_text(manifest.as_json(), encoding="utf-8")
+        manifest_path.write_text(manifest.json(), encoding="utf-8")
 
         report = self.run_dir / "report.md"
         report.write_text(
@@ -327,7 +327,7 @@ class Rank:
                 "recommender": self.config.recommend.kind,
             },
         )
-        (self.run_dir / "manifest.json").write_text(manifest.as_json(), encoding="utf-8")
+        (self.run_dir / "manifest.json").write_text(manifest.json(), encoding="utf-8")
         (self.run_dir / "report.md").write_text(
             "# morel — Recommendation Report\n\n"
             f"- run_dir: `{self.run_dir}`\n"

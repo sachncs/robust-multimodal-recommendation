@@ -69,7 +69,7 @@ class RWLock:
         """
         with self.condition:
             if self.readers <= 0:
-                raise RuntimeError("read_unlock called without holding a read lock")
+                raise RuntimeError("unlock called without holding a read lock")
             self.readers -= 1
             if self.readers == 0:
                 self.condition.notify_all()
@@ -116,7 +116,7 @@ class RWLock:
         """
         with self.condition:
             if not self.writer:
-                raise RuntimeError("write_unlock called without holding the write lock")
+                raise RuntimeError("unlock called without holding the write lock")
             self.writer = False
             self.condition.notify_all()
 

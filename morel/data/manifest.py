@@ -36,7 +36,7 @@ class Manifest:
     timestamp: str = field(default_factory=lambda: dt.datetime.now(dt.timezone.utc).isoformat())
     extras: dict[str, Any] = field(default_factory=dict)
 
-    def as_json(self) -> str:
+    def json(self) -> str:
         """Serialize to JSON."""
         return json.dumps(dataclasses.asdict(self), indent=2, sort_keys=True, ensure_ascii=False)
 
@@ -68,7 +68,7 @@ def save(artifact: Path | str, manifest: Manifest) -> Path:
     target.parent.mkdir(parents=True, exist_ok=True)
     sidecar = locate(target)
     tmp = sidecar.with_suffix(sidecar.suffix + ".tmp")
-    tmp.write_text(manifest.as_json(), encoding="utf-8")
+    tmp.write_text(manifest.json(), encoding="utf-8")
     os.replace(tmp, sidecar)
     return sidecar
 

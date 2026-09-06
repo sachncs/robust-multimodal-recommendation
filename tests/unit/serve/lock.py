@@ -100,7 +100,7 @@ class Checker:
             time.sleep(0.01)
         assert lock.writers == 1
 
-        assert not lock.read_lock(timeout=0.2), "a new reader jumped ahead of a waiting writer"
+        assert not lock.write_lock(timeout=0.2), "a new reader jumped ahead of a waiting writer"
 
         lock.read_unlock()
         assert writer_done.wait(timeout=TIMEOUT)
@@ -111,16 +111,16 @@ class Checker:
         lock = RWLock()
         overlaps: list[str] = []
         inside_write = threading.Event()
-        write_unlock = threading.Event()
+        unlock = threading.Event()
 
         def write() -> None:
             with writer(lock):
                 inside_write.set()
-                write_unlock.wait(timeout=TIMEOUT)
+                unlock.wait(timeout=TIMEOUT)
 
         def read() -> None:
             with reader(lock):
-                if inside_write.is_set() and not write_unlock.is_set():
+                if inside_write.is_set() and not unlock.is_set():
                     overlaps.append("reader overlapped an active writer")
 
         writer_thread = threading.Thread(target=write, daemon=True)
@@ -131,7 +131,7 @@ class Checker:
         for thread in reader_threads:
             thread.start()
         time.sleep(0.1)
-        write_unlock.set()
+        unlock.set()
         for thread in reader_threads:
             thread.join(timeout=TIMEOUT)
         writer_thread.join(timeout=TIMEOUT)
@@ -210,17 +210,17 @@ class Checker:
         assert lock.writers == 0, "a timed-out writer must deregister itself"
 
         lock.read_unlock()
-        assert lock.read_lock(timeout=TIMEOUT) is True
-        lock.read_unlock()
+        assert lock.write_lock(timeout=TIMEOUT) is True
+        lock.write_unlock()
 
     def acquiring(self) -> None:
         lock = RWLock()
-        lock.write_lock()
+        lock.read_lock()
         try:
-            assert lock.read_lock(timeout=0.05) is False
-            assert lock.readers == 0
+            assert lock.write_lock(timeout=0.05) is False
+            assert lock.readers == 1
         finally:
-            lock.write_unlock()
+            lock.read_unlock()
 
     def without(self) -> None:
         lock = RWLock()

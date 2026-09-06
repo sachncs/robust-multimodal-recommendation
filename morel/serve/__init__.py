@@ -10,7 +10,7 @@ from morel.serve.app import (
 from morel.serve.auth import (
     Scope,
     admin,
-    assert_state,
+    assert_,
     dependency,
     token,
     viewer,
@@ -58,7 +58,7 @@ __all__ = [
     "Updater",
     "Write",
     "admin",
-    "assert_state",
+    "assert_",
     "create",
     "dependency",
     "reader",

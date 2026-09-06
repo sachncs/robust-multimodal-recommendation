@@ -184,7 +184,7 @@ def run_extract(args: argparse.Namespace, cfg: Config) -> None:
             extractor="random",
             cfg_hash=cfg.hash(),
             extras={"items": items},
-        ).as_json(),
+        ).json(),
         encoding="utf-8",
     )
     print(out_dir / "features.npz")
@@ -227,7 +227,7 @@ def assemble(args: argparse.Namespace, cfg: Config) -> None:
             extractor="random",
             cfg_hash=cfg.hash(),
             extras={"users": users, "items": items, "min_edges": args.min_edges},
-        ).as_json(),
+        ).json(),
         encoding="utf-8",
     )
     print(out_dir / "bipartite.npz")

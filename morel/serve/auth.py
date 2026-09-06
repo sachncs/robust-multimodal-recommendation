@@ -86,7 +86,7 @@ def dependency(scope: Scope) -> Callable[[Request], None]:
     return scoped
 
 
-def assert_state() -> None:
+def assert_() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
     if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (admin() or viewer()):
         raise Cfg("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
@@ -95,7 +95,7 @@ def assert_state() -> None:
 __all__ = [
     "Scope",
     "admin",
-    "assert_state",
+    "assert_",
     "dependency",
     "require",
     "token",
