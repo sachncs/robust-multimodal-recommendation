@@ -24,14 +24,19 @@ def device(prefer: str | torch.device | None = None) -> torch.device:
 
     Args:
         prefer: Explicit device string (``"cpu"``, ``"cuda"``, ``"cuda:0"``,
-            ``"mps"``) or torch.device. If ``None``, uses CUDA if available
-            else MPS if available else CPU.
+            ``"mps"``) or torch.device. ``None``, ``"auto"`` or an empty
+            string select CUDA if available, else MPS if available, else CPU.
+            ``"auto"`` is accepted because it is the default of
+            ``Config.device``, and a config default that its own resolver
+            rejects would be a trap.
 
     Returns
     -------
         The resolved ``torch.device``.
     """
-    if prefer is None:
+    if isinstance(prefer, torch.device):
+        return prefer
+    if prefer is None or str(prefer).strip().lower() in {"", "auto", "default"}:
         if torch.cuda.is_available():
             return torch.device("cuda")
         if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():

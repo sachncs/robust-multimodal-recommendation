@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 import torch
 
 from morel.core.device import Device, device, to
@@ -37,3 +38,20 @@ def test_to_moves_tensor() -> None:
     t = torch.zeros(2)
     moved = to(t, "cpu")
     assert moved.device.type == "cpu"
+
+
+def test_auto_is_accepted_because_it_is_the_config_default() -> None:
+    """Regression: device("auto") raised, yet Config.device defaults to "auto"."""
+    from morel.core.config import Config
+
+    assert Config().device == "auto"
+    assert device("auto") == device(None)
+
+
+@pytest.mark.parametrize("value", ["auto", "AUTO", " auto ", "", "default"])
+def test_auto_like_values_resolve_to_the_detected_device(value: str) -> None:
+    assert device(value) == device(None)
+
+
+def test_explicit_device_object_passes_through() -> None:
+    assert device(torch.device("cpu")) == torch.device("cpu")
