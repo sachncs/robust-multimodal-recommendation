@@ -86,7 +86,7 @@ registry. The registries are `morel.encode.ENCODERS`, `morel.route.ROUTERS`,
 | Config field | Registry | Shipped kinds |
 |---|---|---|
 | `masking.kind` | `MASKS` | `bernoulli`, `block` |
-| `retrieve.kind` | `STRATEGIES` | `mage`, `acs`, `anchor`, `bfs` |
+| `retrieve.kind` | `STRATEGIES` | `mage`, `acs`, `anchor`, `bfs`, `none` |
 | `encode.kind` | `ENCODERS` | `transformer`, `identity` |
 | `route.kind` | `ROUTERS` | `top`, `dense`, `gumbel`, `fixed` |
 | `codebook.kind` | `CODEBOOKS` | `gumbel`, `vq`, `identity` |

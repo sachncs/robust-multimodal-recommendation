@@ -136,6 +136,27 @@ def strategy_bfs(
     return {int(node) for node, hops in distances.items() if hops <= max(int(iters), 1)}
 
 
+@STRATEGIES.register("none")
+def strategy_none(
+    query: int,
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    adj: sp.csr_matrix,
+    *,
+    anchors: int,
+    iters: int,
+    fallback: str,
+) -> set[int]:
+    """Return the query alone: the no-retrieval ablation.
+
+    Nothing is retrieved, so the encoder sees only the item being completed
+    and no graph context. This is the condition ``eval.ablations`` calls
+    ``no_retrieval``.
+    """
+    del features, mask, adj, anchors, iters, fallback
+    return {int(query)}
+
+
 def retrieve(
     query: int,
     features: dict[str, np.ndarray],
