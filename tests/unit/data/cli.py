@@ -175,7 +175,6 @@ class Checker:
         """--category used to be required, ignoring data.category entirely."""
         import argparse
 
-
         config = Config.parse({"data": {"category": "Books", "raw": "r", "processed": "p"}})
         args = argparse.Namespace(cmd="download", category=None, dest=None, config=None)
         resolve_paths(args, config)
