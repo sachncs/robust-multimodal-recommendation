@@ -16,7 +16,7 @@ from morel.core.log import get as get_logger
 log = get_logger("cli")
 
 
-def _build_parser() -> argparse.ArgumentParser:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="morel", description="morel: graph retrieval-enhanced multimodal recommendation"
     )
@@ -40,7 +40,7 @@ def main(argv: list[str] | None = None) -> int:
     """Dispatch to subcommands."""
     configure_log(level="INFO", structured=False)
     raw = list(sys.argv[1:] if argv is None else argv)
-    parser = _build_parser()
+    parser = build_parser()
     if not raw:
         parser.print_help()
         return 0
@@ -58,35 +58,35 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(f"unknown command {cmd!r}")
         return 2
     handler = {
-        "data": _run_data,
-        "train": _run_train,
-        "eval": _run_eval,
-        "bench": _run_bench,
-        "reproduce": _run_reproduce,
-        "serve": _run_serve,
-        "render-fidelity": _run_render_fidelity,
+        "data": run_data,
+        "train": run_train,
+        "eval": run_eval,
+        "bench": run_bench,
+        "reproduce": run_reproduce,
+        "serve": run_serve,
+        "render-fidelity": run_render_fidelity,
     }[cmd]
     return handler(rest)
 
 
-def _run_data(argv: list[str]) -> int:
+def run_data(argv: list[str]) -> int:
     from morel.data.__main__ import main as data_main
 
     return int(data_main(argv) or 0)
 
 
-def _run_train(argv: list[str]) -> int:
+def run_train(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="morel train", description="training")
     sub = parser.add_subparsers(dest="sub", required=True)
     sub.add_parser("completion", help="train the completion stage", add_help=False)
     sub.add_parser("recommendation", help="train the recommendation stage", add_help=False)
     args = parser.parse_args(argv)
 
-    config_path = _resolve_config_path(argv)
+    config_path = resolve_config_path(argv)
     if args.sub == "completion":
         from morel.app import Experiment
 
-        config = _load_config_or_default(config_path)
+        config = load_config_or_default(config_path)
         run_dir = Path("runs") / "completion"
         exp = Experiment(config=config, run_dir=run_dir, items=50, users=20, epochs=1)
         result = exp.run()
@@ -95,7 +95,7 @@ def _run_train(argv: list[str]) -> int:
     if args.sub == "recommendation":
         from morel.app import Experiment
 
-        config = _load_config_or_default(config_path)
+        config = load_config_or_default(config_path)
         run_dir = Path("runs") / "recommendation"
         exp = Experiment(config=config, run_dir=run_dir, items=50, users=20, epochs=1)
         result = exp.run()
@@ -105,7 +105,7 @@ def _run_train(argv: list[str]) -> int:
     return 2
 
 
-def _run_eval(argv: list[str]) -> int:
+def run_eval(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="morel eval", description="evaluation")
     sub = parser.add_subparsers(dest="sub", required=True)
     sub.add_parser("rank", help="rank evaluation", add_help=False)
@@ -143,7 +143,7 @@ def _run_eval(argv: list[str]) -> int:
     return 2
 
 
-def _run_bench(argv: list[str]) -> int:
+def run_bench(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="morel bench", description="benchmark")
     parser.add_argument("--sizes", default="16,32")
     parser.add_argument("--epochs", type=int, default=1)
@@ -163,7 +163,7 @@ def _run_bench(argv: list[str]) -> int:
     return 0
 
 
-def _run_reproduce(argv: list[str]) -> int:
+def run_reproduce(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="morel reproduce", description="reproduce")
     parser.add_argument("config", help="path to config.yaml")
     parser.add_argument("--items", type=int, default=50)
@@ -182,7 +182,7 @@ def _run_reproduce(argv: list[str]) -> int:
     return int(bool(rep.run()))
 
 
-def _run_render_fidelity(argv: list[str]) -> int:
+def run_render_fidelity(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="morel render-fidelity", description="render fidelity")
     parser.add_argument("markdown", help="output markdown path")
     parser.add_argument("json", nargs="?", default=None, help="optional output json path")
@@ -195,11 +195,11 @@ def _run_render_fidelity(argv: list[str]) -> int:
     return 0
 
 
-def _run_serve(argv: list[str]) -> int:
-    return _serve(argv)
+def run_serve(argv: list[str]) -> int:
+    return serve_inference(argv)
 
 
-def _serve(argv: list[str]) -> int:
+def serve_inference(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="morel serve", description="inference server")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
@@ -216,14 +216,14 @@ def _serve(argv: list[str]) -> int:
     return 0
 
 
-def _resolve_config_path(argv: list[str]) -> Path | None:
+def resolve_config_path(argv: list[str]) -> Path | None:
     for i, a in enumerate(argv):
         if a == "--config" and i + 1 < len(argv):
             return Path(argv[i + 1])
     return None
 
 
-def _load_config_or_default(path: Path | None):
+def load_config_or_default(path: Path | None):
     from morel.core.config import Config
 
     if path is None:

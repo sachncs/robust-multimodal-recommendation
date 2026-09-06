@@ -12,7 +12,7 @@ import torch
 
 from morel.core.errors import ConfigError, ModelError
 
-_ALLOWED_KEYS = {"model", "optimizer", "epoch", "metric", "rng", "config_hash", "extras"}
+ALLOWED_KEYS = {"model", "optimizer", "epoch", "metric", "rng", "config_hash", "extras"}
 
 
 def safe_load(target: Path | str) -> dict[str, Any]:
@@ -42,7 +42,7 @@ def safe_load(target: Path | str) -> dict[str, Any]:
         raise ModelError(f"checkpoint at {path} could not be loaded safely: {exc}") from exc
     if not isinstance(payload, dict):
         raise ModelError(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
-    unknown = set(payload.keys()) - _ALLOWED_KEYS
+    unknown = set(payload.keys()) - ALLOWED_KEYS
     if unknown:
         raise ModelError(f"checkpoint at {path} has unknown keys: {sorted(unknown)}")
     return payload

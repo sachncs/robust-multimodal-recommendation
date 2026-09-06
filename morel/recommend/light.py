@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 
 
-def _csr_cache_key(matrix: sp.csr_matrix) -> str:
+def csr_cache_key(matrix: sp.csr_matrix) -> str:
     """Stable SHA256 of a CSR matrix's nonzero pattern and shape."""
     coo = sp.coo_matrix(matrix)
     h = hashlib.sha256()
@@ -44,7 +44,7 @@ class Light(nn.Module):
         self.item_emb = nn.Embedding(items, embed)
         nn.init.xavier_uniform_(self.user_emb.weight)
         nn.init.xavier_uniform_(self.item_emb.weight)
-        self._adj_cache: tuple[str, torch.Tensor] | None = None
+        self.adj_cache: tuple[str, torch.Tensor] | None = None
 
     def forward(
         self,
@@ -59,15 +59,14 @@ class Light(nn.Module):
             items: ``(B_i,)`` long tensor of item ids.
             ui_graph: Optional new bipartite graph; uses cached one if None.
 
-        Returns
-        -------
+        Returns:
             ``(B_u, B_i)`` score matrix.
         """
         if users.max() >= self.users:
             raise IndexError(f"user index {int(users.max())} >= {self.users}")
         if items.max() >= self.items:
             raise IndexError(f"item index {int(items.max())} >= {self.items}")
-        adj_norm = self._adjacency(ui_graph)
+        adj_norm = self.normalized_adjacency(ui_graph)
         all_emb = torch.cat([self.user_emb.weight, self.item_emb.weight], dim=0)
         stack = [all_emb]
         for _ in range(self.layers):
@@ -80,23 +79,42 @@ class Light(nn.Module):
 
     def adjacency(self, ui_graph: sp.csr_matrix) -> torch.Tensor:
         """Return the cached normalized adjacency; rebuild if graph changes."""
-        return self._adjacency(ui_graph)
+        return self.normalized_adjacency(ui_graph)
 
-    def _adjacency(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
-        if ui_graph is None and self._adj_cache is not None:
-            cached = self._adj_cache[1]
+    def normalized_adjacency(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
+        """Compute or fetch the cached normalized adjacency tensor.
+
+        Behaviour:
+        - if ``ui_graph is None`` and the cache is populated, return the
+          cached tensor (after a device-mismatch move);
+        - if ``ui_graph`` matches the cached content hash, return the cached
+          tensor;
+        - otherwise rebuild from scratch.
+
+        Args:
+            ui_graph: New bipartite CSR, or ``None`` to use the cache.
+
+        Returns:
+            Sparse ``(users + items, users + items)`` tensor on the model's
+            device.
+
+        Raises:
+            ValueError: If ``ui_graph is None`` and the cache is empty.
+        """
+        if ui_graph is None and self.adj_cache is not None:
+            cached = self.adj_cache[1]
             if cached.device != self.user_emb.weight.device:
                 cached = cached.to(self.user_emb.weight.device)
-                self._adj_cache = (self._adj_cache[0], cached)
+                self.adj_cache = (self.adj_cache[0], cached)
             return cached
         if ui_graph is None:
             raise ValueError("ui_graph is required on the first call")
-        key = _csr_cache_key(ui_graph)
-        if self._adj_cache is not None and self._adj_cache[0] == key:
-            cached = self._adj_cache[1]
+        key = csr_cache_key(ui_graph)
+        if self.adj_cache is not None and self.adj_cache[0] == key:
+            cached = self.adj_cache[1]
             if cached.device != self.user_emb.weight.device:
                 cached = cached.to(self.user_emb.weight.device)
-                self._adj_cache = (key, cached)
+                self.adj_cache = (key, cached)
             return cached
         top = sp.hstack([sp.csr_matrix((self.users, self.users)), ui_graph])
         bottom = sp.hstack([ui_graph.T, sp.csr_matrix((self.items, self.items))])
@@ -113,7 +131,7 @@ class Light(nn.Module):
         target_device = self.user_emb.weight.device
         if tensor.device != target_device:
             tensor = tensor.to(target_device)
-        self._adj_cache = (key, tensor)
+        self.adj_cache = (key, tensor)
         return tensor
 
 

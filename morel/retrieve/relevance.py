@@ -11,8 +11,12 @@ import numpy as np
 from morel.core.errors import ShapeError
 
 
-def _safe_normalize(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Return ``(normalized, valid)`` where invalid rows are zero."""
+def safe_normalize_rows(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Row-normalize ``matrix`` and return ``(normalized, valid_mask)``.
+
+    Rows with zero norm are kept as zero vectors; the returned mask marks
+    them as invalid.
+    """
     norms = np.linalg.norm(matrix, axis=1, keepdims=True)
     safe = np.where(norms == 0.0, 1.0, norms)
     return matrix / safe, (norms.flatten() > 0)
@@ -105,7 +109,7 @@ def mean_relevance(
     denom_per_node = np.zeros(n_candidates, dtype=np.float64)
     for mod_idx, name in enumerate(modalities):
         feats = features[name]
-        normalized, valid = _safe_normalize(feats.astype(np.float64, copy=False))
+        normalized, valid = safe_normalize_rows(feats.astype(np.float64, copy=False))
         query_norm = normalized[i] if valid[i] else None
         if query_norm is None:
             continue

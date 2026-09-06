@@ -32,7 +32,7 @@ if not logging.getLogger("morel").handlers:
     logging.getLogger("morel").addHandler(logging.NullHandler())
 
 
-_LAZY_EXPORTS = {
+LAZY_EXPORTS = {
     "Modality": "morel.core.types",
     "Mask": "morel.core.types",
     "Graph": "morel.core.types",
@@ -52,10 +52,10 @@ _LAZY_EXPORTS = {
 
 
 def __getattr__(name: str):  # type: ignore[no-untyped-def]
-    if name in _LAZY_EXPORTS:
+    if name in LAZY_EXPORTS:
         import importlib
 
-        module = importlib.import_module(_LAZY_EXPORTS[name])
+        module = importlib.import_module(LAZY_EXPORTS[name])
         value = getattr(module, name)
         globals()[name] = value
         return value

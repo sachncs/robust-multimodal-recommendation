@@ -102,7 +102,7 @@ class Trainer(ABC):
         no_improve = 0
         for epoch in range(start_epoch, start_epoch + epochs):
             self.model.train()
-            epoch_metrics = self._run_epoch(train_loader, epoch)
+            epoch_metrics = self.run_epoch(train_loader, epoch)
             self.monitor.log(epoch=epoch, phase="train", **epoch_metrics)
             val_metric = float("inf")
             if val_loader is not None:
@@ -112,7 +112,7 @@ class Trainer(ABC):
                 self.best_metric = val_metric
                 no_improve = 0
                 if self.checkpoint_dir is not None:
-                    self._save(epoch, val_metric)
+                    self.save_checkpoint(epoch, val_metric)
             else:
                 no_improve += 1
                 if no_improve >= patience:
@@ -121,7 +121,7 @@ class Trainer(ABC):
                 self.scheduler.step()
         return {"best": self.best_metric}
 
-    def _run_epoch(self, loader: DataLoader, epoch: int) -> dict:
+    def run_epoch(self, loader: DataLoader, epoch: int) -> dict:
         self.model.train()
         running = 0.0
         count = 0
@@ -131,7 +131,7 @@ class Trainer(ABC):
             count += 1
         return {"loss": running / max(count, 1)}
 
-    def _save(self, epoch: int, metric: float) -> None:
+    def save_checkpoint(self, epoch: int, metric: float) -> None:
         if self.checkpoint_dir is None:
             return
         state = State(

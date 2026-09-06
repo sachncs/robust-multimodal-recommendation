@@ -225,11 +225,11 @@ class Config:
             if key not in cls_fields:
                 raise ConfigError(f"unknown top-level config key: {key!r}")
             clean_top[key] = value
-        coerced = _coerce(cls, clean_top)
+        coerced = coerce_config(cls, clean_top)
         result: dict[str, Any] = {}
         for f in fields(cls):
             if f.name in coerced:
-                f_type = _resolve_dataclass(f.type)
+                f_type = resolve_dataclass_annotation(f.type)
                 if is_dataclass(f_type) and isinstance(coerced[f.name], dict):
                     result[f.name] = f_type(**coerced[f.name])
                 else:
@@ -268,27 +268,27 @@ class Config:
         Path(path).write_text(text, encoding="utf-8")
 
 
-def _coerce(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
+def coerce_config(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
     """Recursively coerce nested dicts into nested dataclass instances.
 
     Returns a dict suitable for ``cls(**result)``. Nested dataclass fields are
-    replaced with their ``_coerce``d dicts so that ``cls(**...)`` constructs
-    them in turn.
+    replaced with their ``coerce_config``-d dicts so that ``cls(**...)``
+    constructs them in turn.
     """
     out: dict[str, Any] = {}
     for f in fields(cls):
         if f.name not in payload:
             continue
         value = payload[f.name]
-        f_type = _resolve_dataclass(f.type)
+        f_type = resolve_dataclass_annotation(f.type)
         if is_dataclass(f_type) and isinstance(value, dict):
-            out[f.name] = _coerce(f_type, value)
+            out[f.name] = coerce_config(f_type, value)
         else:
             out[f.name] = value
     return out
 
 
-def _resolve_dataclass(annotation: Any) -> type:
+def resolve_dataclass_annotation(annotation: Any) -> type:
     """Return the dataclass type from a string annotation or class.
 
     Returns the annotation unchanged if it is not a string and not a dataclass

@@ -25,7 +25,7 @@ from morel.retrieve.relevance import mean_relevance
 log = get_logger("retrieve.mage")
 
 
-def _boundary(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]:
+def boundary_nodes(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]:
     """Return the sorted list of nodes adjacent to ``subgraph`` but not in it."""
     boundary: set[int] = set()
     for node in subgraph:
@@ -35,7 +35,7 @@ def _boundary(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]
     return sorted(boundary)
 
 
-def _subgraph_neighbors(
+def subgraph_neighbors(
     subgraph_nodes: np.ndarray, neighbors: dict[int, np.ndarray]
 ) -> dict[int, np.ndarray]:
     """Build a neighbor lookup restricted to ``subgraph_nodes``."""
@@ -91,7 +91,7 @@ def expand(
 
     for _ in range(iters):
         changed = False
-        boundary = _boundary(subgraph_set, neighbors)
+        boundary = boundary_nodes(subgraph_set, neighbors)
         best_candidate: int | None = None
         best_candidate_score = best_score
         for node in boundary:

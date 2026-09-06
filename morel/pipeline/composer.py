@@ -175,7 +175,7 @@ class Pipeline(nn.Module):
             )
             subgraph_indices = result.nodes
             subgraph_mask = result.mask
-            hidden = self._encode_subgraph(
+            hidden = self.encode_subgraph(
                 features,
                 mask,
                 pe_full,
@@ -199,7 +199,7 @@ class Pipeline(nn.Module):
             subgraph_mask=subgraph_mask,
         )
 
-    def _encode_subgraph(
+    def encode_subgraph(
         self,
         features: dict[str, torch.Tensor],
         mask: torch.Tensor,

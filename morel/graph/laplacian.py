@@ -22,7 +22,7 @@ from morel.graph import invariants
 log = get_logger("graph.laplacian")
 
 
-def _coo_data_hash(matrix: sp.spmatrix) -> str:
+def coo_data_hash(matrix: sp.spmatrix) -> str:
     """Stable hash of a sparse matrix's nonzero pattern and shape."""
     coo = sp.coo_matrix(matrix)
     h = hashlib.sha256()
@@ -100,7 +100,7 @@ class Laplace(nn.Module):
 
     def forward(self, adjacency: sp.spmatrix) -> torch.Tensor:
         """Compute or retrieve cached Laplacian PE."""
-        key = _coo_data_hash(adjacency)
+        key = coo_data_hash(adjacency)
         if key in self._cache:
             self._cache.move_to_end(key)
             return self._cache[key]

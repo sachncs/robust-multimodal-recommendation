@@ -10,8 +10,8 @@ from morel.core.log import get as get_logger
 log = get_logger("retrieve.anchor")
 
 
-def _validate(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
-    """Return the number of items after validation."""
+def validate_anchor_features(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
+    """Validate feature-array shapes and return the number of items."""
     if not features:
         raise GraphError("features dict is empty")
     items_seen = set()
@@ -23,13 +23,17 @@ def _validate(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
         raise ShapeError("feature arrays have inconsistent row counts")
     items = next(iter(items_seen))
     if mask.shape[0] != items:
-        raise ShapeError(f"mask rows {mask.shape[0]} != feature rows {items}")
+        raise ShapeError(
+            f"mask rows {mask.shape[0]} != feature rows {items}"
+        )
     if mask.ndim != 2 or mask.shape[1] != len(features):
-        raise ShapeError(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
+        raise ShapeError(
+            f"mask shape {mask.shape} incompatible with {len(features)} modalities"
+        )
     return items
 
 
-def _cosine_topk(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.ndarray:
+def cosine_topk(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.ndarray:
     """Return top-k indices into ``candidates`` by cosine similarity to ``query_vec``.
 
     Assumes candidates are L2-normalizable. Zero-norm rows are skipped.
@@ -76,7 +80,7 @@ def query(
     """
     if query_modality not in features:
         return np.empty(0, dtype=np.int64)
-    items = _validate(features, mask)
+    items = validate_anchor_features(features, mask)
     if query_item < 0 or query_item >= items:
         raise GraphError(f"query_item {query_item} out of range [0, {items})")
     if top <= 0:
@@ -90,7 +94,7 @@ def query(
         return np.empty(0, dtype=np.int64)
     query_vec = features[query_modality][query_item]
     candidate_features = features[query_modality][candidates]
-    top_local = _cosine_topk(query_vec, candidate_features, top)
+    top_local = cosine_topk(query_vec, candidate_features, top)
     return candidates[top_local]
 
 

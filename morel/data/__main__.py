@@ -64,9 +64,9 @@ def main(argv: list[str] | None = None) -> int:
             for p in paths:
                 print(p)
         elif args.cmd == "extract":
-            _run_extract(args)
+            run_extract(args)
         elif args.cmd == "build":
-            _run_build(args)
+            run_build(args)
         elif args.cmd == "mask":
             from morel.data.mask import bernoulli
 
@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
-def _run_extract(args: argparse.Namespace) -> None:
+def run_extract(args: argparse.Namespace) -> None:
     from morel.core.config import Config as _Config
     from morel.data.extract import random as random_features
     from morel.data.manifest import Manifest
@@ -138,7 +138,7 @@ def _run_extract(args: argparse.Namespace) -> None:
     print(out_dir / "features.npz")
 
 
-def _run_build(args: argparse.Namespace) -> None:
+def run_build(args: argparse.Namespace) -> None:
     from morel.core.config import Config as _Config
     from morel.data.build import bipartite as build_bipartite
     from morel.data.build import item_cooccurrence

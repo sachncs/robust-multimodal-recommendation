@@ -38,30 +38,30 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.get("/metrics")
     def metrics() -> dict[str, float]:
-        return {"requests": float(_request_count(app))}
+        return {"requests": float(request_count(app))}
 
     @app.post("/v1/complete", response_model=CompleteResponse)
     def complete(payload: CompleteRequest, _: None = Depends(auth.require)) -> CompleteResponse:
         try:
-            pipeline = app.state.loader.get("default", _build_default_pipeline)
+            pipeline = app.state.loader.get("default", build_default_pipeline)
         except MorelError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
-        completed = _run_complete(pipeline, payload)
+        completed = run_complete(pipeline, payload)
         return CompleteResponse(completed=serialize_completed(completed))
 
     @app.post("/v1/recommend", response_model=RecommendResponse)
     def recommend(payload: RecommendRequest, _: None = Depends(auth.require)) -> RecommendResponse:
         try:
-            pipeline = app.state.loader.get("default", _build_default_pipeline)
+            pipeline = app.state.loader.get("default", build_default_pipeline)
         except MorelError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
-        items = _run_recommend(pipeline, payload)
+        items = run_recommend(pipeline, payload)
         return RecommendResponse(items=items)
 
     return app
 
 
-def _build_default_pipeline() -> object:
+def build_default_pipeline() -> object:
     """Build a pipeline for inference.
 
     Returns a tiny stub pipeline. Replace with a real loader in production.
@@ -72,7 +72,7 @@ def _build_default_pipeline() -> object:
     return Pipeline(Config(), dims={"visual": 4, "text": 2})
 
 
-def _run_complete(pipeline: object, payload: CompleteRequest) -> dict:
+def run_complete(pipeline: object, payload: CompleteRequest) -> dict:
     """Run the completion forward pass."""
     import numpy as np
     import scipy.sparse as sp
@@ -100,7 +100,7 @@ def _run_complete(pipeline: object, payload: CompleteRequest) -> dict:
     return output.completed
 
 
-def _run_recommend(pipeline: object, payload: RecommendRequest) -> list[RecommendItem]:
+def run_recommend(pipeline: object, payload: RecommendRequest) -> list[RecommendItem]:
     """Return the top-``top`` items for a user.
 
     Stub implementation: returns a uniformly-ranked slice of the catalogue.
@@ -109,7 +109,7 @@ def _run_recommend(pipeline: object, payload: RecommendRequest) -> list[Recommen
     return [RecommendItem(item=i, score=1.0 / (i + 1)) for i in range(top)]
 
 
-def _request_count(app: FastAPI) -> int:
+def request_count(app: FastAPI) -> int:
     return int(getattr(app.state, "request_count", 0))
 
 

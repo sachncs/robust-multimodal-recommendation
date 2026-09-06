@@ -15,7 +15,7 @@ from morel.route import Dense, Gumbel, Top
 
 
 @st.composite
-def _path_graphs(draw: st.DrawFn) -> sp.csr_matrix:
+def random_path_graphs(draw: st.DrawFn) -> sp.csr_matrix:
     n = draw(st.integers(min_value=2, max_value=12))
     arr = np.zeros((n, n), dtype=np.float32)
     for i in range(n - 1):
@@ -25,7 +25,7 @@ def _path_graphs(draw: st.DrawFn) -> sp.csr_matrix:
     return sp.csr_matrix(arr)
 
 
-@given(_path_graphs(), st.integers(min_value=0, max_value=10))
+@given(random_path_graphs(), st.integers(min_value=0, max_value=10))
 @settings(max_examples=10, deadline=None)
 def test_acs_contains_anchors(graph: sp.csr_matrix, anchor: int) -> None:
     if graph.shape[0] == 0:
@@ -80,7 +80,7 @@ def test_gumbel_temperature_monotonic() -> None:
     assert sharp_entropy < soft_entropy
 
 
-@given(_path_graphs(), st.integers(min_value=0, max_value=10), st.integers(min_value=0, max_value=10))
+@given(random_path_graphs(), st.integers(min_value=0, max_value=10), st.integers(min_value=0, max_value=10))
 @settings(max_examples=10, deadline=None)
 def test_bfs_path_matches_path_function(graph: sp.csr_matrix, start: int, end: int) -> None:
     if graph.shape[0] == 0:

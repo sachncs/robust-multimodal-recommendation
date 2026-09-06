@@ -30,7 +30,7 @@ class FeatureEncoder(Protocol):
         ...
 
 
-def _l2_normalize(array: np.ndarray) -> np.ndarray:
+def l2_normalize(array: np.ndarray) -> np.ndarray:
     """L2-normalize each row; replace zero-norm rows with the zero vector."""
     norms = np.linalg.norm(array, axis=1, keepdims=True)
     safe = np.where(norms == 0.0, 1.0, norms)
@@ -98,7 +98,7 @@ def random(items: int, dim: int, *, seed: int, name: str = "random") -> np.ndarr
         raise DataError(f"dim must be positive, got {dim}")
     rng = np.random.default_rng(seed)
     array = rng.normal(size=(items, dim)).astype(np.float32)
-    return _l2_normalize(array)
+    return l2_normalize(array)
 
 
 def fingerprint(payload: np.ndarray) -> str:
@@ -112,5 +112,5 @@ __all__ = [
     "visual",
     "random",
     "fingerprint",
-    "_l2_normalize",
+    "l2_normalize",
 ]

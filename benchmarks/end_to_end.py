@@ -61,7 +61,7 @@ def bench_epoch_5k(tmp_path, benchmark) -> None:
     loader = DataLoader(_Ds(), batch_size=64, collate_fn=_collate)
 
     def run():
-        trainer._run_epoch(loader, 0)
+        trainer.run_epoch(loader, 0)
 
     benchmark(run)
 

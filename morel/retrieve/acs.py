@@ -25,7 +25,7 @@ from morel.graph import invariants
 log = get_logger("retrieve.acs")
 
 
-def _validate(adj: sp.csr_matrix, anchors: list[int]) -> None:
+def validate_acs_inputs(adj: sp.csr_matrix, anchors: list[int]) -> None:
     if anchors is None:
         raise GraphError("anchors must not be None")
     if len(anchors) == 0:
@@ -63,7 +63,7 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
     """
     if adj.ndim != 2 or adj.shape[0] != adj.shape[1]:
         raise GraphError(f"adj must be square, got {adj.shape}")
-    _validate(adj, anchors)
+    validate_acs_inputs(adj, anchors)
     invariants.no_self_loops(adj)
     if len(anchors) == 0:
         return set()

@@ -89,7 +89,7 @@ def fetch(
     raise DataError(f"failed to fetch {url} after {retries + 1} attempts: {last_error}")
 
 
-def _download_from_base(
+def download_from_base(
     base: str, category: str, dest: Path | str, *, timeout: float
 ) -> list[Path]:
     files = [f"{category}_5.json.gz", f"{category}_metadata.json.gz"]
@@ -130,10 +130,10 @@ def download(category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOU
         DataError: When neither the default nor legacy URL responds.
     """
     try:
-        return _download_from_base(DEFAULT_BASE, category, dest, timeout=timeout)
+        return download_from_base(DEFAULT_BASE, category, dest, timeout=timeout)
     except DataError as primary:
         try:
-            return _download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
+            return download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
         except DataError as legacy:
             raise DataError(
                 f"failed to fetch {category} from {DEFAULT_BASE} ({primary}) "
@@ -146,7 +146,7 @@ def download_legacy(
     category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOUT
 ) -> list[Path]:
     """Download Amazon 5-core review and metadata from the legacy McAuley URL."""
-    return _download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
+    return download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
 
 
 __all__ = [

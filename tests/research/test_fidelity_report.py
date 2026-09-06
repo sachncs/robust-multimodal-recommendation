@@ -11,7 +11,7 @@ import pytest
 from morel.core.fidelity import all as fidelity_all, registry, render_markdown, render_json
 
 
-def _test_path_to_module(test_ref: str) -> tuple[str, str]:
+def split_test_ref(test_ref: str) -> tuple[str, str]:
     """Convert 'tests/foo/test_bar.py::test_baz' to (module_path, attribute)."""
     parts = test_ref.split("::")
     module = parts[0]
@@ -19,13 +19,13 @@ def _test_path_to_module(test_ref: str) -> tuple[str, str]:
     return module, attr or ""
 
 
-def _test_file_exists(test_ref: str) -> bool:
-    module, _ = _test_path_to_module(test_ref)
+def path_exists(test_ref: str) -> bool:
+    module, _ = split_test_ref(test_ref)
     return Path(module).is_file()
 
 
-def _test_function_exists(test_ref: str) -> bool:
-    module, attr = _test_path_to_module(test_ref)
+def callable_exists(test_ref: str) -> bool:
+    module, attr = split_test_ref(test_ref)
     if not attr or ":" in attr:
         return True
     try:
@@ -51,7 +51,7 @@ def test_fidelity_test_files_exist() -> None:
     """Every registered test path must point to an existing file on disk."""
     missing: list[str] = []
     for entry in fidelity_all():
-        if not _test_file_exists(entry.test):
+        if not path_exists(entry.test):
             missing.append(f"{entry.name}: {entry.test}")
     assert not missing, f"missing test files: {missing}"
 
@@ -60,7 +60,7 @@ def test_fidelity_test_functions_exist() -> None:
     """Every registered test function name must be importable."""
     missing: list[str] = []
     for entry in fidelity_all():
-        if not _test_function_exists(entry.test):
+        if not callable_exists(entry.test):
             missing.append(f"{entry.name}: {entry.test}")
     assert not missing, f"missing test functions: {missing}"
 

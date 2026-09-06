@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 import scipy.sparse as sp
-import torch
 from torch.utils.data import DataLoader
 
+from tests.shared import CompletionDataset, build_path_graph, make_completion_collate
 from morel.core.config import Config
 from morel.data.build import bipartite, item_cooccurrence
 from morel.data.mask import bernoulli
@@ -14,7 +14,7 @@ from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
 
 
-class _Monitor:
+class SilentMonitor:
     def log(self, *args, **kwargs):  # noqa: ANN001, D401
         return None
 
@@ -33,7 +33,9 @@ def test_end_to_end_synthetic(tmp_path) -> None:
     }
     mask_np = bernoulli(items, 2, 0.4, seed=0).to_numpy()
 
-    config = Config(encode=Config.__dataclass_fields__["encode"].default_factory())  # type: ignore[misc]
+    import torch
+
+    config = Config()
     pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
     pipeline.attach_corpus(features_np, mask_np, item_graph)
 
@@ -53,42 +55,18 @@ def test_trainer_decreases_loss_on_synthetic(tmp_path) -> None:
         "text": rng.normal(size=(n, 2)).astype(np.float32),
     }
     mask = np.ones((n, 2), dtype=np.float32)
-    rows, cols = [], []
-    for i in range(n - 1):
-        rows.extend([i, i + 1])
-        cols.extend([i + 1, i])
-    adj = sp.csr_matrix(
-        (np.ones(len(rows), dtype=np.float32), (rows, cols)),
-        shape=(n, n),
-    )
+    adj = build_path_graph(n)
 
-    class _Ds(torch.utils.data.Dataset):
-        def __len__(self):
-            return n
-
-        def __getitem__(self, idx):
-            return {
-                "index": idx,
-                "features": {k: v[idx] for k, v in features.items()},
-                "mask": mask[idx],
-                "adjacency": adj,
-            }
-
+    dataset = CompletionDataset(features, mask, adj)
     loader = DataLoader(
-        _Ds(),
+        dataset,
         batch_size=4,
-        collate_fn=lambda batch: {
-            "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
-            "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
-            "features": {
-                k: torch.from_numpy(np.stack([b["features"][k] for b in batch]))
-                for k in features
-            },
-            "adjacency": batch[0]["adjacency"],
-        },
+        collate_fn=make_completion_collate(list(features.keys())),
     )
     cfg = CompletionConfig()
     pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
     pipeline.attach_corpus(features, mask, adj)
-    trainer = Completion(pipeline, cfg, monitor=_Monitor(), checkpoint_dir=tmp_path)
+    trainer = Completion(
+        pipeline, cfg, monitor=SilentMonitor(), checkpoint_dir=tmp_path
+    )
     trainer.fit(loader, loader, epochs=3, patience=5)

@@ -8,7 +8,7 @@ import scipy.sparse as sp
 from morel.retrieve.pipeline import batch, retrieve
 
 
-def _path(n: int) -> sp.csr_matrix:
+def path(n: int) -> sp.csr_matrix:
     arr = np.zeros((n, n), dtype=np.float32)
     for i in range(n - 1):
         arr[i, i + 1] = 1
@@ -17,7 +17,7 @@ def _path(n: int) -> sp.csr_matrix:
 
 
 def test_retrieve_includes_query() -> None:
-    g = _path(5)
+    g = path(5)
     features = {"visual": np.eye(5, dtype=np.float32), "text": np.eye(5, dtype=np.float32)}
     mask = np.ones((5, 2), dtype=np.float32)
     sub = retrieve(0, features, mask, g, anchors=2, iters=2)
@@ -25,7 +25,7 @@ def test_retrieve_includes_query() -> None:
 
 
 def test_batch_returns_result() -> None:
-    g = _path(5)
+    g = path(5)
     features = {"visual": np.eye(5, dtype=np.float32)}
     mask = np.ones((5, 1), dtype=np.float32)
     result = batch([0, 1], features, mask, g, anchors=2, iters=2)
@@ -34,7 +34,7 @@ def test_batch_returns_result() -> None:
 
 
 def test_batch_deterministic() -> None:
-    g = _path(5)
+    g = path(5)
     features = {"visual": np.eye(5, dtype=np.float32), "text": np.eye(5, dtype=np.float32)}
     mask = np.ones((5, 2), dtype=np.float32)
     a = batch([0, 1], features, mask, g, anchors=2, iters=3)
@@ -44,7 +44,7 @@ def test_batch_deterministic() -> None:
 
 
 def test_empty_modalities_returns_query_only() -> None:
-    g = _path(3)
+    g = path(3)
     features = {"visual": np.eye(3, dtype=np.float32), "text": np.eye(3, dtype=np.float32)}
     mask = np.zeros((3, 2), dtype=np.float32)
     sub = retrieve(0, features, mask, g, anchors=1, iters=1)

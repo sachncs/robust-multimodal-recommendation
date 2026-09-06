@@ -13,7 +13,7 @@ from morel.core.errors import DataError
 from morel.data import manifest
 
 
-def _atomic(target: Path, writer) -> Path:
+def atomic_write(target: Path, writer) -> Path:
     """Write to a sibling tempfile, then atomically replace the target.
 
     The tempfile name is constructed so that ``np.savez`` and ``sp.save_npz``
@@ -47,14 +47,13 @@ def save_npz(
         manifest_obj: Optional manifest to save as a sidecar.
         **arrays: Named arrays to include.
 
-    Returns
-    -------
+    Returns:
         The destination path.
     """
     if not arrays:
         raise DataError("save_npz requires at least one array")
     final = Path(target).resolve()
-    _atomic(final, lambda tmp: np.savez(tmp, **arrays))
+    atomic_write(final, lambda tmp: np.savez(tmp, **arrays))
     if manifest_obj is not None:
         manifest.save(final, manifest_obj)
     return final
@@ -105,7 +104,7 @@ def save_graph(
             shape=np.asarray(coo.shape, dtype=np.int64),
         )
 
-    _atomic(final, writer)
+    atomic_write(final, writer)
     if manifest_obj is not None:
         manifest.save(final, manifest_obj)
     return final

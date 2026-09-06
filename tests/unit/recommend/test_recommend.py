@@ -101,10 +101,10 @@ def test_light_gcn_cache_key_is_content_based() -> None:
     assert ui1 is not ui2
     light = Light(users=users, items=items, embed=4, layers=1)
     light(torch.arange(users), torch.arange(items), ui1)
-    first_key, first_tensor = light._adj_cache
+    first_key, first_tensor = light.adj_cache
     light(torch.arange(users), torch.arange(items), ui2)
-    assert light._adj_cache[0] == first_key
-    assert light._adj_cache[1] is first_tensor
+    assert light.adj_cache[0] == first_key
+    assert light.adj_cache[1] is first_tensor
 
 
 def test_light_gcn_cache_invalidates_on_new_graph() -> None:
@@ -123,6 +123,6 @@ def test_light_gcn_cache_invalidates_on_new_graph() -> None:
     )
     light = Light(users=users, items=items, embed=4, layers=1)
     light(torch.arange(users), torch.arange(items), ui_a)
-    first_key = light._adj_cache[0]
+    first_key = light.adj_cache[0]
     light(torch.arange(users), torch.arange(items), ui_b)
-    assert light._adj_cache[0] != first_key
+    assert light.adj_cache[0] != first_key

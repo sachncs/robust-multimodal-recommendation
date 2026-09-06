@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
+import torch
 
 from morel.core.config import Config
 from morel.core.fidelity import render_json, render_markdown
@@ -24,7 +25,7 @@ from morel.train.completion import Completion, CompletionConfig
 log = get_logger("app.experiment")
 
 
-def _synthetic_dataset(items: int, dim_visual: int, dim_text: int, users: int) -> dict:
+def synthetic_dataset(items: int, dim_visual: int, dim_text: int, users: int) -> dict:
     """Build a small reproducible synthetic dataset."""
     rng = np.random.default_rng(0)
     pairs = rng.integers(0, users, size=items * 5), rng.integers(0, items, size=items * 5)
@@ -75,7 +76,7 @@ class Experiment:
         self.config.to_yaml(self.run_dir / "config.yaml")
         start = time.time()
 
-        dataset = _synthetic_dataset(self.items, self.dim_visual, self.dim_text, self.users)
+        dataset = synthetic_dataset(self.items, self.dim_visual, self.dim_text, self.users)
         pipeline = Pipeline(
             self.config,
             dims={"visual": self.dim_visual, "text": self.dim_text},
@@ -86,7 +87,7 @@ class Experiment:
 
         items_count = self.items
 
-        class _Ds(Dataset):
+        class CompletionBatchDataset(Dataset):
             def __len__(self) -> int:
                 return items_count
 
@@ -98,7 +99,7 @@ class Experiment:
                     "adjacency": dataset["item_adj"],
                 }
 
-        loader = DataLoader(_Ds(), batch_size=8, collate_fn=_collate)
+        loader = DataLoader(CompletionBatchDataset(), batch_size=8, collate_fn=collate_batch)
         trainer = Completion(
             pipeline,
             CompletionConfig(),
@@ -167,15 +168,13 @@ class Experiment:
         }
 
 
-def _to_torch(arr: np.ndarray):  # type: ignore[no-untyped-def]
-    import torch
-
+def to_torch(arr: np.ndarray) -> torch.Tensor:
+    """Wrap ``torch.from_numpy`` for type convenience."""
     return torch.from_numpy(arr)
 
 
-def _collate(batch):  # type: ignore[no-untyped-def]
-    import torch
-
+def collate_batch(batch: list[dict]) -> dict:
+    """Collate a list of completion-stage samples into a torch dict."""
     features_keys = list(batch[0]["features"].keys())
     return {
         "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
@@ -201,15 +200,15 @@ class Benchmark:
         self.run_dir.mkdir(parents=True, exist_ok=True)
         results: dict[str, list[float]] = {}
         for size in self.sizes:
-            dataset = _synthetic_dataset(size, 4, 2, max(2, size // 4))
+            dataset = synthetic_dataset(size, 4, 2, max(2, size // 4))
             pipeline = Pipeline(
                 self.config,
                 dims={"visual": 4, "text": 2},
             )
             pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
-            features = {k: _to_torch(v) for k, v in dataset["features"].items()}
-            mask = _to_torch(dataset["mask"])
-            index_t = _to_torch(np.arange(size))
+            features = {k: to_torch(v) for k, v in dataset["features"].items()}
+            mask = to_torch(dataset["mask"])
+            index_t = to_torch(np.arange(size))
             start = time.time()
             for _ in range(self.epochs):
                 pipeline(features, mask, dataset["item_adj"], index=index_t, training=True)

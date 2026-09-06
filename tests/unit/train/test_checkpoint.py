@@ -14,7 +14,7 @@ from morel.train.checkpoint import State, hash_config, safe_load, unsafe_load
 from morel.train.monitor import Monitor
 
 
-class _CheckpointMarker:
+class CheckpointMarker:
     """Module-level marker class used to verify unsafe_load roundtrips."""
 
 
@@ -93,7 +93,7 @@ def test_unsafe_load_returns_exploit_payload(tmp_path: Path) -> None:
     """unsafe_load is the explicit opt-in for non-tensor payloads."""
     payload_path = tmp_path / "ok.pt"
     torch.save(
-        {"model": {"x": torch.zeros(1)}, "obj": _CheckpointMarker},
+        {"model": {"x": torch.zeros(1)}, "obj": CheckpointMarker},
         payload_path,
     )
     payload = unsafe_load(payload_path)

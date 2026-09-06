@@ -13,12 +13,12 @@ from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
 
 
-class _Monitor:
+class SilentMonitor:
     def log(self, *args, **kwargs):  # noqa: ANN001, D401
         return None
 
 
-def _path_graph(n: int) -> sp.csr_matrix:
+def build_path_graph(n: int) -> sp.csr_matrix:
     rows, cols = [], []
     for i in range(n - 1):
         rows.extend([i, i + 1])
@@ -38,13 +38,13 @@ def test_real_pipeline_completion_loss_decreases() -> None:
         "text": rng.normal(size=(n, 4)).astype(np.float32),
     }
     mask_np = np.ones((n, 2), dtype=np.float32)
-    adj = _path_graph(n)
+    adj = build_path_graph(n)
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 8, "text": 4})
     pipeline.attach_corpus(features_np, mask_np, adj)
 
-    class _Ds(Dataset):
+    class CompletionBatchDataset(Dataset):
         def __len__(self) -> int:
             return n
 
@@ -57,7 +57,7 @@ def test_real_pipeline_completion_loss_decreases() -> None:
             }
 
     loader = DataLoader(
-        _Ds(),
+        CompletionBatchDataset(),
         batch_size=16,
         collate_fn=lambda batch: {
             "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
@@ -72,7 +72,7 @@ def test_real_pipeline_completion_loss_decreases() -> None:
     trainer = Completion(
         pipeline,
         CompletionConfig(),
-        monitor=_Monitor(),
+        monitor=SilentMonitor(),
         device="cpu",
     )
     initial_losses = []
@@ -98,7 +98,7 @@ def test_real_pipeline_gumbel_routing_is_non_degenerate_after_training() -> None
         "text": rng.normal(size=(n, 3)).astype(np.float32),
     }
     mask_np = np.ones((n, 2), dtype=np.float32)
-    adj = _path_graph(n)
+    adj = build_path_graph(n)
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 6, "text": 3})
