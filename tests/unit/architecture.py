@@ -173,7 +173,7 @@ class Checker:
             "ROUTERS": ROUTE_KIND,
             "CODEBOOKS": CODEBOOK_KIND,
             "COMPLETERS": COMPLETE_KIND,
-            "RECOMMENDERS": RECOMMENDERS,
+            "RECOMMENDERS": RECOMMEND_KIND,
         }
         documented = documented()
         assert set(documented) == set(registries), (

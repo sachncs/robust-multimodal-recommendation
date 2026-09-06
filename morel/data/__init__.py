@@ -68,7 +68,7 @@ def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> F
     if name == "resnet50":
         return TorchvisionEncoder(name, batch=batch)
     raise DataError(
-        f"unknown feature encoder {name!r}; available: random, "
+        f"unknown feature extractor {name!r}; available: random, "
         f"sentence-transformers/all-MiniLM-L6-v2, resnet50"
     )
 

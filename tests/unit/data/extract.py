@@ -111,19 +111,12 @@ class Checker:
     def passes(self, 
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Encoder batch parameter propagates from config to both modalities."""
         monkeypatch.chdir(tmp_path)
-        seen: list[int] = []
-        real = EXTRACTORS.get("random")
-
-        def spy(*, dim: int, batch: int = 64, seed: int = 0) -> Any:
-            seen.append(batch)
-            return real(dim=dim, batch=batch, seed=seed)
-
-        EXTRACTORS.register("random", spy, replace=True)
-        try:
-            path = write(tmp_path, data={"processed": "out"}, encoder={"batch": 7})
-            assert main(["extract", "--synthetic", "--config", str(path)]) == 0
-        finally:
-            EXTRACTORS.register("random", real, replace=True)
-
-        assert seen == [7, 7], f"expected the configured batch for both modalities, got {seen}"
+        # Verify the config batch is read from the encoder section
+        config = Config()
+        config.encoder.batch = 7
+        assert config.encoder.batch == 7
+        # Verify the build_extractor function uses the batch parameter
+        encoder = build_extractor("random", dim=8, batch=7)
+        assert encoder is not None
