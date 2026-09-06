@@ -1,4 +1,4 @@
-"""GraphEncoder Protocol and simple baselines."""
+"""GraphEnc Protocol and simple baselines."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 
 
-class GraphEncoder(Protocol):
+class GraphEnc(Protocol):
     """Graph encoder turns modality features into a hidden embedding."""
 
     def forward(
@@ -123,4 +123,4 @@ class Baseline(nn.Module):
         return encoded
 
 
-__all__ = ["Baseline", "GraphEncoder", "Identity", "Sum"]
+__all__ = ["Baseline", "GraphEnc", "Identity", "Sum"]
