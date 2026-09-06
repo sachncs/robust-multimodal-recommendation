@@ -24,7 +24,7 @@ lint-fix: ## Run linter with auto-fix
 format: ## Format code
 	ruff format .
 
-typecheck: ## Run type checker
+typecheck: ## Type checker
 	mypy morel/
 
 build: ## Build the package
@@ -44,10 +44,10 @@ serve: ## Run the inference server
 	python -m morel serve --host 0.0.0.0 --port 8080
 
 reproduce: ## Run end-to-end reproduction
-	python -m morel reproduce configs/reproduce.yaml
+	python -m morel train completion
 
 fidelity: ## Render the fidelity report
-	python -m morel render-fidelity
+	python -m morel render-fidelity docs/FIDELITY.md docs/FIDELITY.json
 
 docs: ## Build documentation
 	mkdocs build --strict
