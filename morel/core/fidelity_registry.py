@@ -274,12 +274,12 @@ register(
         paper="streaming adaptation of GRE-MC Section 4",
         equation="rolling-window online degree filter",
         status="APPROXIMATE",
-        implementation="morel.data.stream.StreamingKCore",
-        test="tests/unit/data/test_build.py::test_kcore_shrinks_until_min_degree",
+        implementation="morel.data.stream.streaming_interactions",
+        test="tests/unit/data/test_stream.py",
         deviation="Online degree filter is offline-exact when two passes are available; "
         "single-pass streaming uses a rolling-window approximation. Offline k-core "
         "remains available in morel.data.build.kcore.",
-        notes="Documented in LIMITATIONS.md. Streaming entry point lands in Phase 8.",
+        notes="Documented in LIMITATIONS.md.",
     )
 )
 

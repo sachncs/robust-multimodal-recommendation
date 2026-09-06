@@ -22,6 +22,12 @@ from morel.data.manifest import (
 )
 from morel.data.mask import Mask, bernoulli, block, stack, structured
 from morel.data.store import load_graph, load_npz, save_graph, save_npz
+from morel.data.stream import (
+    exact_two_pass_interactions,
+    review_stream,
+    streaming_interactions,
+    streaming_item_cooccurrence,
+)
 from morel.data.validate import features, graph
 from morel.data.validate import interactions as validate_interactions
 from morel.data.validate import mask as validate_mask
@@ -36,6 +42,7 @@ __all__ = [
     "checksum",
     "download",
     "download_legacy",
+    "exact_two_pass_interactions",
     "features",
     "fetch",
     "fingerprint",
@@ -48,10 +55,13 @@ __all__ = [
     "load_npz",
     "manifest_path",
     "random",
+    "review_stream",
     "save_graph",
     "save_manifest",
     "save_npz",
     "stack",
+    "streaming_interactions",
+    "streaming_item_cooccurrence",
     "structured",
     "text",
     "validate_interactions",
