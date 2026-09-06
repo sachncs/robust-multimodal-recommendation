@@ -84,7 +84,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         payload: CompleteRequest, _: None = Depends(auth.dependency("read"))
     ) -> CompleteResponse:
         try:
-            pipeline = app.state.loader.get("default", build_default)
+            pipeline = app.state.loader.get("default", default)
         except MorelError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         completed = run(pipeline, payload)
@@ -95,7 +95,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         payload: RecommendRequest, _: None = Depends(auth.dependency("read"))
     ) -> RecommendResponse:
         try:
-            pipeline = app.state.loader.get("default", build_default)
+            pipeline = app.state.loader.get("default", default)
         except MorelError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         items = recommend_items(pipeline, payload)
@@ -143,7 +143,7 @@ require_read = auth.dependency("read")
 require_admin = auth.dependency("admin")
 
 
-def build_default() -> object:
+def default() -> object:
     """Build a pipeline for inference.
 
     Returns a tiny stub pipeline. Replace with a real loader in production.
