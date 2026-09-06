@@ -26,7 +26,7 @@ log = get_logger("graph.laplacian")
 SEED = 0
 
 
-def start_vector(nodes: int) -> np.ndarray:
+def start(nodes: int) -> np.ndarray:
     """Return a fixed ARPACK start vector for a graph with ``nodes`` nodes.
 
     ``scipy.sparse.linalg.eigsh`` draws ``v0`` from numpy's global RNG when the
@@ -36,7 +36,7 @@ def start_vector(nodes: int) -> np.ndarray:
     return np.random.default_rng(SEED).standard_normal(nodes)
 
 
-def coo_data_hash(matrix: sp.spmatrix) -> str:
+def coo_hash(matrix: sp.spmatrix) -> str:
     """Stable hash of a sparse matrix's nonzero pattern and shape."""
     coo = sp.coo_matrix(matrix)
     h = hashlib.sha256()
@@ -179,7 +179,7 @@ def bottom_eigenpairs(
         dense_vals, dense_vecs = np.linalg.eigh(lap.toarray())
         return dense_vals, dense_vecs
     try:
-        sparse_vals, sparse_vecs = spla.eigsh(lap, k=count, which="SM", v0=start_vector(nodes))
+        sparse_vals, sparse_vecs = spla.eigsh(lap, k=count, which="SM", v0=start(nodes))
     except spla.ArpackNoConvergence as exc:
         log.warning(
             "eigsh did not converge; falling back to dense eigh",
@@ -275,7 +275,7 @@ class Laplace(nn.Module):
 
     def forward(self, adjacency: sp.spmatrix) -> torch.Tensor:
         """Compute or retrieve cached Laplacian PE."""
-        key = coo_data_hash(adjacency)
+        key = coo_hash(adjacency)
         if key in self.cache:
             self.cache.move_to_end(key)
             return self.cache[key]
@@ -301,5 +301,5 @@ __all__ = [
     "cluster_straddles",
     "laplacian",
     "pe",
-    "start_vector",
+    "start",
 ]

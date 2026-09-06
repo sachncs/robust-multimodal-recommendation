@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import GraphError
-from morel.graph.laplacian import Laplace, canonical_signs, laplacian, pe, start_vector
+from morel.graph.laplacian import Laplace, canonical_signs, laplacian, pe, start
 
 
 
@@ -106,7 +106,7 @@ class Checker:
         assert canonical_signs(empty).shape == (5, 0)
 
     def stable(self) -> None:
-        assert np.array_equal(start_vector(16), start_vector(16))
+        assert np.array_equal(start(16), start(16))
 
     def degenerate(self) -> None:
         """Guard the premise of the degeneracy tests below."""

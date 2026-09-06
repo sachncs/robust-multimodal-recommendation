@@ -14,7 +14,7 @@ from morel.core.errors import ModelError
 from morel.core.seed import deterministic
 
 
-def csr_cache_key(matrix: sp.csr_matrix) -> str:
+def cache_key(matrix: sp.csr_matrix) -> str:
     """Stable SHA256 of a CSR matrix's nonzero pattern and shape."""
     coo = sp.coo_matrix(matrix)
     h = hashlib.sha256()
@@ -117,7 +117,7 @@ class Light(nn.Module):
             raise IndexError(f"user index {int(users.max())} >= {self.users}")
         if items.max() >= self.items:
             raise IndexError(f"item index {int(items.max())} >= {self.items}")
-        adj_norm = self.normalized_adjacency(ui_graph)
+        adj_norm = self.norm_adj(ui_graph)
         item_emb = self.item_emb.weight
         if item_features is not None:
             if self.feature_proj is None:
@@ -141,7 +141,7 @@ class Light(nn.Module):
         i_emb = final[self.users :]
         return u_emb[users] @ i_emb[items].t()
 
-    def normalized_adjacency(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
+    def norm_adj(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
         """Compute or fetch the cached normalized adjacency tensor.
 
         Behaviour:
@@ -171,7 +171,7 @@ class Light(nn.Module):
             return cached
         if ui_graph is None:
             raise ValueError("ui_graph is required on the first call")
-        key = csr_cache_key(ui_graph)
+        key = cache_key(ui_graph)
         if self.adj_cache is not None and self.adj_cache[0] == key:
             cached = self.adj_cache[1]
             if cached.device != self.user_emb.weight.device:

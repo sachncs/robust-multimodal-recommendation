@@ -27,7 +27,7 @@ def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-1
     return -torch.log(torch.sigmoid(pos_scores - neg_scores) + eps).mean()
 
 
-def distinct_ranks(rng: np.random.Generator, high: int, size: int) -> np.ndarray:
+def distinct(rng: np.random.Generator, high: int, size: int) -> np.ndarray:
     """Draw ``size`` distinct integers from ``[0, high)``.
 
     Uses rejection sampling when the draw is sparse relative to the range, so
@@ -53,7 +53,7 @@ def distinct_ranks(rng: np.random.Generator, high: int, size: int) -> np.ndarray
     return np.asarray(picked, dtype=np.int64)
 
 
-def ranks_to_items(ranks: np.ndarray, positives: np.ndarray) -> np.ndarray:
+def to_items(ranks: np.ndarray, positives: np.ndarray) -> np.ndarray:
     """Map ranks over the *negative* items back to actual item ids.
 
     ``ranks`` index the sorted sequence of items that are **not** in
@@ -127,9 +127,9 @@ def negatives(
 
     out = np.empty((users, count), dtype=np.int64)
     for u, positives in enumerate(per_user):
-        ranks = distinct_ranks(rng, items - positives.size, count)
-        out[u] = ranks_to_items(ranks, positives)
+        ranks = distinct(rng, items - positives.size, count)
+        out[u] = to_items(ranks, positives)
     return out
 
 
-__all__ = ["bpr", "distinct_ranks", "negatives", "ranks_to_items"]
+__all__ = ["bpr", "distinct", "negatives", "to_items"]

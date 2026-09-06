@@ -9,7 +9,7 @@ import torch
 
 from morel.core.errors import DataError, ModelError
 from morel.recommend import MF, Light, Pop, bpr, negatives
-from morel.recommend.bpr import distinct_ranks, ranks_to_items
+from morel.recommend.bpr import distinct, to_items
 
 
 class Checker:
@@ -151,17 +151,17 @@ class Checker:
     def positives(self) -> None:
         positives = np.array([0, 2], dtype=np.int64)
         # Non-positive items below 5 are 1, 3, 4 -> ranks 0, 1, 2.
-        got = ranks_to_items(np.array([0, 1, 2], dtype=np.int64), positives)
+        got = to_items(np.array([0, 1, 2], dtype=np.int64), positives)
         assert got.tolist() == [1, 3, 4]
 
     def identity(self) -> None:
         ranks = np.array([0, 3, 7], dtype=np.int64)
-        assert ranks_to_items(ranks, np.array([], dtype=np.int64)).tolist() == ranks.tolist()
+        assert to_items(ranks, np.array([], dtype=np.int64)).tolist() == ranks.tolist()
 
     def range(self) -> None:
         rng = np.random.default_rng(0)
         for high, size in [(10, 9), (1000, 5), (50, 25)]:
-            out = distinct_ranks(rng, high, size)
+            out = distinct(rng, high, size)
             assert out.shape == (size,)
             assert len(set(out.tolist())) == size
             assert out.min() >= 0
