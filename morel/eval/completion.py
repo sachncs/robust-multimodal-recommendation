@@ -21,7 +21,7 @@ def per_modality(
     return out
 
 
-def explained_variance(predictions: np.ndarray, targets: np.ndarray) -> float:
+def variance(predictions: np.ndarray, targets: np.ndarray) -> float:
     """Explained variance score in ``(-inf, 1]``."""
     if predictions.shape != targets.shape:
         raise ValueError(f"shape mismatch: {predictions.shape} vs {targets.shape}")
@@ -31,4 +31,4 @@ def explained_variance(predictions: np.ndarray, targets: np.ndarray) -> float:
     return float(1.0 - ((targets - predictions).var() / var_y))
 
 
-__all__ = ["explained_variance", "mse", "per_modality"]
+__all__ = ["variance", "mse", "per_modality"]

@@ -7,7 +7,7 @@ import pytest
 
 from morel.eval import (
     ablation_results,
-    explained_variance,
+    variance,
     map_at_k,
     mrr,
     mse,
@@ -66,7 +66,7 @@ class Checker:
 
     def one(self) -> None:
         arr = np.random.default_rng(0).normal(size=(10, 4)).astype(np.float32)
-        assert abs(explained_variance(arr, arr) - 1.0) < 1e-5
+        assert abs(variance(arr, arr) - 1.0) < 1e-5
 
     def sweep(self) -> None:
         scores = np.random.default_rng(0).random((5, 10)).astype(np.float32)
