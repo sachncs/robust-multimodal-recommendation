@@ -7,8 +7,8 @@ from morel.encode.pool import CLS, Attention, Mean, Token
 from morel.encode.transformer import Transformer
 
 __all__ = [
-    "Attention",
     "CLS",
+    "Attention",
     "GraphEncoder",
     "GraphEncoderBaseline",
     "Identity",

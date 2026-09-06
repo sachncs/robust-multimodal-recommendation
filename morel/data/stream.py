@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import json
 from collections import Counter, deque
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 import numpy as np
 import scipy.sparse as sp
@@ -196,7 +196,7 @@ def streaming_item_cooccurrence(
     from itertools import combinations
 
     cooc: dict[tuple[int, int], int] = {}
-    for user_ids, item_ids in ui_chunks:
+    for _user_ids, item_ids in ui_chunks:
         per_user_items = sorted({int(i) for i in item_ids})
         for a, b in combinations(per_user_items, 2):
             cooc[(a, b)] = cooc.get((a, b), 0) + 1
@@ -217,8 +217,8 @@ def streaming_item_cooccurrence(
 
 
 __all__ = [
+    "exact_two_pass_interactions",
     "review_stream",
     "streaming_interactions",
-    "exact_two_pass_interactions",
     "streaming_item_cooccurrence",
 ]

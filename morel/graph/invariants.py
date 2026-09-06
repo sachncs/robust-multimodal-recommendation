@@ -48,4 +48,4 @@ def all_invariants(adj: sp.spmatrix) -> None:
     no_isolated(adj)
 
 
-__all__ = ["no_self_loops", "symmetric", "no_isolated", "finite", "all_invariants"]
+__all__ = ["all_invariants", "finite", "no_isolated", "no_self_loops", "symmetric"]

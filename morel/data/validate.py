@@ -104,4 +104,4 @@ def mask(mask: np.ndarray) -> None:
         raise DataError("mask has rows with no kept modalities")
 
 
-__all__ = ["interactions", "features", "graph", "mask"]
+__all__ = ["features", "graph", "interactions", "mask"]

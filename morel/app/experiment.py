@@ -217,4 +217,4 @@ class Reproduce:
         return experiment.run()
 
 
-__all__ = ["Experiment", "Benchmark", "Reproduce"]
+__all__ = ["Benchmark", "Experiment", "Reproduce"]

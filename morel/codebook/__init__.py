@@ -9,4 +9,4 @@ from morel.codebook.codebook import (
     usage,
 )
 
-__all__ = ["Codebook", "GumbelVQ", "IdentityCodebook", "VQ", "balance", "usage"]
+__all__ = ["VQ", "Codebook", "GumbelVQ", "IdentityCodebook", "balance", "usage"]

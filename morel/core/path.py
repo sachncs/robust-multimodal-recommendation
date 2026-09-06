@@ -78,4 +78,4 @@ def manifest(artifact: str) -> Path:
     return Path(artifact).with_suffix(Path(artifact).suffix + ".manifest.json")
 
 
-__all__ = ["root", "raw", "processed", "features", "graphs", "checkpoints", "runs", "manifest"]
+__all__ = ["checkpoints", "features", "graphs", "manifest", "processed", "raw", "root", "runs"]

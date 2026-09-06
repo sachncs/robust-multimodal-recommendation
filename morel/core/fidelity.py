@@ -85,10 +85,10 @@ def all() -> list[Entry]:
 __all__ = [
     "Entry",
     "Status",
-    "registry",
-    "register",
-    "render_markdown",
-    "render_json",
-    "clear",
     "all",
+    "clear",
+    "register",
+    "registry",
+    "render_json",
+    "render_markdown",
 ]

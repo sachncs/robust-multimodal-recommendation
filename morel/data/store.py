@@ -127,4 +127,4 @@ def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -
     return coo.tocsr()
 
 
-__all__ = ["save_npz", "load_npz", "save_graph", "load_graph"]
+__all__ = ["load_graph", "load_npz", "save_graph", "save_npz"]

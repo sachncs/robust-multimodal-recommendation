@@ -108,4 +108,4 @@ def as_tensor(
     return nodes, mask_t, sizes
 
 
-__all__ = ["Result", "retrieve", "batch", "as_tensor"]
+__all__ = ["Result", "as_tensor", "batch", "retrieve"]

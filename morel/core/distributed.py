@@ -168,14 +168,14 @@ def cleanup() -> None:
 
 __all__ = [
     "DistributedState",
+    "barrier",
+    "cleanup",
     "init",
     "is_initialized",
-    "rank",
-    "world_size",
-    "local_rank",
     "is_rank_zero",
-    "barrier",
+    "local_rank",
+    "rank",
     "reduce_mean",
-    "cleanup",
     "state",
+    "world_size",
 ]

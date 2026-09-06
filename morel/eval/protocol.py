@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 import numpy as np
 
@@ -64,4 +64,4 @@ def ablation_results(
     return {name: metric(scores, labels) for name, scores in scores_by_condition.items()}
 
 
-__all__ = ["RobustnessResult", "robustness_sweep", "ablation_results"]
+__all__ = ["RobustnessResult", "ablation_results", "robustness_sweep"]

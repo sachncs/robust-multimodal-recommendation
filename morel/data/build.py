@@ -181,4 +181,4 @@ def interactions(
     return graph_matrix, item_meta, len(user2id), len(item2id)
 
 
-__all__ = ["bipartite", "item_cooccurrence", "kcore", "interactions"]
+__all__ = ["bipartite", "interactions", "item_cooccurrence", "kcore"]

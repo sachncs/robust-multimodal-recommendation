@@ -44,13 +44,13 @@ class DeterminismError(MorelError):
 
 
 __all__ = [
-    "MorelError",
-    "DataError",
     "ConfigError",
-    "ModelError",
-    "GraphError",
-    "TrainError",
-    "EvalError",
-    "ShapeError",
+    "DataError",
     "DeterminismError",
+    "EvalError",
+    "GraphError",
+    "ModelError",
+    "MorelError",
+    "ShapeError",
+    "TrainError",
 ]

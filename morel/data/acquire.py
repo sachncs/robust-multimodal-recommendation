@@ -8,8 +8,8 @@ import shutil
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from morel.core.errors import DataError
 
@@ -148,12 +148,12 @@ def download_legacy(
 
 
 __all__ = [
-    "DEFAULT_TIMEOUT",
-    "DEFAULT_RETRIES",
     "DEFAULT_BACKOFF",
     "DEFAULT_BASE",
+    "DEFAULT_RETRIES",
+    "DEFAULT_TIMEOUT",
     "LEGACY_BASE",
-    "fetch",
     "download",
     "download_legacy",
+    "fetch",
 ]

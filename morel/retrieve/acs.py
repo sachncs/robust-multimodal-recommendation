@@ -148,4 +148,4 @@ def batch(
     return [compute(adj, anchors, fallback=fallback) for anchors in anchor_sets]
 
 
-__all__ = ["compute", "batch"]
+__all__ = ["batch", "compute"]

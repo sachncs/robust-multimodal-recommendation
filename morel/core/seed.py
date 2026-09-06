@@ -97,4 +97,4 @@ def restore(snapshot: State) -> None:
             torch.cuda.set_rng_state(tensor, device=device)
 
 
-__all__ = ["seed", "state", "restore", "State"]
+__all__ = ["State", "restore", "seed", "state"]

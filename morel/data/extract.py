@@ -108,9 +108,9 @@ def fingerprint(payload: np.ndarray) -> str:
 
 __all__ = [
     "FeatureEncoder",
-    "text",
-    "visual",
-    "random",
     "fingerprint",
     "l2_normalize",
+    "random",
+    "text",
+    "visual",
 ]

@@ -130,4 +130,4 @@ def mean_relevance(
     return float(final[valid].mean())
 
 
-__all__ = ["relevance", "mean_relevance"]
+__all__ = ["mean_relevance", "relevance"]

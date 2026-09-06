@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Iterator
+from collections.abc import Iterator
 
 import numpy as np
 import scipy.sparse as sp
@@ -95,4 +95,4 @@ def neighbor_array(adj: sp.csr_matrix) -> dict[int, np.ndarray]:
     return out
 
 
-__all__ = ["bfs", "path", "neighbor_iter", "neighbor_array"]
+__all__ = ["bfs", "neighbor_array", "neighbor_iter", "path"]

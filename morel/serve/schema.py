@@ -60,9 +60,9 @@ def serialize_completed(completed: dict[str, Any]) -> dict[str, list[list[float]
 __all__ = [
     "CompleteRequest",
     "CompleteResponse",
-    "RecommendRequest",
-    "RecommendItem",
-    "RecommendResponse",
     "HealthResponse",
+    "RecommendItem",
+    "RecommendRequest",
+    "RecommendResponse",
     "serialize_completed",
 ]
