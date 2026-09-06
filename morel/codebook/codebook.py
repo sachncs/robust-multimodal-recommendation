@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F  # noqa: N812
+
+from morel.core.seed import deterministic
 
 
 class Codebook(nn.Module):
@@ -28,7 +32,18 @@ class Codebook(nn.Module):
 class VQ(Codebook):
     """Vector-quantizing codebook with straight-through gradient."""
 
-    def __init__(self, dim: int, size: int, *, commitment: float = 0.25) -> None:
+    def __init__(
+        self, dim: int, size: int, *, commitment: float = 0.25, seed: int | None = None
+    ) -> None:
+        """Build a vector-quantizing codebook.
+
+        Args:
+            dim: Embedding width; must be positive.
+            size: Number of codebook entries; must be positive.
+            commitment: Commitment-loss weight.
+            seed: If given, initialize the codebook under this seed without
+                disturbing the caller's global RNG state.
+        """
         super().__init__()
         if size <= 0:
             raise ValueError(f"size must be positive, got {size}")
@@ -37,8 +52,9 @@ class VQ(Codebook):
         self.dim = dim
         self.size = size
         self.commitment = commitment
-        self.embeddings = nn.Embedding(size, dim)
-        nn.init.xavier_uniform_(self.embeddings.weight)
+        with nullcontext() if seed is None else deterministic(seed):
+            self.embeddings = nn.Embedding(size, dim)
+            nn.init.xavier_uniform_(self.embeddings.weight)
 
     def forward(
         self, hidden: torch.Tensor, *, training: bool = True
@@ -75,14 +91,24 @@ class GumbelVQ(Codebook):
     (pre-mask, suitable for usage/balance losses).
     """
 
-    def __init__(self, dim: int, size: int, *, router: nn.Module) -> None:
+    def __init__(self, dim: int, size: int, *, router: nn.Module, seed: int | None = None) -> None:
+        """Build a router-driven codebook.
+
+        Args:
+            dim: Embedding width.
+            size: Number of codebook entries; must be positive.
+            router: Module producing the routing distribution.
+            seed: If given, initialize the codebook under this seed without
+                disturbing the caller's global RNG state.
+        """
         super().__init__()
         if size <= 0:
             raise ValueError(f"size must be positive, got {size}")
         self.size = size
         self.router = router
-        self.codebook = nn.Embedding(size, dim)
-        nn.init.xavier_uniform_(self.codebook.weight)
+        with nullcontext() if seed is None else deterministic(seed):
+            self.codebook = nn.Embedding(size, dim)
+            nn.init.xavier_uniform_(self.codebook.weight)
 
     def forward(
         self, hidden: torch.Tensor, *, training: bool = True

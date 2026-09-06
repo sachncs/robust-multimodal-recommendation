@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import hashlib
+from contextlib import nullcontext
 
 import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
+
+from morel.core.seed import deterministic
 
 
 def csr_cache_key(matrix: sp.csr_matrix) -> str:
@@ -30,7 +33,28 @@ class Light(nn.Module):
     ``id()`` (which can be reused after GC).
     """
 
-    def __init__(self, users: int, items: int, *, embed: int = 64, layers: int = 3) -> None:
+    def __init__(
+        self,
+        users: int,
+        items: int,
+        *,
+        embed: int = 64,
+        layers: int = 3,
+        seed: int | None = None,
+    ) -> None:
+        """Build a LightGCN ranker.
+
+        Args:
+            users: Number of users; must be positive.
+            items: Number of items; must be positive.
+            embed: Embedding width.
+            layers: Number of propagation steps; must be non-negative.
+            seed: If given, initialize the embeddings under this seed so that
+                two ``Light`` instances built with the same seed hold
+                identical weights. The caller's global RNG state is left
+                untouched. If ``None``, the global RNG is used and the
+                weights depend on ambient process state.
+        """
         super().__init__()
         if users <= 0 or items <= 0:
             raise ValueError("users and items must be positive")
@@ -40,10 +64,11 @@ class Light(nn.Module):
         self.items = items
         self.layers = layers
         self.embed = embed
-        self.user_emb = nn.Embedding(users, embed)
-        self.item_emb = nn.Embedding(items, embed)
-        nn.init.xavier_uniform_(self.user_emb.weight)
-        nn.init.xavier_uniform_(self.item_emb.weight)
+        with nullcontext() if seed is None else deterministic(seed):
+            self.user_emb = nn.Embedding(users, embed)
+            self.item_emb = nn.Embedding(items, embed)
+            nn.init.xavier_uniform_(self.user_emb.weight)
+            nn.init.xavier_uniform_(self.item_emb.weight)
         self.adj_cache: tuple[str, torch.Tensor] | None = None
 
     def forward(

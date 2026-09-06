@@ -2,25 +2,39 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+
 import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
 
+from morel.core.seed import deterministic
+
 
 class MF(nn.Module):
     """Matrix factorization with dot-product scoring."""
 
-    def __init__(self, users: int, items: int, *, embed: int = 64) -> None:
+    def __init__(self, users: int, items: int, *, embed: int = 64, seed: int | None = None) -> None:
+        """Build a matrix-factorization ranker.
+
+        Args:
+            users: Number of users; must be positive.
+            items: Number of items; must be positive.
+            embed: Embedding width.
+            seed: If given, initialize the embeddings under this seed without
+                disturbing the caller's global RNG state.
+        """
         super().__init__()
         if users <= 0 or items <= 0:
             raise ValueError("users and items must be positive")
         self.users = users
         self.items = items
-        self.user_emb = nn.Embedding(users, embed)
-        self.item_emb = nn.Embedding(items, embed)
-        nn.init.xavier_uniform_(self.user_emb.weight)
-        nn.init.xavier_uniform_(self.item_emb.weight)
+        with nullcontext() if seed is None else deterministic(seed):
+            self.user_emb = nn.Embedding(users, embed)
+            self.item_emb = nn.Embedding(items, embed)
+            nn.init.xavier_uniform_(self.user_emb.weight)
+            nn.init.xavier_uniform_(self.item_emb.weight)
 
     def forward(
         self,

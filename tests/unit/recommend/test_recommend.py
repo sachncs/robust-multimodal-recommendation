@@ -126,3 +126,36 @@ def test_light_gcn_cache_invalidates_on_new_graph() -> None:
     first_key = light.adj_cache[0]
     light(torch.arange(users), torch.arange(items), ui_b)
     assert light.adj_cache[0] != first_key
+
+
+def test_light_seed_makes_init_reproducible() -> None:
+    torch.manual_seed(1)
+    first = Light(users=5, items=7, embed=8, layers=2, seed=3)
+    torch.manual_seed(9999)
+    second = Light(users=5, items=7, embed=8, layers=2, seed=3)
+    assert torch.equal(first.user_emb.weight, second.user_emb.weight)
+    assert torch.equal(first.item_emb.weight, second.item_emb.weight)
+
+
+def test_light_seed_does_not_disturb_global_rng() -> None:
+    torch.manual_seed(7)
+    expected = torch.randn(4)
+    torch.manual_seed(7)
+    Light(users=5, items=7, embed=8, layers=2, seed=3)
+    assert torch.equal(expected, torch.randn(4))
+
+
+def test_light_without_seed_follows_global_rng() -> None:
+    torch.manual_seed(21)
+    first = Light(users=5, items=7, embed=8, layers=2)
+    torch.manual_seed(21)
+    second = Light(users=5, items=7, embed=8, layers=2)
+    assert torch.equal(first.user_emb.weight, second.user_emb.weight)
+
+
+def test_mf_seed_makes_init_reproducible() -> None:
+    torch.manual_seed(1)
+    first = MF(users=5, items=7, embed=8, seed=11)
+    torch.manual_seed(9999)
+    second = MF(users=5, items=7, embed=8, seed=11)
+    assert torch.equal(first.user_emb.weight, second.user_emb.weight)

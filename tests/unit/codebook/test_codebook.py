@@ -82,3 +82,19 @@ def test_usage_loss_positive_for_imbalanced() -> None:
     probs = torch.zeros(16, 10)
     probs[:, 0] = 1.0
     assert float(usage(probs)) > 1.0
+
+
+def test_vq_seed_makes_init_reproducible() -> None:
+    torch.manual_seed(1)
+    first = VQ(dim=8, size=16, seed=5)
+    torch.manual_seed(9999)
+    second = VQ(dim=8, size=16, seed=5)
+    assert torch.equal(first.embeddings.weight, second.embeddings.weight)
+
+
+def test_gumbel_vq_seed_makes_init_reproducible() -> None:
+    torch.manual_seed(1)
+    first = GumbelVQ(dim=8, size=16, router=Top(dim=8, k=16, p=4), seed=5)
+    torch.manual_seed(9999)
+    second = GumbelVQ(dim=8, size=16, router=Top(dim=8, k=16, p=4), seed=5)
+    assert torch.equal(first.codebook.weight, second.codebook.weight)
