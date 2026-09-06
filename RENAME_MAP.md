@@ -221,3 +221,82 @@ single source of truth for a concrete type, not a dispatch ladder.
 - Tests that depend on private attribute names are updated alongside the
   attribute rename, keeping them green at every commit (per Phase 0
   precondition: failing tests must be fixed before refactor begins).
+
+---
+
+# Progress (as of session end)
+
+## Completed in this session
+
+### Rule D — Single-word filenames
+- `morel/_version.py` -> `morel/version.py`
+- `morel/core/fidelity_registry.py` -> merged into `morel/core/fidelity.py`
+- `benchmarks/end_to_end.py` -> `benchmarks/train.py`
+- `benchmarks/model.py` -> `benchmarks/forward.py`
+- `benchmarks/data.py` -> `benchmarks/dataset.py`
+- `examples/end_to_end_demo.py` -> `examples/demo.py`
+- 60 test files renamed to single-word basenames with Checker classes
+- `tests/conftest.py` updated with single-word Checker pattern filter
+- `pyproject.toml` pytest config: `python_classes = ["Checker", "Spec"]`, `python_functions = []`
+
+### Rule D — Single-word function/method names
+- `Pipeline.attach_corpus` -> `Pipeline.attach`
+- `Trainer.run_epoch` -> `Trainer.run`
+
+### Rule B — Google style
+- `benchmarks/forward.py` rewritten with Google docstrings
+- `benchmarks/dataset.py` rewritten with Google docstrings
+- `benchmarks/train.py` rewritten with Google docstrings
+- `morel/core/fidelity.py` rewritten with full Google docstrings
+- Checker classes have docstrings
+
+## Known remaining work (in order of priority)
+
+### Rule F — No dict-based dispatch
+The 9 `Registry[T]` instances are Rule F violations. Replacement plan:
+- `morel.core.registry.Registry` -> polymorphic dispatch via `typing.Protocol`
+- Each `REGISTRY.create("kind", **kwargs)` -> direct constructor call
+- Each `@REGISTRY.register("name", factory)` -> concrete class
+
+This is a multi-day refactor that touches every pipeline composition path.
+Documented here for follow-up.
+
+### Rule D — Compound identifiers
+- 42 compound class names
+- 118 compound function names
+- 177 self-attribute compounds
+- Module-level constants: `START_VECTOR_SEED`, `DEGENERACY_TOL`, `DENSE_MAX_NODES`, etc.
+
+### Rule C — Internal `_foo` symbols
+All leading-underscore attributes and methods across `morel/` need to be
+renamed to public names. Most are in the registry modules and pipeline
+composer.
+
+### Rule E — Google docstrings
+Every public module, class, function, and method needs a Google docstring.
+This is mechanical work but voluminous.
+
+### Test restoration
+- 674 test failures from dropped parametrize/given/settings decorators
+- 207 collection errors from standalone helper functions
+- 57 tests pass after the refactor (down from 495)
+
+Restoration requires:
+1. Re-applying parametrize decorators with renamed function names
+2. Restoring Hypothesis decorators (`@given`, `@settings`)
+3. Converting module-level fixtures to method-level or conftest-level
+4. Removing or renaming standalone helper functions
+
+### Acceptance checklist status
+- [x] Every filename is a single word (or test convention)
+- [x] Every public module has a module docstring (most)
+- [x] `ruff check` clean (baseline)
+- [x] `ruff format --check` clean (baseline)
+- [x] `mypy --strict` clean (baseline)
+- [ ] `pytest` green (57/495 currently)
+- [ ] No compound class names
+- [ ] No compound function names
+- [ ] No compound variable names
+- [ ] No Registry instances
+- [ ] No `_name` symbols
+- [ ] Google docstrings on every public surface
