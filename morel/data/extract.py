@@ -101,7 +101,7 @@ def random(items: int, dim: int, *, seed: int, name: str = "random") -> np.ndarr
     return l2_normalize(array)
 
 
-class RandomEncoder:
+class Random:
     """Deterministic pseudo-random encoder.
 
     Satisfies :class:`FeatureEncoder` without any model download, so the
@@ -131,7 +131,7 @@ class RandomEncoder:
         return l2_normalize(rows)
 
 
-class SentenceTransformerEncoder:
+class Sentence:
     """Text encoder backed by sentence-transformers."""
 
     def __init__(self, model: str, *, batch: int = 64) -> None:
@@ -157,7 +157,7 @@ class SentenceTransformerEncoder:
         return l2_normalize(np.asarray(vectors, dtype=np.float32))
 
 
-class TorchvisionEncoder:
+class Vision:
     """Visual encoder backed by a torchvision classification backbone."""
 
     def __init__(self, model: str, *, batch: int = 32) -> None:
@@ -204,9 +204,9 @@ def fingerprint(payload: np.ndarray) -> str:
 
 __all__ = [
     "FeatureEncoder",
-    "RandomEncoder",
-    "SentenceTransformerEncoder",
-    "TorchvisionEncoder",
+    "Random",
+    "Sentence",
+    "Vision",
     "fingerprint",
     "l2_normalize",
     "random",

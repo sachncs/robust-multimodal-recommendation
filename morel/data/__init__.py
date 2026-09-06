@@ -9,9 +9,9 @@ from morel.data.acquire import download, fetch
 from morel.data.build import bipartite, cooccurrence, interactions, kcore
 from morel.data.extract import (
     FeatureEncoder,
-    RandomEncoder,
-    SentenceTransformerEncoder,
-    TorchvisionEncoder,
+    Random,
+    Sentence,
+    Vision,
     fingerprint,
     random,
     text,
@@ -62,11 +62,11 @@ def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> F
         DataError: If ``name`` is not a known encoder.
     """
     if name == "random":
-        return RandomEncoder(dim, seed=seed)
+        return Random(dim, seed=seed)
     if name == "sentence-transformers/all-MiniLM-L6-v2":
-        return SentenceTransformerEncoder(name, batch=batch)
+        return Sentence(name, batch=batch)
     if name == "resnet50":
-        return TorchvisionEncoder(name, batch=batch)
+        return Vision(name, batch=batch)
     raise ConfigError(
         f"unknown feature extractor {name!r}; available: random, "
         f"sentence-transformers/all-MiniLM-L6-v2, resnet50"
@@ -75,9 +75,9 @@ def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> F
 
 #: Map from config name to encoder class for introspection.
 EXTRACTORS: dict[str, type[FeatureEncoder]] = {
-    "random": RandomEncoder,
-    "sentence-transformers/all-MiniLM-L6-v2": SentenceTransformerEncoder,
-    "resnet50": TorchvisionEncoder,
+    "random": Random,
+    "sentence-transformers/all-MiniLM-L6-v2": Sentence,
+    "resnet50": Vision,
 }
 
 
@@ -125,9 +125,9 @@ __all__ = [
     "FeatureEncoder",
     "Manifest",
     "Mask",
-    "RandomEncoder",
-    "SentenceTransformerEncoder",
-    "TorchvisionEncoder",
+    "Random",
+    "Sentence",
+    "Vision",
     "bernoulli",
     "bipartite",
     "block",
