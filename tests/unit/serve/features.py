@@ -210,11 +210,11 @@ class Checker:
         assert updater.version == 1
 
     def polymorphic(self) -> None:
-        """LossStep Protocol: DefaultLossStep and a custom callable both work."""
-        from morel.serve.update import DefaultLossStep
+        """LossStep Protocol: DefaultStep and a custom callable both work."""
+        from morel.serve.update import DefaultStep
 
         base = PipelineUpdater(TinyModel(), cooldown_seconds=0)
-        assert isinstance(base.loss_step, DefaultLossStep)
+        assert isinstance(base.loss_step, DefaultStep)
         custom = PipelineUpdater(
             TinyModel(),
             cooldown_seconds=0,

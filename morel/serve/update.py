@@ -31,7 +31,7 @@ Signal = str
 
 
 @dataclass
-class FeedbackEvent:
+class Event:
     """One user-feedback event."""
 
     user: int
@@ -56,14 +56,14 @@ class LossStep(Protocol):
     """Compute the loss for one update step given a batch of feedback.
 
     Implementations may be the production trainer step, a small
-    surrogate, or the ``DefaultLossStep`` baseline.
+    surrogate, or the ``DefaultStep`` baseline.
     """
 
-    def __call__(self, batch: list[FeedbackEvent]) -> float:
+    def __call__(self, batch: list[Event]) -> float:
         """Compute the loss for ``batch``."""
 
 
-class DefaultLossStep:
+class DefaultStep:
     """No-training loss step used as a baseline and for tests.
 
     Returns a deterministic pseudo-loss derived from the batch size and
@@ -71,7 +71,7 @@ class DefaultLossStep:
     losses (and the divergence guard can be exercised).
     """
 
-    def __call__(self, batch: list[FeedbackEvent]) -> float:
+    def __call__(self, batch: list[Event]) -> float:
         """Compute a deterministic pseudo-loss for ``batch``."""
         import time as _time
 
@@ -124,13 +124,13 @@ class PipelineUpdater:
         # and do not need the model lock.
         self.lock = RWLock()
         self.buffer_lock = threading.Lock()
-        self.feedback_ring: deque[FeedbackEvent] = deque(maxlen=feedback_capacity)
-        self.replay_ring: deque[FeedbackEvent] = deque(maxlen=replay_capacity)
+        self.feedback_ring: deque[Event] = deque(maxlen=feedback_capacity)
+        self.replay_ring: deque[Event] = deque(maxlen=replay_capacity)
         self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
         self.cooldown_until: float = 0.0
         self.replay_ratio = float(replay_ratio)
         self.val_ratio = float(val_ratio)
-        self.loss_step: LossStep = loss_step or DefaultLossStep()
+        self.loss_step: LossStep = loss_step or DefaultStep()
         self.version = 0
         self.loss_window: deque[float] = deque(maxlen=64)
         self.last_loss = float("nan")
@@ -139,7 +139,7 @@ class PipelineUpdater:
 
     def accept(self, user: int, item: int, signal: Signal) -> None:
         """Append a feedback event to the feedback ring (thread-safe)."""
-        event = FeedbackEvent(user=user, item=item, signal=signal, timestamp=time.time())
+        event = Event(user=user, item=item, signal=signal, timestamp=time.time())
         with self.buffer_lock:
             self.feedback_ring.append(event)
             self.replay_ring.append(event)
@@ -185,7 +185,7 @@ class PipelineUpdater:
         """Snapshot the pipeline state dict for rollback."""
         return copy.deepcopy(self.pipeline.state_dict())
 
-    def validation_loss(self, batch: list[FeedbackEvent]) -> float:
+    def validation_loss(self, batch: list[Event]) -> float:
         """Compute the held-out validation loss using the configured ``loss_step``."""
         if not batch:
             return float("inf")
@@ -253,8 +253,8 @@ class PipelineUpdater:
 
 
 __all__ = [
-    "DefaultLossStep",
-    "FeedbackEvent",
+    "DefaultStep",
+    "Event",
     "LossStep",
     "PipelineUpdater",
     "Signal",

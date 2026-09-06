@@ -27,8 +27,8 @@ from morel.serve.schema import (
     serialize_completed,
 )
 from morel.serve.update import (
-    DefaultLossStep,
-    FeedbackEvent,
+    DefaultStep,
+    Event,
     LossStep,
     PipelineUpdater,
     Signal,
@@ -38,8 +38,8 @@ from morel.serve.update import (
 __all__ = [
     "CompleteRequest",
     "CompleteResponse",
-    "DefaultLossStep",
-    "FeedbackEvent",
+    "DefaultStep",
+    "Event",
     "FeedbackRequest",
     "FeedbackResponse",
     "HealthResponse",
