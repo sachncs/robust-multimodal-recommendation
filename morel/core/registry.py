@@ -44,7 +44,7 @@ class Registry(Generic[T]):
     def __init__(self, name: str) -> None:
         """Create an empty registry labelled ``name``."""
         self.name = name
-        self._factories: dict[str, Callable[..., T]] = {}
+        self.factories: dict[str, Callable[..., T]] = {}
 
     @overload
     def register(self, key: str) -> Callable[[Callable[..., T]], Callable[..., T]]: ...
@@ -90,12 +90,12 @@ class Registry(Generic[T]):
             raise ConfigError(f"{self.name} name must be a non-empty string")
 
         def do_register(target: Callable[..., T]) -> Callable[..., T]:
-            if key in self._factories and not replace:
+            if key in self.factories and not replace:
                 raise ConfigError(
                     f"{self.name} {key!r} is already registered; "
                     f"pass replace=True to override it deliberately"
                 )
-            self._factories[key] = target
+            self.factories[key] = target
             return target
 
         if factory is None:
@@ -112,7 +112,7 @@ class Registry(Generic[T]):
                 is almost always a typo in a config file.
         """
         try:
-            return self._factories[key]
+            return self.factories[key]
         except KeyError:
             raise ConfigError(
                 f"unknown {self.name} {key!r}; available: {', '.join(self.available()) or '(none)'}"
@@ -133,17 +133,17 @@ class Registry(Generic[T]):
         ------
             ConfigError: If nothing is registered under ``key``.
         """
-        if key not in self._factories:
+        if key not in self.factories:
             raise ConfigError(f"cannot unregister {self.name} {key!r}: it is not registered")
-        del self._factories[key]
+        del self.factories[key]
 
     def available(self) -> tuple[str, ...]:
         """Return the registered names, sorted."""
-        return tuple(sorted(self._factories))
+        return tuple(sorted(self.factories))
 
     def __contains__(self, key: object) -> bool:
         """Return whether ``key`` names a registered component."""
-        return key in self._factories
+        return key in self.factories
 
     def __iter__(self) -> Iterator[str]:
         """Iterate over the registered names, sorted."""
@@ -151,7 +151,7 @@ class Registry(Generic[T]):
 
     def __len__(self) -> int:
         """Return how many components are registered."""
-        return len(self._factories)
+        return len(self.factories)
 
     def __repr__(self) -> str:
         """Return a debug representation listing the registered names."""

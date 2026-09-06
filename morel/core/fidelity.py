@@ -25,7 +25,8 @@ Status = Literal["EXACT", "APPROXIMATE", "INCORRECT", "UNKNOWN"]
 class Entry:
     """One component's fidelity declaration.
 
-    Attributes:
+    Attributes
+    ----------
         name: Human-readable component name.
         paper: Bibliographic anchor for the claim.
         equation: Plain-English equation or algorithm reference.
@@ -55,7 +56,8 @@ def register(entry: Entry) -> Entry:
     Args:
         entry: The fidelity declaration to register.
 
-    Returns:
+    Returns
+    -------
         The same entry, for decorator chaining.
     """
     registry[entry.name] = entry
