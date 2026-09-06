@@ -14,7 +14,7 @@ from morel.core.errors import DataError
 from morel.data import manifest
 
 
-def atomic_write(target: Path, writer: Callable[[Path], None]) -> Path:
+def atomic(target: Path, writer: Callable[[Path], None]) -> Path:
     """Write to a sibling tempfile, then atomically replace the target.
 
     The tempfile name is constructed so that ``np.savez`` and ``sp.save_npz``
@@ -57,7 +57,7 @@ def save_npz(
     final = Path(target).resolve()
     # A key literally named ``allow_pickle`` would bind to savez's own keyword;
     # that raises rather than silently dropping data, so the narrowing is safe.
-    atomic_write(final, lambda tmp: np.savez(tmp, **arrays))  # type: ignore[arg-type]
+    atomic(final, lambda tmp: np.savez(tmp, **arrays))  # type: ignore[arg-type]
     if manifest_obj is not None:
         manifest.save(final, manifest_obj)
     return final
@@ -108,7 +108,7 @@ def save_graph(
             shape=np.asarray(coo.shape, dtype=np.int64),
         )
 
-    atomic_write(final, writer)
+    atomic(final, writer)
     if manifest_obj is not None:
         manifest.save(final, manifest_obj)
     return final
