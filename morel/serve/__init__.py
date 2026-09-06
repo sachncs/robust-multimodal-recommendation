@@ -27,7 +27,7 @@ from morel.serve.schema import (
     serialize_completed,
 )
 from morel.serve.update import (
-    DefaultStep,
+    DefaultStp,
     Event,
     Outcome,
     Signal,
@@ -38,7 +38,7 @@ from morel.serve.update import (
 __all__ = [
     "CompleteRequest",
     "CompleteResponse",
-    "DefaultStep",
+    "DefaultStp",
     "Event",
     "FeedbackRequest",
     "FeedbackResponse",

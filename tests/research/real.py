@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 from morel.core.config import Config
 from morel.core.seed import seed as seed_everything
 from morel.pipeline import Pipeline
-from morel.train.completion import Completion, TrainConfig
+from morel.train.completion import Completion, FitConfig
 
 
 class SilentMonitor:
@@ -78,7 +78,7 @@ class Checker:
 
         trainer = Completion(
             pipeline,
-            TrainConfig(),
+            FitConfig(),
             monitor=SilentMonitor(),
             device="cpu",
         )

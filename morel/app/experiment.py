@@ -29,8 +29,8 @@ from morel.data.build import cooccurrence
 from morel.data.manifest import Manifest
 from morel.eval import ablate, ablation_results, conditions, ndcg_at_k, recall_at_k
 from morel.pipeline import Pipeline
-from morel.train.completion import Completion, TrainConfig
-from morel.train.recommendation import RankConfig, Recommendation
+from morel.train.completion import Completion, FitConfig
+from morel.train.recommendation import RankCfg, Recommendation
 
 log = get_logger("app.experiment")
 
@@ -145,7 +145,7 @@ class Experiment:
         )
         trainer = Completion(
             pipeline,
-            TrainConfig(
+            FitConfig(
                 lambda_usage=self.config.completion.usage,
                 lambda_balance=self.config.completion.balance,
                 grad_clip=self.config.completion.grad_clip,
@@ -280,7 +280,7 @@ class Rank:
         )
         trainer = Recommendation(
             pipeline.recommender,
-            RankConfig(grad_clip=self.config.recommendation.grad_clip),
+            RankCfg(grad_clip=self.config.recommendation.grad_clip),
             ui_graph=ui,
             negatives_count=self.config.recommendation.negatives,
             seed=seed_value,

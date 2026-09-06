@@ -18,7 +18,7 @@ from morel.train.trainer import Trainer
 
 
 @dataclass
-class RankConfig:
+class RankCfg:
     """Configuration for recommendation training."""
 
     grad_clip: float = 1.0
@@ -30,7 +30,7 @@ class Recommendation(Trainer):
     def __init__(
         self,
         model: nn.Module,
-        config: RankConfig,
+        config: RankCfg,
         *,
         ui_graph: sp.csr_matrix,
         negatives_count: int = 1,
@@ -97,4 +97,4 @@ class Recommendation(Trainer):
         return total / max(count, 1)
 
 
-__all__ = ["RankConfig", "Recommendation"]
+__all__ = ["RankCfg", "Recommendation"]

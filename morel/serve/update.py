@@ -56,14 +56,14 @@ class Step(Protocol):
     """Compute the loss for one update step given a batch of feedback.
 
     Implementations may be the production trainer step, a small
-    surrogate, or the ``DefaultStep`` baseline.
+    surrogate, or the ``DefaultStp`` baseline.
     """
 
     def __call__(self, batch: list[Event]) -> float:
         """Compute the loss for ``batch``."""
 
 
-class DefaultStep:
+class DefaultStp:
     """No-training loss step used as a baseline and for tests.
 
     Returns a deterministic pseudo-loss derived from the batch size and
@@ -130,7 +130,7 @@ class Updater:
         self.cooldown_until: float = 0.0
         self.replay_ratio = float(replay_ratio)
         self.val_ratio = float(val_ratio)
-        self.loss_step: Step = loss_step or DefaultStep()
+        self.loss_step: Step = loss_step or DefaultStp()
         self.version = 0
         self.loss_window: deque[float] = deque(maxlen=64)
         self.last_loss = float("nan")
@@ -253,7 +253,7 @@ class Updater:
 
 
 __all__ = [
-    "DefaultStep",
+    "DefaultStp",
     "Event",
     "Outcome",
     "Signal",

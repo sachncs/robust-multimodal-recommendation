@@ -17,7 +17,7 @@ from morel.train.trainer import Trainer
 
 
 @dataclass
-class TrainConfig:
+class FitConfig:
     """Configuration for completion training."""
 
     lambda_usage: float = 1.0
@@ -31,7 +31,7 @@ class Completion(Trainer):
     def __init__(
         self,
         model: nn.Module,
-        config: TrainConfig,
+        config: FitConfig,
         *,
         lr: float = 1e-3,
         weight_decay: float = 1e-5,
@@ -107,4 +107,4 @@ class Completion(Trainer):
         return total / max(count, 1)
 
 
-__all__ = ["Completion", "TrainConfig"]
+__all__ = ["Completion", "FitConfig"]
