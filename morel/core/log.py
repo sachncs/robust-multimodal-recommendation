@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 
-class JsonFormatter(logging.Formatter):
+class Json(logging.Formatter):
     """Format log records as one JSON object per line."""
 
     def format(self, record: logging.LogRecord) -> str:
@@ -90,7 +90,7 @@ def configure(
         root.removeHandler(handler)
     formatter: logging.Formatter
     if structured:
-        formatter = JsonFormatter()
+        formatter = Json()
     else:
         formatter = logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s")
     stream = logging.StreamHandler(sys.stderr)
@@ -141,4 +141,4 @@ def log(directory: Path | str, **metrics: Any) -> None:
         handle.write("\n")
 
 
-__all__ = ["Config", "JsonFormatter", "configure", "get", "get_logger", "log"]
+__all__ = ["Config", "Json", "configure", "get", "get_logger", "log"]

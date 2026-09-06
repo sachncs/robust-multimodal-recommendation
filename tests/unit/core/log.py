@@ -25,9 +25,9 @@ class Checker:
 
         buf = StringIO()
         handler = logging.StreamHandler(buf)
-        from morel.core.log import JsonFormatter
+        from morel.core.log import Json
 
-        handler.setFormatter(JsonFormatter())
+        handler.setFormatter(Json())
         logger = logging.getLogger("morel.test_json")
         logger.handlers = [handler]
         logger.setLevel(logging.INFO)
