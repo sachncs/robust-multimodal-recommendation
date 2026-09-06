@@ -7,15 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import Net
-from morel.graph.laplacian import Laplace, signs, laplacian, pe, start
-
-
-
-
-
-
-
-
+from morel.graph.laplacian import Laplace, laplacian, pe, signs, start
 
 
 def ring(nodes: int) -> sp.csr_matrix:

@@ -141,7 +141,7 @@ class Checker:
         second = Light(users=5, items=7, embed=8, layers=2)
         assert torch.equal(first.user_emb.weight, second.user_emb.weight)
 
-    def init(self) -> None:
+    def init_mf(self) -> None:
         torch.manual_seed(1)
         first = MF(users=5, items=7, embed=8, seed=11)
         torch.manual_seed(9999)

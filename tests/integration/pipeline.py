@@ -11,11 +11,11 @@ from torch.utils.data import DataLoader
 from morel.core.config import Config
 from morel.core.errors import Net
 from morel.pipeline import Pipeline
-from morel.train.completion import Completion, FitConfig
+from morel.train.completion import Completion, Fit
 from tests.shared import Corpus, build_path_graph, make_completion_collate
 
 
-class SilentMonitor:
+class Monitor:
     """Test monitor that discards metric logs."""
 
     def log(self, step: int | None = None, **metrics: object) -> None:
@@ -49,8 +49,8 @@ class Checker:
         )
         trainer = Completion(
             pipeline,
-            FitConfig(),
-            monitor=SilentMonitor(),
+            Fit(),
+            monitor=Monitor(),
             checkpoint_dir=tmp_path,
             device="cpu",
         )

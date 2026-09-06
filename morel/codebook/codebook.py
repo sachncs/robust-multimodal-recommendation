@@ -140,7 +140,7 @@ class GumbelCodebook(Codebook):
         return quantized, probs
 
 
-class IdentityCodebook(Codebook):
+class Noop(Codebook):
     """No-op codebook used for ablations; returns the input and a uniform probs."""
 
     def __init__(self, dim: int, size: int) -> None:
@@ -183,4 +183,4 @@ def balance(probs: torch.Tensor) -> torch.Tensor:
     return probs.shape[1] * (bar_p**2).sum()
 
 
-__all__ = ["VQ", "Codebook", "GumbelCodebook", "IdentityCodebook", "balance", "usage"]
+__all__ = ["VQ", "Codebook", "GumbelCodebook", "Noop", "balance", "usage"]

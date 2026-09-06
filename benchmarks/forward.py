@@ -24,10 +24,7 @@ def make_pipeline(items: int, dims: dict[str, int]) -> Pipeline:
         A configured :class:`Pipeline` with retrieval buffers attached.
     """
     rng = np.random.default_rng(0)
-    features = {
-        k: rng.normal(size=(items, d)).astype(np.float32)
-        for k, d in dims.items()
-    }
+    features = {k: rng.normal(size=(items, d)).astype(np.float32) for k, d in dims.items()}
     mask = np.ones((items, len(dims)), dtype=np.float32)
     offsets = np.arange(items)
     rows = np.concatenate([offsets, (offsets + 1) % items])
@@ -44,9 +41,7 @@ def make_pipeline(items: int, dims: dict[str, int]) -> Pipeline:
 def bench_1k(benchmark) -> None:
     """Measure forward latency at one thousand items."""
     pipeline = make_pipeline(1000, {"visual": 16, "text": 8})
-    features = {
-        k: torch.from_numpy(v) for k, v in pipeline.retrieval_features.items()
-    }
+    features = {k: torch.from_numpy(v) for k, v in pipeline.retrieval_features.items()}
     mask = torch.from_numpy(pipeline.retrieval_mask)
     index = torch.arange(1000)
 
@@ -59,9 +54,7 @@ def bench_1k(benchmark) -> None:
 def bench_10k(benchmark) -> None:
     """Measure forward latency at ten thousand items."""
     pipeline = make_pipeline(10000, {"visual": 16, "text": 8})
-    features = {
-        k: torch.from_numpy(v) for k, v in pipeline.retrieval_features.items()
-    }
+    features = {k: torch.from_numpy(v) for k, v in pipeline.retrieval_features.items()}
     mask = torch.from_numpy(pipeline.retrieval_mask)
     index = torch.arange(10000)
 
@@ -78,9 +71,7 @@ def bench_100k(benchmark) -> None:
     scales, not to enforce tight SLOs.
     """
     pipeline = make_pipeline(100000, {"visual": 16, "text": 8})
-    features = {
-        k: torch.from_numpy(v) for k, v in pipeline.retrieval_features.items()
-    }
+    features = {k: torch.from_numpy(v) for k, v in pipeline.retrieval_features.items()}
     mask = torch.from_numpy(pipeline.retrieval_mask)
     index = torch.arange(100000)
 

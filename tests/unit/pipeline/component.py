@@ -17,7 +17,8 @@ import pytest
 import scipy.sparse as sp
 import torch
 
-from morel.codebook import KIND as CODEBOOK_KIND, Codebook
+from morel.codebook import KIND as CODEBOOK_KIND
+from morel.codebook import Codebook
 from morel.complete import KIND as COMPLETE_KIND
 from morel.core.config import Config
 from morel.core.errors import Cfg
@@ -47,22 +48,31 @@ def ui() -> sp.csr_matrix:
 class Checker:
     """Aggregated test methods for this module."""
 
-    @pytest.mark.parametrize(("kind", "expected"), [("gumbel", "GumbelCodebook"), ("vq", "VQ"), ("identity", "IdentityCodebook")])
+    @pytest.mark.parametrize(
+        ("kind", "expected"), [("gumbel", "GumbelCodebook"), ("vq", "VQ"), ("identity", "Noop")]
+    )
     def implementation(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(codebook={"kind": kind}), dims={"visual": 4, "text": 2})
         assert type(pipeline.codebook).__name__ == expected
 
-    @pytest.mark.parametrize(("kind", "expected"), [("top", "Top"), ("dense", "Dense"), ("gumbel", "Gumbel"), ("fixed", "Fixed")])
+    @pytest.mark.parametrize(
+        ("kind", "expected"),
+        [("top", "Top"), ("dense", "Dense"), ("gumbel", "Gumbel"), ("fixed", "Fixed")],
+    )
     def the(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(route={"kind": kind}), dims={"visual": 4, "text": 2})
         assert type(pipeline.router).__name__ == expected
 
-    @pytest.mark.parametrize(("kind", "expected"), [("transformer", "Transformer"), ("identity", "Identity")])
+    @pytest.mark.parametrize(
+        ("kind", "expected"), [("transformer", "Transformer"), ("identity", "Identity")]
+    )
     def selects(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(encode={"kind": kind}), dims={"visual": 4, "text": 2})
         assert type(pipeline.transformer).__name__ == expected
 
-    @pytest.mark.parametrize(("kind", "expected"), [("light", "Light"), ("mf", "MF"), ("pop", "Pop")])
+    @pytest.mark.parametrize(
+        ("kind", "expected"), [("light", "Light"), ("mf", "MF"), ("pop", "Pop")]
+    )
     def kind(self, kind: str, expected: str) -> None:
         config = make(recommend={"kind": kind, "embed": 8, "layers": 2})
         pipeline = Pipeline(config, dims={"visual": 4, "text": 2})
@@ -135,7 +145,7 @@ class Checker:
     def morel(self) -> None:
         """Built-in codebooks are available in the KIND dict."""
 
-        class DoublingCodebook(Codebook):
+        class Doubling(Codebook):
             """A codebook defined entirely outside the morel package."""
 
             def __init__(self, dim: int, size: int) -> None:

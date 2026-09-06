@@ -30,17 +30,13 @@ def write(tmp_path: Path, **payload: Any) -> Path:
 class Checker:
     """Aggregated test methods for this module."""
 
-    def build(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def build(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         path = write(tmp_path, data={"processed": "custom-out"})
         assert main(["build", "--config", str(path)]) == 0
         assert (tmp_path / "custom-out" / "bipartite.npz").exists()
 
-    def applies(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def applies(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """data.min is the k-core threshold and was never applied."""
         monkeypatch.chdir(tmp_path)
         path = write(tmp_path, data={"processed": "out", "min": 4})
@@ -67,9 +63,7 @@ class Checker:
         filtered = load_graph(tmp_path / "strict" / "item_graph.npz")
         assert filtered.nnz < unfiltered.nnz, "a higher k-core must remove edges"
 
-    def explicit(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def explicit(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         path = write(tmp_path, data={"processed": "from-config"})
         assert main(["build", "--config", str(path), "--out-dir", "from-flag"]) == 0
@@ -120,11 +114,35 @@ class Checker:
         one = write(tmp_path, masking={"seed": 1})
         two = write(tmp_path / "t", masking={"seed": 2})
         assert (
-            main(["mask", "--items", "50", "--modalities", "2", "--out", "a.npy", "--config", str(one)])
+            main(
+                [
+                    "mask",
+                    "--items",
+                    "50",
+                    "--modalities",
+                    "2",
+                    "--out",
+                    "a.npy",
+                    "--config",
+                    str(one),
+                ]
+            )
             == 0
         )
         assert (
-            main(["mask", "--items", "50", "--modalities", "2", "--out", "b.npy", "--config", str(two)])
+            main(
+                [
+                    "mask",
+                    "--items",
+                    "50",
+                    "--modalities",
+                    "2",
+                    "--out",
+                    "b.npy",
+                    "--config",
+                    str(two),
+                ]
+            )
             == 0
         )
         assert not np.array_equal(np.load(tmp_path / "a.npy"), np.load(tmp_path / "b.npy"))
@@ -134,7 +152,17 @@ class Checker:
         path = write(tmp_path, masking={"kind": "block", "ratio": 0.5})
         assert (
             main(
-                ["mask", "--items", "40", "--modalities", "3", "--out", "m.npy", "--config", str(path)]
+                [
+                    "mask",
+                    "--items",
+                    "40",
+                    "--modalities",
+                    "3",
+                    "--out",
+                    "m.npy",
+                    "--config",
+                    str(path),
+                ]
             )
             == 0
         )

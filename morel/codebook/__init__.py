@@ -4,7 +4,7 @@ from morel.codebook.codebook import (
     VQ,
     Codebook,
     GumbelCodebook,
-    IdentityCodebook,
+    Noop,
     balance,
     usage,
 )
@@ -42,7 +42,7 @@ def build(
     if kind == "vq":
         return VQ(dim=dim, size=size, seed=seed)
     if kind == "identity":
-        return IdentityCodebook(dim=dim, size=size)
+        return Noop(dim=dim, size=size)
     raise Cfg(f"unknown codebook '{kind}'; available: gumbel, vq, identity")
 
 
@@ -50,7 +50,7 @@ def build(
 KIND: dict[str, type[Codebook]] = {
     "gumbel": GumbelCodebook,
     "vq": VQ,
-    "identity": IdentityCodebook,
+    "identity": Noop,
 }
 
 
@@ -59,7 +59,7 @@ __all__ = [
     "VQ",
     "Codebook",
     "GumbelCodebook",
-    "IdentityCodebook",
+    "Noop",
     "balance",
     "build",
     "usage",

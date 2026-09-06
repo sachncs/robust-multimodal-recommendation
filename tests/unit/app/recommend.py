@@ -34,9 +34,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     def run(self, tmp_path: Path) -> None:
-        result = Rank(
-            config=small(), run_dir=tmp_path, items=20, users=8
-        ).run()
+        result = Rank(config=small(), run_dir=tmp_path, items=20, users=8).run()
 
         for name in ("config.yaml", "manifest.json", "metrics.jsonl", "report.md"):
             assert (tmp_path / name).exists(), f"missing {name}"
@@ -59,28 +57,19 @@ class Checker:
 
     def reported(self, tmp_path: Path) -> None:
         """Regression: fit() left best at infinity whenever no val loader was given."""
-        result = Rank(
-            config=small(), run_dir=tmp_path, items=20, users=8
-        ).run()
+        result = Rank(config=small(), run_dir=tmp_path, items=20, users=8).run()
         assert 0.0 < float(result["best"]) < 100.0
         assert 0.0 < float(result["train_loss"]) < 100.0
 
     def no(self, tmp_path: Path) -> None:
         """With val=0 there is no held-out set, so the train loss is what is tracked."""
-        result = Rank(
-            config=small(val=0.0), run_dir=tmp_path, items=20, users=8
-        ).run()
+        result = Rank(config=small(val=0.0), run_dir=tmp_path, items=20, users=8).run()
         assert result["train_loss"] == pytest.approx(result["best"])
 
     def epochs(self, tmp_path: Path) -> None:
         experiment = Rank(config=small(epochs=5), run_dir=tmp_path)
         assert experiment.resolved_epochs() == 5
-        assert (
-            Rank(
-                config=small(epochs=5), run_dir=tmp_path, epochs=1
-            ).resolved_epochs()
-            == 1
-        )
+        assert Rank(config=small(epochs=5), run_dir=tmp_path, epochs=1).resolved_epochs() == 1
 
     def hyperparameters(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
@@ -115,9 +104,7 @@ class Checker:
         manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
         assert manifest["extras"]["recommender"] == "mf"
 
-    def cli(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def cli(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """The CLI must not quietly run the completion experiment instead."""
         monkeypatch.chdir(tmp_path)
         called: list[str] = []

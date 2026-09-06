@@ -8,10 +8,10 @@ from morel.core.errors import (
     Cfg,
     Datum,
     Determinism,
-    Rate,
-    Net,
-    Model,
     Error,
+    Model,
+    Net,
+    Rate,
     Shape,
     Train,
 )

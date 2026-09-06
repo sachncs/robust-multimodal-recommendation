@@ -1,6 +1,6 @@
 """Modality-agnostic feature extractors.
 
-A single ``FeatureEncoder`` Protocol covers text and visual encoders.
+A single ``Feature`` Protocol covers text and visual encoders.
 Implementations are responsible for producing L2-normalized ``float32``
 arrays of shape ``(items, dim)``.
 """
@@ -19,7 +19,7 @@ from morel.core.log import get as get_logger
 log = get_logger("data.extract")
 
 
-class FeatureEncoder(Protocol):
+class Feature(Protocol):
     """One feature extractor for raw modality inputs."""
 
     name: str
@@ -39,12 +39,12 @@ def l2_normalize(array: np.ndarray) -> np.ndarray:
 
 def text(
     inputs: list[str],
-    encoder: FeatureEncoder,
+    encoder: Feature,
     *,
     batch: int = 64,
     device: str | torch.device | None = None,
 ) -> np.ndarray:
-    """Encode text inputs through any FeatureEncoder implementation.
+    """Encode text inputs through any Feature implementation.
 
     Args:
         inputs: List of strings.
@@ -63,12 +63,12 @@ def text(
 
 def visual(
     paths: list[str],
-    encoder: FeatureEncoder,
+    encoder: Feature,
     *,
     batch: int = 32,
     device: str | torch.device | None = None,
 ) -> tuple[np.ndarray, list[int]]:
-    """Encode image paths through any FeatureEncoder implementation.
+    """Encode image paths through any Feature implementation.
 
     Args:
         paths: List of filesystem paths to images.
@@ -104,7 +104,7 @@ def random(items: int, dim: int, *, seed: int, name: str = "random") -> np.ndarr
 class Random:
     """Deterministic pseudo-random encoder.
 
-    Satisfies :class:`FeatureEncoder` without any model download, so the
+    Satisfies :class:`Feature` without any model download, so the
     synthetic pipeline exercises the same code path as a real encoder.
     """
 
@@ -203,7 +203,7 @@ def fingerprint(payload: np.ndarray) -> str:
 
 
 __all__ = [
-    "FeatureEncoder",
+    "Feature",
     "Random",
     "Sentence",
     "Vision",

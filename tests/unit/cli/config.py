@@ -81,17 +81,15 @@ class Checker:
             assert flag in result.stdout, f"{flag} missing from serve --help"
         assert "serve.host" in result.stdout
 
-    def uses(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def uses(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
 
-        class FakeUvicorn:
+        class Fake:
             @staticmethod
             def run(app: Any, **kwargs: Any) -> None:
                 captured.update(kwargs)
 
-        monkeypatch.setitem(sys.modules, "uvicorn", FakeUvicorn)
+        monkeypatch.setitem(sys.modules, "uvicorn", Fake)
         path = write(tmp_path, serve={"host": "127.0.0.1", "port": 9111, "workers": 3})
 
         from morel.cli import serve_inference
@@ -104,12 +102,12 @@ class Checker:
     def flags(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
 
-        class FakeUvicorn:
+        class Fake:
             @staticmethod
             def run(app: Any, **kwargs: Any) -> None:
                 captured.update(kwargs)
 
-        monkeypatch.setitem(sys.modules, "uvicorn", FakeUvicorn)
+        monkeypatch.setitem(sys.modules, "uvicorn", Fake)
         path = write(tmp_path, serve={"host": "127.0.0.1", "port": 9111})
 
         from morel.cli import serve_inference

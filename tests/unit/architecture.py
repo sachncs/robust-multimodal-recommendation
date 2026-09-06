@@ -75,10 +75,6 @@ def graph() -> dict[str, set[str]]:
     return dict(edges)
 
 
-
-
-
-
 def documented() -> dict[str, set[str]]:
     """Parse the extension-point table out of docs/ARCHITECTURE.md."""
     doc = (SOURCE.parent / "docs" / "ARCHITECTURE.md").read_text(encoding="utf-8")
@@ -181,6 +177,5 @@ class Checker:
         )
         for name, registry in registries.items():
             assert doc[name] == set(registry), (
-                f"{name}: docs list {sorted(doc[name])}, "
-                f"code registers {sorted(set(registry))}"
+                f"{name}: docs list {sorted(doc[name])}, code registers {sorted(set(registry))}"
             )

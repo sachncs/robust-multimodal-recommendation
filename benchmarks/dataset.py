@@ -25,6 +25,7 @@ def bench_kcore_10k(benchmark) -> None:
 
 def bench_mask_100k(benchmark) -> None:
     """Measure bernoulli masking over a 100k-item corpus."""
+
     def run() -> None:
         bernoulli(100000, 4, 0.4, seed=0)
 

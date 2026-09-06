@@ -102,11 +102,10 @@ def silent_monitor_factory():
     return silent_monitor
 
 
-def pytest_collection_modifyitems(
-    config, items
-):
+def pytest_collection_modifyitems(config, items):
     """Drop any collected test that is not a method of a test class."""
     from _pytest.python import Class
+
     keep = []
     for item in items:
         parent = item.parent

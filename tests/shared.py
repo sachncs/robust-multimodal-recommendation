@@ -22,7 +22,7 @@ from morel.app.data import (
 )
 
 
-class SilentMonitor:
+class Monitor:
     """A monitor whose :meth:`log` is a no-op.
 
     Used as the default monitor in trainer tests so that test runs do not
@@ -34,9 +34,9 @@ class SilentMonitor:
         return
 
 
-def silent_monitor() -> SilentMonitor:
-    """Return a fresh :class:`SilentMonitor`."""
-    return SilentMonitor()
+def silent_monitor() -> Monitor:
+    """Return a fresh :class:`Monitor`."""
+    return Monitor()
 
 
 def make_completion_collate(features_keys: list[str]) -> Callable:
@@ -128,12 +128,12 @@ def bpr_loader(users: int, items: int, n: int, batch_size: int) -> DataLoader:
 __all__ = [
     "BPR",
     "Corpus",
-    "SilentMonitor",
+    "Monitor",
     "bpr_loader",
     "build",
     "build_path_graph",
     "collate",
     "make_completion_collate",
-    "to_tensor",
     "silent_monitor",
+    "to_tensor",
 ]

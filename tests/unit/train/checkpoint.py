@@ -13,7 +13,7 @@ from morel.train.checkpoint import State, hash_cfg, load, unsafe
 from morel.train.monitor import Monitor
 
 
-class CheckpointMarker:
+class Marker:
     """Module-level marker class used to verify unsafe roundtrips."""
 
 
@@ -68,7 +68,7 @@ class Checker:
         assert mon.latest() is None
 
     def payload(self, tmp_path: Path) -> None:
-        """load refuses payloads that contain a __reduce__ exploit class."""
+        """Load refuses payloads that contain a __reduce__ exploit class."""
 
         class Exploit:
             def __reduce__(self):  # pragma: no cover - never executed
@@ -86,10 +86,10 @@ class Checker:
             load(bad_path)
 
     def exploit(self, tmp_path: Path) -> None:
-        """unsafe is the explicit opt-in for non-tensor payloads."""
+        """Unsafe is the explicit opt-in for non-tensor payloads."""
         payload_path = tmp_path / "ok.pt"
         torch.save(
-            {"model": {"x": torch.zeros(1)}, "obj": CheckpointMarker},
+            {"model": {"x": torch.zeros(1)}, "obj": Marker},
             payload_path,
         )
         payload = unsafe(payload_path)

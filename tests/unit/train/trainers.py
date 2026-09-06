@@ -12,8 +12,8 @@ from torch.utils.data import DataLoader
 from morel.core.config import Config
 from morel.pipeline import Pipeline
 from morel.recommend import Light
-from morel.train.completion import Completion, FitConfig
-from morel.train.recommendation import Recommendation, RankCfg
+from morel.train.completion import Completion, Fit
+from morel.train.recommendation import RankCfg, Recommendation
 from tests.shared import BPR, build, build_path_graph
 
 
@@ -36,7 +36,7 @@ class Checker:
         model.attach(features, mask, adj)
 
         loader = build(features, mask, adj, batch_size=4)
-        cfg = FitConfig()
+        cfg = Fit()
         trainer = Completion(model, cfg, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path)
         trainer.fit(loader, loader, epochs=2, patience=1)
         assert True

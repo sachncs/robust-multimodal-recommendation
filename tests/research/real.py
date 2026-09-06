@@ -10,10 +10,10 @@ from torch.utils.data import DataLoader, Dataset
 from morel.core.config import Config
 from morel.core.seed import seed as seed_everything
 from morel.pipeline import Pipeline
-from morel.train.completion import Completion, FitConfig
+from morel.train.completion import Completion, Fit
 
 
-class SilentMonitor:
+class Monitor:
     """Test monitor that discards metric logs."""
 
     def log(self, step: int | None = None, **metrics: object) -> None:
@@ -50,7 +50,7 @@ class Checker:
         pipeline = Pipeline(config, dims={"visual": 8, "text": 4})
         pipeline.attach(features_np, mask_np, adj)
 
-        class CompletionBatchDataset(Dataset):
+        class Batch(Dataset):
             def __len__(self) -> int:
                 return n
 
@@ -63,7 +63,7 @@ class Checker:
                 }
 
         loader = DataLoader(
-            CompletionBatchDataset(),
+            Batch(),
             batch_size=16,
             collate_fn=lambda batch: {
                 "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
@@ -78,8 +78,8 @@ class Checker:
 
         trainer = Completion(
             pipeline,
-            FitConfig(),
-            monitor=SilentMonitor(),
+            Fit(),
+            monitor=Monitor(),
             device="cpu",
         )
         initial_losses = []

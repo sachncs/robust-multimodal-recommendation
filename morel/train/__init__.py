@@ -1,7 +1,7 @@
 """Public API for the morel.train package."""
 
 from morel.train.checkpoint import State, hash_cfg
-from morel.train.completion import Completion, FitConfig
+from morel.train.completion import Completion, Fit
 from morel.train.loss import BPR, Composite, Loss, Reconstruction, ce
 from morel.train.monitor import Monitor
 from morel.train.recommendation import RankCfg, Recommendation
@@ -11,7 +11,7 @@ __all__ = [
     "BPR",
     "Completion",
     "Composite",
-    "FitConfig",
+    "Fit",
     "Loss",
     "Monitor",
     "RankCfg",

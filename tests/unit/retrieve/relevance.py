@@ -48,6 +48,8 @@ class Checker:
         mask[7, 0] = 0
         nodes = np.array([3, 5, 7, 9, 0], dtype=np.int64)
 
-        expected = float(np.mean([relevance(2, int(v), features, mask) for v in nodes if int(v) != 2]))
+        expected = float(
+            np.mean([relevance(2, int(v), features, mask) for v in nodes if int(v) != 2])
+        )
         actual = rel(2, nodes, features, mask)
         assert abs(actual - expected) < 1e-6

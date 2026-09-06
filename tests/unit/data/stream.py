@@ -11,8 +11,8 @@ import pytest
 from morel.data.stream import (
     exact_interactions,
     review,
-    stream_interactions,
     stream_cooc,
+    stream_interactions,
 )
 
 
@@ -92,4 +92,6 @@ class Checker:
             emitted.append((user_ids, item_ids))
         assert len(emitted) >= 1
         assert all(isinstance(u, np.ndarray) for u, _ in emitted)
+
+
 __test__ = False

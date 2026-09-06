@@ -64,66 +64,51 @@ class Checker:
             loader.get("", lambda: object())
 
 
-class Checker:
-    """Aggregated test methods for this module."""
-
-
-class Checker:
-    """Aggregated test methods for this module."""
-
-
-class Checker:
-    """Aggregated test methods for this module."""
-
-
-class Checker:
-    """Aggregated test methods for this module."""
-
-
-class Checker:
-    """Aggregated test methods for this module."""
-
 async def test_health_endpoint() -> None:
-                            async with make(create()) as client:
-                                r = await get(client, "/health")
-                            assert r.status_code == 200
-                            assert r.json()["status"] == "ok"
+    async with make(create()) as client:
+        r = await get(client, "/health")
+    assert r.status_code == 200
+    assert r.json()["status"] == "ok"
+
 
 async def test_metrics_endpoint() -> None:
-                            async with make(create()) as client:
-                                r = await get(client, "/metrics")
-                            assert r.status_code == 200
+    async with make(create()) as client:
+        r = await get(client, "/metrics")
+    assert r.status_code == 200
+
 
 async def test_complete_endpoint() -> None:
-                            async with make(create()) as client:
-                                r = await post(client, "/v1/complete", json={"items": [0, 1, 2]})
-                            assert r.status_code == 200
-                            assert "visual" in r.json()["completed"]
+    async with make(create()) as client:
+        r = await post(client, "/v1/complete", json={"items": [0, 1, 2]})
+    assert r.status_code == 200
+    assert "visual" in r.json()["completed"]
+
 
 async def test_recommend_endpoint() -> None:
-                            async with make(create()) as client:
-                                r = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
-                            assert r.status_code == 200
-                            assert len(r.json()["items"]) == 3
+    async with make(create()) as client:
+        r = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
+    assert r.status_code == 200
+    assert len(r.json()["items"]) == 3
+
 
 async def test_auth_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
-                            monkeypatch.setenv("MOREL_AUTH_TOKEN", "s3cr3t")
-                            async with make(create()) as client:
-                                r = await post(client, "/v1/complete", json={"items": [0]})
-                                assert r.status_code == 401
+    monkeypatch.setenv("MOREL_AUTH_TOKEN", "s3cr3t")
+    async with make(create()) as client:
+        r = await post(client, "/v1/complete", json={"items": [0]})
+        assert r.status_code == 401
 
-                                r = await post(
-                                    client,
-                                    "/v1/complete",
-                                    json={"items": [0]},
-                                    headers={"authorization": "Bearer wrong"},
-                                )
-                                assert r.status_code == 401
+        r = await post(
+            client,
+            "/v1/complete",
+            json={"items": [0]},
+            headers={"authorization": "Bearer wrong"},
+        )
+        assert r.status_code == 401
 
-                                r = await post(
-                                    client,
-                                    "/v1/complete",
-                                    json={"items": [0]},
-                                    headers={"authorization": "Bearer s3cr3t"},
-                                )
-                                assert r.status_code == 200
+        r = await post(
+            client,
+            "/v1/complete",
+            json={"items": [0]},
+            headers={"authorization": "Bearer s3cr3t"},
+        )
+        assert r.status_code == 200

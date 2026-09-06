@@ -16,7 +16,8 @@ import torch
 from morel.core.config import Config
 from morel.core.errors import Cfg
 from morel.pipeline import Pipeline
-from morel.retrieve import KIND as STRATEGIES, retrieve, batch
+from morel.retrieve import KIND as STRATEGIES
+from morel.retrieve import batch, retrieve
 
 
 def corpus() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix]:

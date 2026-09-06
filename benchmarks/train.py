@@ -25,8 +25,13 @@ class Monitor:
 class Corpus(Dataset[dict[str, Any]]):
     """In-memory corpus that materialises one item row per ``__getitem__``."""
 
-    def __init__(self, items: int, features: dict[str, np.ndarray],
-                 mask: np.ndarray, adjacency: sp.csr_matrix) -> None:
+    def __init__(
+        self,
+        items: int,
+        features: dict[str, np.ndarray],
+        mask: np.ndarray,
+        adjacency: sp.csr_matrix,
+    ) -> None:
         self.items = items
         self.features = features
         self.mask = mask
@@ -51,8 +56,7 @@ def collate(batch: list[dict[str, Any]]) -> dict[str, Any]:
         "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
         "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
         "features": {
-            k: torch.from_numpy(np.stack([b["features"][k] for b in batch]))
-            for k in keys
+            k: torch.from_numpy(np.stack([b["features"][k] for b in batch])) for k in keys
         },
         "adjacency": batch[0]["adjacency"],
     }
@@ -82,8 +86,7 @@ def bench_5k(tmp_path: Any, benchmark: Any) -> None:
         monitor=Monitor(),
         checkpoint_dir=tmp_path,
     )
-    loader = DataLoader(Corpus(items, features, mask, adjacency),
-                        batch_size=64, collate_fn=collate)
+    loader = DataLoader(Corpus(items, features, mask, adjacency), batch_size=64, collate_fn=collate)
 
     def run() -> None:
         trainer.run(loader, 0)

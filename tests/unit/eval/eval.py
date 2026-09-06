@@ -6,8 +6,6 @@ import numpy as np
 import pytest
 
 from morel.eval import (
-    results,
-    variance,
     map_at_k,
     mrr,
     mse,
@@ -15,7 +13,9 @@ from morel.eval import (
     per_modality,
     precision_at_k,
     recall_at_k,
+    results,
     robustness_sweep,
+    variance,
 )
 
 

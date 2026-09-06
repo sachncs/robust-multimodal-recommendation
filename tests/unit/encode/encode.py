@@ -49,7 +49,9 @@ class Checker:
         assert torch.allclose(out, expected, atol=1e-5)
 
     def attention(self) -> None:
-        tf = Transformer(dims={"v": 4, "t": 2}, pe_dim=2, hidden=8, layers=2, heads=2, pool="attention")
+        tf = Transformer(
+            dims={"v": 4, "t": 2}, pe_dim=2, hidden=8, layers=2, heads=2, pool="attention"
+        )
         feats = {"v": torch.randn(3, 4), "t": torch.randn(3, 2)}
         mask = torch.tensor([[1.0, 1.0], [1.0, 0.0], [0.0, 1.0]])
         pe = torch.randn(3, 2)

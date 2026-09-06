@@ -8,7 +8,7 @@ from morel.core.errors import Cfg, Datum
 from morel.data.acquire import download, fetch
 from morel.data.build import bipartite, cooccurrence, interactions, kcore
 from morel.data.extract import (
-    FeatureEncoder,
+    Feature,
     Random,
     Sentence,
     Vision,
@@ -43,7 +43,7 @@ from morel.data.validate import interactions as validate_interactions
 from morel.data.validate import mask as check
 
 
-def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
+def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> Feature:
     """Build the feature encoder selected by ``config.encoder.{text,visual}``.
 
     Args:
@@ -55,7 +55,7 @@ def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> F
 
     Returns
     -------
-        A :class:`FeatureEncoder` instance.
+        A :class:`Feature` instance.
 
     Raises
     ------
@@ -74,7 +74,7 @@ def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> F
 
 
 #: Map from config name to encoder class for introspection.
-EXTRACTORS: dict[str, type[FeatureEncoder]] = {
+EXTRACTORS: dict[str, type[Feature]] = {
     "random": Random,
     "sentence-transformers/all-MiniLM-L6-v2": Sentence,
     "resnet50": Vision,
@@ -122,7 +122,7 @@ MASKS: dict[str, object] = {
 __all__ = [
     "EXTRACTORS",
     "MASKS",
-    "FeatureEncoder",
+    "Feature",
     "Manifest",
     "Mask",
     "Random",

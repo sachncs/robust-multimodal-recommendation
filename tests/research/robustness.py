@@ -47,6 +47,8 @@ class Checker:
             0.8: rng.random((10, 20)),
         }
         result = robustness_sweep(
-            scores_by_ratio, labels, metrics={"recall@5": lambda s, labels: recall_at_k(s, labels, k=5)}
+            scores_by_ratio,
+            labels,
+            metrics={"recall@5": lambda s, labels: recall_at_k(s, labels, k=5)},
         )
         assert len(result.metrics["recall@5"]) == 3

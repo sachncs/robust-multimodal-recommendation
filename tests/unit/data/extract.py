@@ -28,13 +28,6 @@ from morel.data.__main__ import main
 from morel.data.extract import Random
 
 
-
-
-
-
-
-
-
 def write(tmp_path: Path, **payload: Any) -> Path:
     """Write a config YAML and return its path."""
     tmp_path.mkdir(parents=True, exist_ok=True)
@@ -73,17 +66,13 @@ class Checker:
         assert np.allclose(np.linalg.norm(rows, axis=1), 1.0)
 
     def seed(self) -> None:
-        assert not np.array_equal(
-            Random(8, seed=1).encode(["a"]), Random(8, seed=2).encode(["a"])
-        )
+        assert not np.array_equal(Random(8, seed=1).encode(["a"]), Random(8, seed=2).encode(["a"]))
 
     def rejects(self) -> None:
         with pytest.raises(Datum, match="dim must be positive"):
             Random(0)
 
-    def synthetic(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def synthetic(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         path = write(tmp_path, data={"processed": "out"})
         assert main(["extract", "--synthetic", "--config", str(path)]) == 0
@@ -93,9 +82,7 @@ class Checker:
         )
         assert manifest["code"] == "morel.data.extract:random+random"
 
-    def extract(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def extract(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)
         path = write(
             tmp_path,
@@ -108,11 +95,10 @@ class Checker:
             assert data["text"].shape[1] == 12
             assert data["visual"].shape[1] == 20
 
-    def passes(self,
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def passes(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Encoder batch parameter propagates from config to both modalities."""
         from dataclasses import replace
+
         monkeypatch.chdir(tmp_path)
         config = replace(Config().encoder, batch=7)
         assert config.batch == 7

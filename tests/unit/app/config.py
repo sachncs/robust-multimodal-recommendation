@@ -2,7 +2,7 @@
 
 ``Experiment.run`` wrote ``config.yaml`` into the run directory and hashed the
 same config into ``manifest.json``, but built its trainer from
-``FitConfig()`` defaults and a hardcoded batch size and epoch count.
+``Fit()`` defaults and a hardcoded batch size and epoch count.
 Every ``completion.*`` hyperparameter was therefore ignored while still being
 recorded, so the manifest described a run that had not happened. These tests
 pin that the recorded config is the config that ran.
@@ -43,9 +43,7 @@ class Checker:
         experiment = Experiment(config=config, run_dir=Path("unused"), epochs=1)
         assert experiment.resolved_epochs() == 1
 
-    def completion(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def completion(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Regression: these were dropped on the floor and defaults used instead."""
         captured: dict[str, Any] = {}
         import morel.app.experiment as module
@@ -74,9 +72,7 @@ class Checker:
         assert captured["completion_config"].lambda_balance == pytest.approx(0.75)
         assert captured["completion_config"].grad_clip == pytest.approx(2.5)
 
-    def batch(self, 
-        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def batch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}
         import morel.app.experiment as module
 

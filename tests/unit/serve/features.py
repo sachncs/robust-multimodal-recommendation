@@ -10,8 +10,8 @@ import pytest
 import torch.nn as nn
 
 from morel.serve.auth import (
-    is_admin,
     assert_set,
+    is_admin,
     is_read,
     require,
     token,
@@ -20,7 +20,7 @@ from morel.serve.lock import RWLock
 from morel.serve.update import Updater
 
 
-class TinyModel(nn.Module):
+class Tiny(nn.Module):
     """Small module used as a stand-in pipeline for updater tests."""
 
     def __init__(self) -> None:
@@ -31,15 +31,7 @@ class TinyModel(nn.Module):
 # ---- Two-token auth ----
 
 
-
-
-
-
-
-
 # ---- RWLock ----
-
-
 
 
 # ---- Updater ----
@@ -79,7 +71,8 @@ class Checker:
         assert token("read") == "legacy"
         assert token("admin") == "legacy"
 
-    def without(self, 
+    def without(
+        self,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         from morel.core.errors import Cfg
@@ -158,20 +151,20 @@ class Checker:
         assert counter[0] == 0
 
     def buffer(self) -> None:
-        updater = Updater(TinyModel())
+        updater = Updater(Tiny())
         for i in range(8):
             updater.accept(user=i, item=i, signal="like")
         assert updater.stats()["events_buffered"] == 8
         assert updater.stats()["replay_buffered"] == 8
 
     def returns(self) -> None:
-        updater = Updater(TinyModel())
+        updater = Updater(Tiny())
         result = updater.tick()
         assert result.committed is False
 
     def commit(self) -> None:
         updater = Updater(
-            TinyModel(),
+            Tiny(),
             cooldown_seconds=0,
             loss_step=lambda batch: 0.5,
         )
@@ -184,7 +177,7 @@ class Checker:
 
     def loss(self) -> None:
         updater = Updater(
-            TinyModel(),
+            Tiny(),
             cooldown_seconds=30,
             loss_step=lambda batch: float("nan"),
         )
@@ -196,7 +189,7 @@ class Checker:
 
     def version(self) -> None:
         updater = Updater(
-            TinyModel(),
+            Tiny(),
             cooldown_seconds=0,
             loss_step=lambda batch: 0.5,
         )
@@ -213,10 +206,10 @@ class Checker:
         """Step Protocol: DefaultStp and a custom callable both work."""
         from morel.serve.update import DefaultStp
 
-        base = Updater(TinyModel(), cooldown_seconds=0)
+        base = Updater(Tiny(), cooldown_seconds=0)
         assert isinstance(base.loss_step, DefaultStp)
         custom = Updater(
-            TinyModel(),
+            Tiny(),
             cooldown_seconds=0,
             loss_step=lambda batch: 0.42,
         )

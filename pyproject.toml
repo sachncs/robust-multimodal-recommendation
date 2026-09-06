@@ -137,7 +137,7 @@ select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM", "ICN", "TID", "R
 ignore = ["D100", "D104", "B008"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["D103", "N806", "N803", "E501", "B011"]
+"tests/**/*.py" = ["D102", "D103", "D401", "N806", "N803", "E501", "B011"]
 "benchmarks/**/*.py" = ["D", "N", "E501"]
 "examples/**/*.py" = ["D", "N", "E501"]
 "morel/serve/**/*.py" = ["B008"]

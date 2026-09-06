@@ -8,7 +8,7 @@ from morel.codebook import (
     VQ,
     Codebook,
     GumbelCodebook,
-    IdentityCodebook,
+    Noop,
     balance,
     usage,
 )
@@ -46,7 +46,7 @@ class Checker:
         assert isinstance(gvq, Codebook)
 
     def identity(self) -> None:
-        cb = IdentityCodebook(dim=4, size=8)
+        cb = Noop(dim=4, size=8)
         x = torch.randn(2, 4)
         out, probs = cb(x, training=False)
         assert torch.equal(out, x)
@@ -57,7 +57,7 @@ class Checker:
         import pytest
 
         with pytest.raises(ValueError, match="size must be positive"):
-            IdentityCodebook(dim=4, size=0)
+            Noop(dim=4, size=0)
 
     def usage(self) -> None:
         probs = torch.full((16, 10), 0.1)
