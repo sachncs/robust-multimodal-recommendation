@@ -132,7 +132,7 @@ def register_all() -> None:
             equation="multi-source BFS with reachability bitmask",
             status="EXACT",
             implementation="morel.retrieve.acs.compute",
-            test="tests/research/test_paper.py::test_acs_bitmask_correctness_on_path",
+            test="tests/research/paper.py::Checker::acs",
             deviation=None,
             notes="Iterative backtrack (no recursion-limit crash on long paths). "
             "Duplicate and out-of-range anchor rejection. Self-loop guard.",
@@ -146,7 +146,7 @@ def register_all() -> None:
             equation="cosine NN over observed modalities",
             status="EXACT",
             implementation="morel.retrieve.anchor.query",
-            test="tests/unit/retrieve/test_anchor.py",
+            test="tests/unit/retrieve/anchor.py",
             deviation=None,
         )
     )
@@ -158,7 +158,7 @@ def register_all() -> None:
             equation="greedy boundary add/remove with mean-relevance objective",
             status="APPROXIMATE",
             implementation="morel.retrieve.mage.expand",
-            test="tests/unit/retrieve/test_mage.py",
+            test="tests/unit/retrieve/mage.py",
             deviation="Best-improvement hill climbing (vs. paper's first-improvement "
             "ambiguity); sorted boundary iteration (deterministic vs. paper's set-iteration).",
             notes="Sorted iteration gives the same final subgraph but eliminates the "
@@ -173,7 +173,7 @@ def register_all() -> None:
             equation="user-item CSR matrix",
             status="EXACT",
             implementation="morel.data.build.bipartite",
-            test="tests/unit/data/test_build.py",
+            test="tests/unit/data/build.py",
             deviation=None,
         )
     )
@@ -185,7 +185,7 @@ def register_all() -> None:
             equation="peel nodes below min_edges until stable",
             status="EXACT",
             implementation="morel.data.build.kcore",
-            test="tests/unit/data/test_build.py::test_kcore_shrinks_until_min_degree",
+            test="tests/unit/data/build.py::kcore",
             deviation=None,
         )
     )
@@ -197,7 +197,7 @@ def register_all() -> None:
             equation="sign(U^T U) with no self-loops",
             status="EXACT",
             implementation="morel.data.build.item_cooccurrence",
-            test="tests/unit/data/test_build.py::test_item_cooccurrence_no_self_loops",
+            test="tests/unit/data/build.py::cooccurrence",
             deviation=None,
         )
     )
@@ -209,7 +209,7 @@ def register_all() -> None:
             equation="Bernoulli availability mask with at-least-one repair",
             status="EXACT",
             implementation="morel.data.mask.bernoulli",
-            test="tests/unit/data/test_mask.py",
+            test="tests/unit/data/mask.py",
             deviation=None,
         )
     )
@@ -221,7 +221,7 @@ def register_all() -> None:
             equation="bottom-k nontrivial eigenvectors of L = I - D^{-1/2} A D^{-1/2}",
             status="EXACT",
             implementation="morel.graph.laplacian.pe",
-            test="tests/unit/graph/test_laplacian.py",
+            test="tests/unit/graph/laplacian.py",
             deviation=None,
             notes="Dense eigh fallback when ARPACK does not converge.",
         )
@@ -234,7 +234,7 @@ def register_all() -> None:
             equation="Pre-LN graph transformer over subgraph tokens",
             status="EXACT",
             implementation="morel.encode.transformer.Transformer",
-            test="tests/unit/encode/test_encode.py::test_layer_is_preln",
+            test="tests/unit/encode/encode.py::Checker::preln",
             deviation=None,
             notes="Pre-LN is implemented as documented; see METHOD.md.",
         )
@@ -247,7 +247,7 @@ def register_all() -> None:
             equation="softmax((Wz + g) / tau)",
             status="EXACT",
             implementation="morel.route.router.Gumbel",
-            test="tests/unit/route/test_router.py",
+            test="tests/unit/route/router.py",
             deviation=None,
         )
     )
@@ -259,7 +259,7 @@ def register_all() -> None:
             equation="top-p renormalised over codebook logits",
             status="APPROXIMATE",
             implementation="morel.route.router.Top",
-            test="tests/unit/route/test_router.py",
+            test="tests/unit/route/router.py",
             deviation="Implemented as Top-K (post-softmax topk + renorm); the paper "
             "text says Top-P but the numerics are equivalent in expectation.",
         )
@@ -272,7 +272,7 @@ def register_all() -> None:
             equation="g_top @ codebook",
             status="EXACT",
             implementation="morel.codebook.codebook.GumbelVQ",
-            test="tests/unit/codebook/test_codebook.py",
+            test="tests/unit/codebook/codebook.py",
             deviation=None,
         )
     )
@@ -284,7 +284,7 @@ def register_all() -> None:
             equation="KL(bar_p || uniform)",
             status="EXACT",
             implementation="morel.codebook.codebook.usage",
-            test="tests/unit/codebook/test_codebook.py::test_usage_loss_zero_at_uniform",
+            test="tests/unit/codebook/codebook.py::usage",
             deviation=None,
         )
     )
@@ -296,7 +296,7 @@ def register_all() -> None:
             equation="K * sum_e bar_g_e^2",
             status="EXACT",
             implementation="morel.codebook.codebook.balance",
-            test="tests/unit/codebook/test_codebook.py::test_balance_loss_at_uniform",
+            test="tests/unit/codebook/codebook.py::balance",
             deviation=None,
         )
     )
@@ -308,7 +308,7 @@ def register_all() -> None:
             equation="element-normalised masked MSE over missing positions",
             status="EXACT",
             implementation="morel.train.loss.Reconstruction",
-            test="tests/unit/train/test_loss.py",
+            test="tests/unit/train/loss.py",
             deviation=None,
         )
     )
@@ -320,7 +320,7 @@ def register_all() -> None:
             equation="H^{l+1} = A_hat H^l; H_final = mean(H^0..H^L)",
             status="EXACT",
             implementation="morel.recommend.light.Light",
-            test="tests/unit/recommend/test_recommend.py::test_light_l0_equals_dot",
+            test="tests/unit/recommend/recommend.py::Checker::l0",
             deviation=None,
         )
     )
@@ -332,7 +332,7 @@ def register_all() -> None:
             equation="-log sigmoid(pos - neg)",
             status="EXACT",
             implementation="morel.recommend.bpr.bpr",
-            test="tests/unit/recommend/test_recommend.py::test_bpr_loss_positive",
+            test="tests/unit/recommend/recommend.py::Checker::bpr",
             deviation=None,
         )
     )
@@ -344,7 +344,7 @@ def register_all() -> None:
             equation="sample negatives that are not in positives",
             status="EXACT",
             implementation="morel.recommend.bpr.negatives",
-            test="tests/unit/recommend/test_recommend.py::test_negatives_strict",
+            test="tests/unit/recommend/recommend.py::Checker::strict",
             deviation=None,
         )
     )
@@ -356,7 +356,7 @@ def register_all() -> None:
             equation="hits@k / relevant",
             status="EXACT",
             implementation="morel.eval.ranking.recall_at_k",
-            test="tests/unit/eval/test_eval.py",
+            test="tests/unit/eval/eval.py",
             deviation=None,
         )
     )
@@ -368,7 +368,7 @@ def register_all() -> None:
             equation="DCG@k / IDCG@k",
             status="EXACT",
             implementation="morel.eval.ranking.ndcg_at_k",
-            test="tests/unit/eval/test_eval.py",
+            test="tests/unit/eval/eval.py",
             deviation=None,
         )
     )
@@ -380,7 +380,7 @@ def register_all() -> None:
             equation="f̂_i^(m) = MLP^(m)(q_i) with learned [MASK] token",
             status="EXACT",
             implementation="morel.complete.decoders.Decoders",
-            test="tests/unit/complete/test_decoders.py",
+            test="tests/unit/complete/decoders.py",
             deviation=None,
         )
     )
@@ -392,7 +392,7 @@ def register_all() -> None:
             equation="rolling-window online degree filter",
             status="APPROXIMATE",
             implementation="morel.data.stream.streaming_interactions",
-            test="tests/unit/data/test_stream.py",
+            test="tests/unit/data/stream.py",
             deviation="Online degree filter is offline-exact when two passes are available; "
             "single-pass streaming uses a rolling-window approximation. Offline k-core "
             "remains available in morel.data.build.kcore.",
@@ -407,7 +407,7 @@ def register_all() -> None:
             equation="replay buffer + divergence guard",
             status="APPROXIMATE",
             implementation="morel.serve.update.PipelineUpdater",
-            test="tests/unit/serve/test_serve_features.py",
+            test="tests/unit/serve/features.py",
             deviation="Not a closed-form online-learning algorithm. Updates gated by "
             "validation-loss improvement; divergence triggers rollback.",
         )
