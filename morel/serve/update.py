@@ -41,7 +41,7 @@ class Event:
 
 
 @dataclass
-class UpdateResult:
+class Outcome:
     """Result of one update tick."""
 
     committed: bool
@@ -191,12 +191,12 @@ class Updater:
             return float("inf")
         return float(self.loss_step(batch))
 
-    def tick(self) -> UpdateResult:
+    def tick(self) -> Outcome:
         """Run one update step."""
         with self.lock.read():
             now = time.time()
             if now < self.cooldown_until:
-                return UpdateResult(
+                return Outcome(
                     committed=False,
                     loss=float("nan"),
                     valid_loss=None,
@@ -208,7 +208,7 @@ class Updater:
             events = list(self.feedback_ring)
             replay = list(self.replay_ring)
         if not events:
-            return UpdateResult(False, float("nan"), None, self.version, 0, 0)
+            return Outcome(False, float("nan"), None, self.version, 0, 0)
         val_count = max(1, int(len(events) * self.val_ratio))
         val_batch = events[:val_count]
         train_batch = events[val_count:]
@@ -218,7 +218,7 @@ class Updater:
         loss = float(self.loss_step(step_batch))
         valid_loss = self.validation_loss(val_batch)
         committed, version_after = self.apply_update(loss, valid_loss)
-        return UpdateResult(
+        return Outcome(
             committed=committed,
             loss=loss,
             valid_loss=valid_loss,
@@ -255,8 +255,8 @@ class Updater:
 __all__ = [
     "DefaultStep",
     "Event",
+    "Outcome",
     "Signal",
     "Step",
-    "UpdateResult",
     "Updater",
 ]

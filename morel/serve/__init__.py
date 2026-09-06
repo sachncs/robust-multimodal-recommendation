@@ -29,10 +29,10 @@ from morel.serve.schema import (
 from morel.serve.update import (
     DefaultStep,
     Event,
+    Outcome,
     Signal,
     Step,
     Updater,
-    UpdateResult,
 )
 
 __all__ = [
@@ -44,6 +44,7 @@ __all__ = [
     "FeedbackResponse",
     "HealthResponse",
     "Loader",
+    "Outcome",
     "RWLock",
     "ReadGuard",
     "RecommendItem",
@@ -54,7 +55,6 @@ __all__ = [
     "Signal",
     "StatsResponse",
     "Step",
-    "UpdateResult",
     "Updater",
     "WriteGuard",
     "admin_enabled",
