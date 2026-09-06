@@ -47,7 +47,7 @@ class Manifest:
         return cls(**payload)
 
 
-def path_for(artifact: Path | str) -> Path:
+def locate(artifact: Path | str) -> Path:
     """Return the sidecar manifest path for an artifact."""
     target = Path(artifact)
     return target.with_suffix(target.suffix + ".manifest.json")
@@ -66,7 +66,7 @@ def save(artifact: Path | str, manifest: Manifest) -> Path:
     """
     target = Path(artifact).resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
-    sidecar = path_for(target)
+    sidecar = locate(target)
     tmp = sidecar.with_suffix(sidecar.suffix + ".tmp")
     tmp.write_text(manifest.as_json(), encoding="utf-8")
     os.replace(tmp, sidecar)
@@ -88,7 +88,7 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
     ------
         Datum: If the sidecar is missing or its config hash mismatches.
     """
-    sidecar = path_for(artifact)
+    sidecar = locate(artifact)
     if not sidecar.exists():
         raise Datum(f"manifest not found for {artifact}: {sidecar}")
     manifest = Manifest.parse_json(sidecar.read_text(encoding="utf-8"))
@@ -114,6 +114,6 @@ __all__ = [
     "Manifest",
     "checksum",
     "load",
-    "path_for",
+    "locate",
     "save",
 ]

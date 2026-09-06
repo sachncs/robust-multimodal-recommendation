@@ -25,16 +25,16 @@ from morel.data.manifest import (
     load as load_manifest,
 )
 from morel.data.manifest import (
-    path_for as manifest_path,
+    locate as manifest_path,
 )
 from morel.data.manifest import (
     save as save_manifest,
 )
 from morel.data.mask import Mask, bernoulli, block, stack, structured
-from morel.data.store import load_graph, load_npz, save_graph, save_npz
+from morel.data.store import load_graph, load_npz, save_graph, store
 from morel.data.stream import (
     cooc,
-    exact_interactions,
+    confirmed,
     review,
     stream,
 )
@@ -43,7 +43,7 @@ from morel.data.validate import interactions as validate_interactions
 from morel.data.validate import mask as check
 
 
-def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> Feature:
+def assemble(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> Feature:
     """Build the feature encoder selected by ``config.encoder.{text,visual}``.
 
     Args:
@@ -131,14 +131,14 @@ __all__ = [
     "bernoulli",
     "bipartite",
     "block",
-    "build_extractor",
+    "assemble",
     "build_mask",
     "check",
     "checksum",
     "cooc",
     "cooccurrence",
     "download",
-    "exact_interactions",
+    "confirmed",
     "features",
     "fetch",
     "fingerprint",
@@ -153,7 +153,7 @@ __all__ = [
     "review",
     "save_graph",
     "save_manifest",
-    "save_npz",
+    "store",
     "stack",
     "stream",
     "structured",

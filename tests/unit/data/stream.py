@@ -10,7 +10,7 @@ import pytest
 
 from morel.data.stream import (
     cooc,
-    exact_interactions,
+    confirmed,
     review,
     stream,
 )
@@ -55,7 +55,7 @@ class Checker:
             {"reviewerID": "u3", "asin": "i1"},
         ]
         path = write(tmp_path, records)
-        ui, _, _ = exact_interactions(path, min_edges=2, chunk_size=2)
+        ui, _, _ = confirmed(path, min_edges=2, chunk_size=2)
         assert ui.nnz >= 4
 
     def construction(self) -> None:

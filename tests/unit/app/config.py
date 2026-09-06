@@ -76,13 +76,13 @@ class Checker:
         captured: dict[str, Any] = {}
         import morel.app.experiment as module
 
-        real = module.build_loaders
+        real = module.assemble
 
         def capture(*args: Any, **kwargs: Any) -> Any:
             captured.update(kwargs)
             return real(*args, **kwargs)
 
-        monkeypatch.setattr(module, "build_loaders", capture)
+        monkeypatch.setattr(module, "assemble", capture)
 
         Experiment(config=small(batch=3), run_dir=tmp_path, items=10, users=4).run()
         assert captured["batch_size"] == 3

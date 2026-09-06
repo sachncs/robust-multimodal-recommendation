@@ -115,7 +115,7 @@ def all() -> list[Entry]:
     return sorted(registry.values(), key=lambda e: e.name)
 
 
-def register_all() -> None:
+def include() -> None:
     """Register every paper-component fidelity entry.
 
     The function is idempotent. It is called from ``morel.core.__init__``

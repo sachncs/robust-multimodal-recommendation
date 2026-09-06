@@ -126,4 +126,4 @@ __all__ = [
 # idempotent so callers may also invoke it explicitly.
 from morel.core import fidelity as fidelity_mod
 
-fidelity_mod.register_all()
+fidelity_mod.include()

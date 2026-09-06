@@ -14,7 +14,7 @@ import numpy as np
 import torch
 
 from morel.app.data import (
-    build_loaders,
+    assemble,
     cast,
     recommends,
     synth,
@@ -135,7 +135,7 @@ class Experiment:
         )
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
 
-        loader, val_loader = build_loaders(
+        loader, val_loader = assemble(
             dataset["features"],
             dataset["mask"],
             dataset["item_adj"],

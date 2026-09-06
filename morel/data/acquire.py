@@ -88,7 +88,7 @@ def fetch(
     raise Datum(f"failed to fetch {url} after {retries + 1} attempts: {last_error}")
 
 
-def download_from_base(base: str, category: str, dest: Path | str, *, timeout: float) -> list[Path]:
+def pull(base: str, category: str, dest: Path | str, *, timeout: float) -> list[Path]:
     files = [f"{category}_5.json.gz", f"{category}_metadata.json.gz"]
     root = Path(dest).resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -126,7 +126,7 @@ def download(category: str, dest: Path | str, *, timeout: float = TIMEOUT) -> li
     -------
         The list of decompressed file paths.
     """
-    return download_from_base(BASE, category, dest, timeout=timeout)
+    return pull(BASE, category, dest, timeout=timeout)
 
 
 __all__ = [

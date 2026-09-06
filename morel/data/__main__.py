@@ -97,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "extract":
             run_extract(args, config)
         elif args.cmd == "build":
-            run_build(args, config)
+            assemble(args, config)
         elif args.cmd == "mask":
             from morel.data import build_mask
 
@@ -134,10 +134,10 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     configured backbone is actually the one that runs. ``--synthetic`` forces
     the deterministic ``random`` encoder, which needs no model download.
     """
-    from morel.data import build_extractor
+    from morel.data import assemble
     from morel.data.extract import text as encode_text
     from morel.data.manifest import Manifest
-    from morel.data.store import save_npz
+    from morel.data.store import store
     from morel.data.validate import features as check_features
 
     out_dir = Path(args.out_dir)
@@ -149,10 +149,10 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     visual_kind = "random" if args.synthetic else config.encoder.visual
     log.info("extract.encoders", extra={"text": text_kind, "visual": visual_kind})
 
-    text_encoder = build_extractor(
+    text_encoder = assemble(
         text_kind, dim=dim_text, batch=config.encoder.batch, seed=config.seed + 1
     )
-    visual_encoder = build_extractor(
+    visual_encoder = assemble(
         visual_kind, dim=dim_visual, batch=config.encoder.batch, seed=config.seed
     )
     # Synthetic inputs are item ids; a real run would read them from data_dir.
@@ -162,9 +162,9 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
         "text": encode_text(inputs, text_encoder, batch=config.encoder.batch),
     }
     check_features(feats, items=items)
-    # ``**feats`` is modality-keyed; a key colliding with save_npz's own
+    # ``**feats`` is modality-keyed; a key colliding with store's own
     # keyword-only parameter raises rather than silently misbinding.
-    save_npz(
+    store(
         out_dir / "features.npz",
         **feats,  # type: ignore[arg-type]
     )
@@ -194,12 +194,12 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     print(out_dir / "features.npz")
 
 
-def run_build(args: argparse.Namespace, config: Config) -> None:
+def assemble(args: argparse.Namespace, config: Config) -> None:
     """Run the ``build`` subcommand."""
     from morel.data.build import bipartite as build_bipartite
     from morel.data.build import cooccurrence, kcore
     from morel.data.manifest import Manifest
-    from morel.data.store import save_graph, save_npz
+    from morel.data.store import save_graph, store
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -216,7 +216,7 @@ def run_build(args: argparse.Namespace, config: Config) -> None:
     if args.min_edges > 0:
         item_adj = kcore(item_adj, args.min_edges)
     save_graph(out_dir / "item_graph.npz", item_adj)
-    save_npz(
+    store(
         out_dir / "bipartite_meta.npz",
         users=np.asarray([users], dtype=np.int64),
         items=np.asarray([items], dtype=np.int64),

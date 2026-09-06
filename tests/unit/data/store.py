@@ -10,7 +10,7 @@ import scipy.sparse as sp
 
 from morel.core.errors import Datum
 from morel.data.manifest import Manifest
-from morel.data.store import load_graph, load_npz, save_graph, save_npz
+from morel.data.store import load_graph, load_npz, save_graph, store
 
 
 class Checker:
@@ -18,7 +18,7 @@ class Checker:
 
     def roundtrip(self, tmp_path: Path) -> None:
         target = tmp_path / "x.npz"
-        save_npz(target, a=np.arange(4, dtype=np.float32), b=np.ones(4))
+        store(target, a=np.arange(4, dtype=np.float32), b=np.ones(4))
         loaded = load_npz(target)
         assert np.array_equal(loaded["a"], np.arange(4))
         assert np.array_equal(loaded["b"], np.ones(4))
@@ -28,7 +28,7 @@ class Checker:
         m = Manifest(
             dataset="Beauty", version="1", code="c", seed=0, extractor="text", cfg_hash="abc"
         )
-        save_npz(target, manifest_obj=m, a=np.arange(2, dtype=np.float32))
+        store(target, manifest_obj=m, a=np.arange(2, dtype=np.float32))
         assert load_npz(target).get("a") is not None
 
     def raises(self, tmp_path: Path) -> None:
@@ -49,4 +49,4 @@ class Checker:
 
     def empty(self, tmp_path: Path) -> None:
         with pytest.raises(Datum):
-            save_npz(tmp_path / "x.npz")
+            store(tmp_path / "x.npz")

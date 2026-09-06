@@ -99,7 +99,7 @@ def split(
     return Subset(dataset, train_indices), Subset(dataset, val_indices)
 
 
-def build_loaders(
+def assemble(
     features: dict[str, np.ndarray],
     mask: np.ndarray,
     adjacency: sp.csr_matrix,
@@ -248,7 +248,7 @@ __all__ = [
     "BPR",
     "Corpus",
     "build",
-    "build_loaders",
+    "assemble",
     "cast",
     "collate",
     "recommend_loader",

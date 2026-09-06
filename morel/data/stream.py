@@ -102,7 +102,7 @@ def stream(
             yield users, items
 
 
-def exact_interactions(
+def confirmed(
     review_path: Path | str,
     *,
     min_edges: int = 5,
@@ -219,7 +219,7 @@ def cooc(
 
 __all__ = [
     "cooc",
-    "exact_interactions",
+    "confirmed",
     "review",
     "stream",
 ]

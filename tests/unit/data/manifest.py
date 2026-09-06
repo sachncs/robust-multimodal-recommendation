@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from morel.core.errors import Datum
-from morel.data.manifest import Manifest, checksum, load, path_for, save
+from morel.data.manifest import Manifest, checksum, load, locate, save
 
 
 class Checker:
@@ -57,4 +57,4 @@ class Checker:
 
     def path(self, tmp_path: Path) -> None:
         p = tmp_path / "data.npz"
-        assert path_for(p).name == "data.npz.manifest.json"
+        assert locate(p).name == "data.npz.manifest.json"

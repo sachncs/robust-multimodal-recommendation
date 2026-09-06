@@ -23,7 +23,7 @@ import pytest
 
 from morel.core.config import Config
 from morel.core.errors import Cfg, Datum
-from morel.data import EXTRACTORS, build_extractor
+from morel.data import EXTRACTORS, assemble
 from morel.data.__main__ import main
 from morel.data.extract import Random
 
@@ -47,7 +47,7 @@ class Checker:
 
     def unknown(self) -> None:
         with pytest.raises(Cfg, match="unknown feature extractor"):
-            build_extractor("not-a-model", dim=8)
+            assemble("not-a-model", dim=8)
 
     def random(self) -> None:
         encoder = Random(8, seed=1)
@@ -102,5 +102,5 @@ class Checker:
         monkeypatch.chdir(tmp_path)
         config = replace(Config().encoder, batch=7)
         assert config.batch == 7
-        encoder = build_extractor("random", dim=8, batch=7)
+        encoder = assemble("random", dim=8, batch=7)
         assert encoder is not None

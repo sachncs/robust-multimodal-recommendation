@@ -17,7 +17,7 @@ from morel.data import manifest
 def atomic(target: Path, writer: Callable[[Path], None]) -> Path:
     """Write to a sibling tempfile, then atomically replace the target.
 
-    The tempfile name is constructed so that ``np.savez`` and ``sp.save_npz``
+    The tempfile name is constructed so that ``np.savez`` and ``sp.store``
     do not silently append a ``.npz`` suffix. Both libraries append ``.npz``
     when the path does not already end in that suffix; we therefore keep the
     target's suffix in the tempfile name.
@@ -35,7 +35,7 @@ def atomic(target: Path, writer: Callable[[Path], None]) -> Path:
     return target
 
 
-def save_npz(
+def store(
     target: Path | str,
     *,
     manifest_obj: manifest.Manifest | None = None,
@@ -53,7 +53,7 @@ def save_npz(
         The destination path.
     """
     if not arrays:
-        raise Datum("save_npz requires at least one array")
+        raise Datum("store requires at least one array")
     final = Path(target).resolve()
     # A key literally named ``allow_pickle`` would bind to savez's own keyword;
     # that raises rather than silently dropping data, so the narrowing is safe.
@@ -79,7 +79,7 @@ def load_npz(
     path = Path(target)
     if not path.exists():
         raise Datum(f"npz artifact not found: {path}")
-    if manifest.path_for(path).exists():
+    if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     with np.load(path, allow_pickle=False) as npz:
         return {key: npz[key] for key in npz.files}
@@ -119,7 +119,7 @@ def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -
     path = Path(target)
     if not path.exists():
         raise Datum(f"graph artifact not found: {path}")
-    if manifest.path_for(path).exists():
+    if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     with np.load(path, allow_pickle=False) as npz:
         data = npz["data"]
@@ -130,4 +130,4 @@ def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -
     return coo.tocsr()
 
 
-__all__ = ["load_graph", "load_npz", "save_graph", "save_npz"]
+__all__ = ["load_graph", "load_npz", "save_graph", "store"]
