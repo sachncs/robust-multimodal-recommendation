@@ -53,7 +53,7 @@ def review(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict
             yield chunk
 
 
-def stream_interactions(
+def stream(
     review_path: Path | str,
     *,
     min_edges: int = 5,
@@ -175,7 +175,7 @@ def exact_interactions(
     return ui, user2id, item2id
 
 
-def stream_cooc(
+def cooc(
     ui_chunks: Iterator[tuple[np.ndarray, np.ndarray]],
     *,
     items: int,
@@ -218,8 +218,8 @@ def stream_cooc(
 
 
 __all__ = [
+    "cooc",
     "exact_interactions",
     "review",
-    "stream_cooc",
-    "stream_interactions",
+    "stream",
 ]

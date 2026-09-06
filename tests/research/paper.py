@@ -7,7 +7,7 @@ import scipy.sparse as sp
 import torch
 
 from morel.codebook import balance, usage
-from morel.eval import ndcg_at_k, recall_at_k
+from morel.eval import ndcg, recall
 from morel.recommend import Light
 from morel.retrieve.acs import compute
 
@@ -71,17 +71,17 @@ class Checker:
         """Recall@K is bounded in [0, 1]."""
         rng = np.random.default_rng(0)
         labels = (rng.random((10, 20)) > 0.8).astype(np.float32)
-        out = recall_at_k(labels, labels, k=5)
+        out = recall(labels, labels, k=5)
         assert 0.0 <= out <= 1.0
 
     def ndcg(self) -> None:
         rng = np.random.default_rng(0)
         labels = (rng.random((10, 20)) > 0.8).astype(np.float32)
-        out = ndcg_at_k(labels, labels, k=5)
+        out = ndcg(labels, labels, k=5)
         assert 0.0 <= out <= 1.0
 
     def at(self) -> None:
         """Identity scores with identity labels should give 1.0 (perfect ranking)."""
         labels = np.eye(5, 10, dtype=np.float32)
-        out = recall_at_k(labels, labels, k=1)
+        out = recall(labels, labels, k=1)
         assert abs(out - 1.0) < 1e-6

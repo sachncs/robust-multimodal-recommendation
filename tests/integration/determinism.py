@@ -15,7 +15,7 @@ import torch
 from morel.core.config import Config
 from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
-from morel.eval import ndcg_at_k, recall_at_k
+from morel.eval import ndcg, recall
 from morel.pipeline import Pipeline
 from morel.recommend import Light
 
@@ -29,7 +29,7 @@ def synthetic() -> tuple[dict[str, np.ndarray], np.ndarray, sp.csr_matrix, sp.cs
         "visual": rng.normal(size=(items, 16)).astype(np.float32),
         "text": rng.normal(size=(items, 8)).astype(np.float32),
     }
-    mask = bernoulli(items, 2, 0.4, seed=42).to_numpy()
+    mask = bernoulli(items, 2, 0.4, seed=42).as_numpy()
     return features, mask, cooccurrence(ui), ui
 
 
@@ -55,8 +55,8 @@ def run(config: Config) -> tuple[dict[str, torch.Tensor], torch.Tensor, float, f
     return (
         output.completed,
         output.routing,
-        float(recall_at_k(scores, labels, k=10)),
-        float(ndcg_at_k(scores, labels, k=10)),
+        float(recall(scores, labels, k=10)),
+        float(ndcg(scores, labels, k=10)),
     )
 
 

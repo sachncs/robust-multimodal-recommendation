@@ -14,7 +14,7 @@ from morel.core.errors import Model
 from morel.core.seed import deterministic
 
 
-def cache_key(matrix: sp.csr_matrix) -> str:
+def key(matrix: sp.csr_matrix) -> str:
     """Stable SHA256 of a CSR matrix's nonzero pattern and shape."""
     coo = sp.coo_matrix(matrix)
     h = hashlib.sha256()
@@ -171,12 +171,12 @@ class Light(nn.Module):
             return cached
         if ui_graph is None:
             raise ValueError("ui_graph is required on the first call")
-        key = cache_key(ui_graph)
-        if self.adj_cache is not None and self.adj_cache[0] == key:
+        k = key(ui_graph)
+        if self.adj_cache is not None and self.adj_cache[0] == k:
             cached = self.adj_cache[1]
             if cached.device != self.user_emb.weight.device:
                 cached = cached.to(self.user_emb.weight.device)
-                self.adj_cache = (key, cached)
+                self.adj_cache = (k, cached)
             return cached
         top = sp.hstack([sp.csr_matrix((self.users, self.users)), ui_graph])
         bottom = sp.hstack([ui_graph.T, sp.csr_matrix((self.items, self.items))])
@@ -205,7 +205,7 @@ class Light(nn.Module):
         target_device = self.user_emb.weight.device
         if tensor.device != target_device:
             tensor = tensor.to(target_device)
-        self.adj_cache = (key, tensor)
+        self.adj_cache = (key(ui_graph), tensor)
         return tensor
 
 

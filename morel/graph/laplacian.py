@@ -16,10 +16,10 @@ import torch
 import torch.nn as nn
 
 from morel.core.errors import Net
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 from morel.graph import invariants
 
-log = get_logger("graph.laplacian")
+log = logger("graph.laplacian")
 
 #: Seed for the fixed ARPACK start vector. Any constant works; it only has to
 #: be the same on every run so the Lanczos iteration is reproducible.
@@ -49,7 +49,7 @@ def coo_hash(matrix: sp.spmatrix) -> str:
 
 def laplacian(adj: sp.spmatrix) -> sp.csr_matrix:
     """Symmetric normalized Laplacian: L = I - D^{-1/2} A D^{-1/2}."""
-    invariants.no_loops(adj)
+    invariants.loopless(adj)
     adj_coo = sp.coo_matrix(adj)
     rowsum = np.asarray(adj_coo.sum(axis=1)).flatten()
     with np.errstate(divide="ignore"):

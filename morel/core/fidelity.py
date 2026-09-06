@@ -355,7 +355,7 @@ def register_all() -> None:
             paper="standard IR metric",
             equation="hits@k / relevant",
             status="EXACT",
-            implementation="morel.eval.ranking.recall_at_k",
+            implementation="morel.eval.ranking.recall",
             test="tests/unit/eval/eval.py",
             deviation=None,
         )
@@ -367,7 +367,7 @@ def register_all() -> None:
             paper="standard IR metric",
             equation="DCG@k / IDCG@k",
             status="EXACT",
-            implementation="morel.eval.ranking.ndcg_at_k",
+            implementation="morel.eval.ranking.ndcg",
             test="tests/unit/eval/eval.py",
             deviation=None,
         )
@@ -391,7 +391,7 @@ def register_all() -> None:
             paper="streaming adaptation of GRE-MC Section 4",
             equation="rolling-window online degree filter",
             status="APPROXIMATE",
-            implementation="morel.data.stream.stream_interactions",
+            implementation="morel.data.stream.stream",
             test="tests/unit/data/stream.py",
             deviation="Online degree filter is offline-exact when two passes are available; "
             "single-pass streaming uses a rolling-window approximation. Offline k-core "

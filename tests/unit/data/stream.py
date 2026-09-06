@@ -9,10 +9,10 @@ import numpy as np
 import pytest
 
 from morel.data.stream import (
+    cooc,
     exact_interactions,
     review,
-    stream_cooc,
-    stream_interactions,
+    stream,
 )
 
 
@@ -65,10 +65,10 @@ class Checker:
                 (np.array([1, 1]), np.array([1, 2])),
             ]
         )
-        cooc = stream_cooc(chunks, items=3)
-        assert cooc.shape == (3, 3)
-        # user 0 -> items {0, 1}: cooc(0, 1) += 1
-        # user 1 -> items {1, 2}: cooc(1, 2) += 1
+        cooc_matrix = cooc(chunks, items=3)
+        assert cooc_matrix.shape == (3, 3)
+        # user 0 -> items {0, 1}: cooc_matrix(0, 1) += 1
+        # user 1 -> items {1, 2}: cooc_matrix(1, 2) += 1
         assert cooc[0, 1] == 1
         assert cooc[1, 0] == 1
         assert cooc[1, 2] == 1
@@ -88,7 +88,7 @@ class Checker:
         ]
         path = write(tmp_path, records)
         emitted = []
-        for user_ids, item_ids in stream_interactions(path, min_edges=2, chunk_size=10):
+        for user_ids, item_ids in stream(path, min_edges=2, chunk_size=10):
             emitted.append((user_ids, item_ids))
         assert len(emitted) >= 1
         assert all(isinstance(u, np.ndarray) for u, _ in emitted)

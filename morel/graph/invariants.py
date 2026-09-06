@@ -8,7 +8,7 @@ import scipy.sparse as sp
 from morel.core.errors import Net
 
 
-def no_loops(adj: sp.spmatrix) -> None:
+def loopless(adj: sp.spmatrix) -> None:
     """Raise if the adjacency has any self-loops."""
     diag = adj.diagonal()
     if (diag != 0).any():
@@ -24,7 +24,7 @@ def symmetric(adj: sp.spmatrix, *, atol: float = 1e-6) -> None:
         raise Net("graph is not symmetric")
 
 
-def no_iso(adj: sp.spmatrix, *, min_degree: int = 1) -> None:
+def isoless(adj: sp.spmatrix, *, min_degree: int = 1) -> None:
     """Raise if any node has degree below ``min_degree``."""
     degrees = np.asarray(adj.sum(axis=1)).flatten()
     if (degrees < min_degree).any():
@@ -43,9 +43,9 @@ def finite(adj: sp.spmatrix) -> None:
 def all_invar(adj: sp.spmatrix) -> None:
     """Run the full default invariant suite."""
     finite(adj)
-    no_loops(adj)
+    loopless(adj)
     symmetric(adj)
-    no_iso(adj)
+    isoless(adj)
 
 
-__all__ = ["all_invar", "finite", "no_iso", "no_loops", "symmetric"]
+__all__ = ["all_invar", "finite", "isoless", "loopless", "symmetric"]

@@ -10,8 +10,8 @@ import pytest
 import torch.nn as nn
 
 from morel.serve.auth import (
-    assert_set,
-    is_admin,
+    admin,
+    assert_state,
     is_read,
     require,
     token,
@@ -45,7 +45,7 @@ class Checker:
         monkeypatch.delenv("MOREL_AUTH_TOKEN_ADMIN", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "read-tok")
         assert is_read() is True
-        assert is_admin() is False
+        assert admin() is False
         assert token("read") == "read-tok"
         assert token("admin") is None
 
@@ -54,7 +54,7 @@ class Checker:
         monkeypatch.delenv("MOREL_AUTH_TOKEN_READ", raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-tok")
         assert is_read() is False
-        assert is_admin() is True
+        assert admin() is True
         assert token("read") is None
         assert token("admin") == "admin-tok"
 
@@ -67,7 +67,7 @@ class Checker:
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("MOREL_AUTH_TOKEN", "legacy")
         assert is_read() is True
-        assert is_admin() is True
+        assert admin() is True
         assert token("read") == "legacy"
         assert token("admin") == "legacy"
 
@@ -85,7 +85,7 @@ class Checker:
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("MOREL_AUTH_ENABLED", "1")
         with pytest.raises(Cfg):
-            assert_set()
+            assert_state()
 
     def noop(self) -> None:
         class Req:

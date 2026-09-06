@@ -12,12 +12,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from morel.core.log import configure as configure_log
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 
 if TYPE_CHECKING:
     from morel.core.config import Config
 
-log = get_logger("cli")
+log = logger("cli")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -45,9 +45,9 @@ def main(argv: list[str] | None = None) -> int:
     """Dispatch to subcommands."""
     raw = list(sys.argv[1:] if argv is None else argv)
     configure_logging(raw)
-    parser = build_parser()
+    cli_parser = build_parser()
     if not raw:
-        parser.print_help()
+        cli_parser.print_help()
         return 0
     cmd = raw[0]
     rest = raw[1:]
@@ -60,16 +60,16 @@ def main(argv: list[str] | None = None) -> int:
         "serve",
         "render-fidelity",
     }:
-        parser.error(f"unknown command {cmd!r}")
+        cli_parser.error(f"unknown command {cmd!r}")
         return 2
     handler = {
         "data": data,
         "train": train,
         "eval": eval,
-        "bench": run_bench,
+        "bench": bench,
         "reproduce": repro,
         "serve": serve,
-        "render-fidelity": render_fidelity,
+        "render-fidelity": fidelity_render,
     }[cmd]
     return handler(rest)
 
@@ -130,16 +130,16 @@ def eval(argv: list[str]) -> int:
     args = parser.parse_args(argv)
     log.info("eval.start", extra={"sub": args.sub})
     if args.sub == "rank":
-        from morel.eval import ndcg_at_k, recall_at_k
+        from morel.eval import ndcg, recall
 
         config = load_cfg(resolve_cfg(argv))
         rng = __import__("numpy").random.default_rng(config.seed)
         scores = rng.random((20, 50))
         labels = (rng.random((20, 50)) > 0.7).astype("float32")
         for k in config.eval.ks:
-            recall = recall_at_k(scores, labels, k=k)
-            ndcg = ndcg_at_k(scores, labels, k=k)
-            print(f"recall@{k}={recall:.4f} ndcg@{k}={ndcg:.4f}")
+            recall_val = recall(scores, labels, k=k)
+            ndcg_val = ndcg(scores, labels, k=k)
+            print(f"recall@{k}={recall_val:.4f} ndcg@{k}={ndcg_val:.4f}")
         return 0
     if args.sub == "ablations":
         from morel.app import Ablate
@@ -154,25 +154,25 @@ def eval(argv: list[str]) -> int:
     if args.sub == "robustness":
         from functools import partial
 
-        from morel.eval import recall_at_k
-        from morel.eval.protocol import robustness_sweep
+        from morel.eval import recall
+        from morel.eval.protocol import sweep
 
         config = load_cfg(resolve_cfg(argv))
         ratios = list(config.eval.robustness)
         rng = __import__("numpy").random.default_rng(config.seed)
         scores_by_ratio = {r: rng.random((20, 50)) for r in ratios}
         labels = (rng.random((20, 50)) > 0.7).astype("float32")
-        sweep = robustness_sweep(
+        sweep_result = sweep(
             scores_by_ratio,
             labels,
-            metrics={f"recall@{k}": partial(recall_at_k, k=k) for k in config.eval.ks},
+            metrics={f"recall@{k}": partial(recall, k=k) for k in config.eval.ks},
         )
-        print(sweep)
+        print(sweep_result)
         return 0
     return 2
 
 
-def run_bench(argv: list[str]) -> int:
+def bench(argv: list[str]) -> int:
     """Handle the ``bench`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel bench", description="benchmark")
     parser.add_argument("--sizes", default="16,32")
@@ -213,7 +213,7 @@ def repro(argv: list[str]) -> int:
     return int(bool(rep.run()))
 
 
-def render_fidelity(argv: list[str]) -> int:
+def fidelity_render(argv: list[str]) -> int:
     """Handle the ``render-fidelity`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel render-fidelity", description="render fidelity")
     parser.add_argument("markdown", help="output markdown path")

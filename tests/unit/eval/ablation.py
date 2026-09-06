@@ -38,7 +38,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     def registered(self) -> None:
-        assert set(ABLATIONS) == {"no_retrieval", "no_pe", "no_codebook"}
+        assert set(ABLATIONS) == {"no_retrieve", "no_pe", "no_book"}
 
     def all(self) -> None:
         """A configured condition that is not registered would fail mid-sweep."""
@@ -54,13 +54,13 @@ class Checker:
         assert ablate(config, BASELINE) is config
 
     def context(self) -> None:
-        assert ablate(small(), "no_retrieval").retrieve.kind == "none"
+        assert ablate(small(), "no_retrieve").retrieve.kind == "none"
 
     def encoding(self) -> None:
         assert ablate(small(), "no_pe").encode.pe == 0
 
     def quantization(self) -> None:
-        assert ablate(small(), "no_codebook").codebook.kind == "identity"
+        assert ablate(small(), "no_book").codebook.kind == "identity"
 
     def the(self) -> None:
         config = small()
@@ -82,12 +82,12 @@ class Checker:
             ablate(small(), "nope")
 
     def cutoff(self, tmp_path: Path) -> None:
-        config = small(eval={"ks": [5, 10], "ablations": ["no_pe", "no_codebook"]})
+        config = small(eval={"ks": [5, 10], "ablations": ["no_pe", "no_book"]})
         result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         assert set(result["metrics"]) == {"recall@5", "ndcg@5", "recall@10", "ndcg@10"}
         for values in result["metrics"].values():
-            assert set(values) == {BASELINE, "no_pe", "no_codebook"}
+            assert set(values) == {BASELINE, "no_pe", "no_book"}
             for value in values.values():
                 assert 0.0 <= value <= 1.0
 
@@ -97,7 +97,7 @@ class Checker:
         A sweep where every condition scores identically measures nothing, and
         would have been reported as though it did.
         """
-        config = small(eval={"ks": [5], "ablations": ["no_retrieval", "no_codebook"]})
+        config = small(eval={"ks": [5], "ablations": ["no_retrieve", "no_book"]})
         result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         recall = result["metrics"]["recall@5"]
@@ -126,6 +126,6 @@ class Checker:
 
     def morel(self, tmp_path: Path) -> None:
         """Built-in ablations are available without registration."""
-        assert "no_retrieval" in ABLATIONS
+        assert "no_retrieve" in ABLATIONS
         assert "no_pe" in ABLATIONS
-        assert "no_codebook" in ABLATIONS
+        assert "no_book" in ABLATIONS

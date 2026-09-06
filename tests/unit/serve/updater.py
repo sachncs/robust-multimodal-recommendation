@@ -91,8 +91,8 @@ class Checker:
             thread.start()
         time.sleep(0.05)
         try:
-            assert live.lock.write_acquire(timeout=TIMEOUT), "model update was starved"
-            live.lock.write_release()
+            assert live.lock.acquire_write(timeout=TIMEOUT), "model update was starved"
+            live.lock.release_write()
         finally:
             stop.set()
             for thread in threads:

@@ -16,16 +16,16 @@ import numpy as np
 import scipy.sparse as sp
 
 from morel.core.errors import Net
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 from morel.graph.subgraph import connected
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.bfs import neighbor_array
 from morel.retrieve.relevance import rel
 
-log = get_logger("retrieve.mage")
+log = logger("retrieve.mage")
 
 
-def boundary_nodes(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]:
+def boundary(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]:
     """Return the sorted list of nodes adjacent to ``subgraph`` but not in it."""
     boundary: set[int] = set()
     for node in subgraph:
@@ -89,10 +89,10 @@ def expand(
 
     for _ in range(iters):
         changed = False
-        boundary = boundary_nodes(subgraph_set, neighbors)
+        boundary_list = boundary(subgraph_set, neighbors)
         best_candidate: int | None = None
         best_candidate_score = best_score
-        for node in boundary:
+        for node in boundary_list:
             trial = subgraph_set | {node}
             if not connected(np.array(sorted(trial), dtype=np.int64), neighbors):
                 continue

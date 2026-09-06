@@ -34,7 +34,7 @@ class Result:
         return int(self.sizes.shape[0])
 
     @property
-    def max_size(self) -> int:
+    def peak(self) -> int:
         """Return the maximum subgraph size."""
         return int(self.nodes.shape[1])
 
@@ -138,7 +138,7 @@ def none(
 
     Nothing is retrieved, so the encoder sees only the item being completed
     and no graph context. This is the condition ``eval.ablations`` calls
-    ``no_retrieval``.
+    ``no_retrieve``.
     """
     del features, mask, adj, anchors, iters, fallback
     return {int(query)}
@@ -224,9 +224,9 @@ def batch(
         for q in queries
     ]
     sizes = np.array([len(s) for s in subgraphs], dtype=np.int64)
-    max_size = int(sizes.max()) if sizes.size else 0
-    nodes = np.zeros((len(queries), max_size), dtype=np.int64)
-    valid = np.zeros((len(queries), max_size), dtype=bool)
+    peak = int(sizes.max()) if sizes.size else 0
+    nodes = np.zeros((len(queries), peak), dtype=np.int64)
+    valid = np.zeros((len(queries), peak), dtype=bool)
     for i, sg in enumerate(subgraphs):
         arr = np.array(sorted(sg), dtype=np.int64)
         nodes[i, : arr.size] = arr
@@ -234,7 +234,7 @@ def batch(
     return Result(nodes=nodes, sizes=sizes, mask=valid)
 
 
-def as_tensor(
+def cast(
     result: Result, *, device: str | torch.device | None = None
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Convert a batched Result into (nodes, mask, sizes) torch tensors."""
@@ -248,4 +248,4 @@ def as_tensor(
     return nodes, mask_t, sizes
 
 
-__all__ = ["Cfg", "Result", "as_tensor", "batch", "retrieve"]
+__all__ = ["Cfg", "Result", "batch", "cast", "retrieve"]

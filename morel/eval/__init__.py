@@ -2,9 +2,9 @@
 
 from morel.eval.ablation import BASELINE, ablate, conditions
 from morel.eval.ablation import KIND as ABLATIONS
-from morel.eval.completion import mse, per_modality, variance
-from morel.eval.protocol import Robust, results, robustness_sweep
-from morel.eval.ranking import map_at_k, mrr, ndcg_at_k, precision_at_k, recall_at_k
+from morel.eval.completion import modal, mse, variance
+from morel.eval.protocol import Robust, results, sweep
+from morel.eval.ranking import map, mrr, ndcg, precision, recall
 
 __all__ = [
     "ABLATIONS",  # KIND dict from morel.eval.ablation,
@@ -12,14 +12,14 @@ __all__ = [
     "Robust",
     "ablate",
     "conditions",
-    "map_at_k",
+    "map",
+    "modal",
     "mrr",
     "mse",
-    "ndcg_at_k",
-    "per_modality",
-    "precision_at_k",
-    "recall_at_k",
+    "ndcg",
+    "precision",
+    "recall",
     "results",
-    "robustness_sweep",
+    "sweep",
     "variance",
 ]

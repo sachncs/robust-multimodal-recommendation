@@ -11,9 +11,9 @@ import numpy as np
 import scipy.sparse as sp
 
 from morel.core.errors import Datum
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 
-log = get_logger("data.build")
+log = logger("data.build")
 
 
 def bipartite(user: np.ndarray, item: np.ndarray, users: int, items: int) -> sp.csr_matrix:

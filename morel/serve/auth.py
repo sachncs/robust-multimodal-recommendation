@@ -23,7 +23,7 @@ from morel.core.errors import Cfg
 Scope = Literal["read", "admin"]
 
 
-def is_admin() -> bool:
+def admin() -> bool:
     """Return whether admin-scope auth is configured."""
     return bool(os.environ.get("MOREL_AUTH_TOKEN_ADMIN") or os.environ.get("MOREL_AUTH_TOKEN"))
 
@@ -86,17 +86,17 @@ def dependency(scope: Scope) -> Callable[[Request], None]:
     return scoped
 
 
-def assert_set() -> None:
+def assert_state() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
-    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (is_admin() or is_read()):
+    if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (admin() or is_read()):
         raise Cfg("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
 
 
 __all__ = [
     "Scope",
-    "assert_set",
+    "admin",
+    "assert_state",
     "dependency",
-    "is_admin",
     "is_read",
     "require",
     "token",

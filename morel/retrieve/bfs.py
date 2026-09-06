@@ -79,7 +79,7 @@ def path(adj: sp.csr_matrix, start: int, end: int) -> list[int]:
     return []
 
 
-def neighbor_iter(adj: sp.csr_matrix, node: int) -> Iterator[int]:
+def iter_neighbors(adj: sp.csr_matrix, node: int) -> Iterator[int]:
     """Iterate over the neighbors of ``node``."""
     row_start = adj.indptr[node]
     row_end = adj.indptr[node + 1]
@@ -97,4 +97,4 @@ def neighbor_array(adj: sp.csr_matrix) -> dict[int, np.ndarray]:
     return out
 
 
-__all__ = ["bfs", "neighbor_array", "neighbor_iter", "path"]
+__all__ = ["bfs", "iter_neighbors", "neighbor_array", "path"]

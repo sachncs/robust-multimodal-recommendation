@@ -36,12 +36,12 @@ class Manifest:
     timestamp: str = field(default_factory=lambda: dt.datetime.now(dt.timezone.utc).isoformat())
     extras: dict[str, Any] = field(default_factory=dict)
 
-    def to_json(self) -> str:
+    def as_json(self) -> str:
         """Serialize to JSON."""
         return json.dumps(dataclasses.asdict(self), indent=2, sort_keys=True, ensure_ascii=False)
 
     @classmethod
-    def from_json(cls, text: str) -> Manifest:
+    def parse_json(cls, text: str) -> Manifest:
         """Deserialize from JSON."""
         payload = json.loads(text)
         return cls(**payload)
@@ -68,7 +68,7 @@ def save(artifact: Path | str, manifest: Manifest) -> Path:
     target.parent.mkdir(parents=True, exist_ok=True)
     sidecar = path_for(target)
     tmp = sidecar.with_suffix(sidecar.suffix + ".tmp")
-    tmp.write_text(manifest.to_json(), encoding="utf-8")
+    tmp.write_text(manifest.as_json(), encoding="utf-8")
     os.replace(tmp, sidecar)
     return sidecar
 
@@ -91,7 +91,7 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
     sidecar = path_for(artifact)
     if not sidecar.exists():
         raise Datum(f"manifest not found for {artifact}: {sidecar}")
-    manifest = Manifest.from_json(sidecar.read_text(encoding="utf-8"))
+    manifest = Manifest.parse_json(sidecar.read_text(encoding="utf-8"))
     if expected_config_hash is not None and manifest.cfg_hash != expected_config_hash:
         raise Datum(
             f"manifest config hash mismatch for {artifact}: "

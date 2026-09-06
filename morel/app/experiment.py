@@ -15,24 +15,24 @@ import torch
 
 from morel.app.data import (
     build_loaders,
-    recommend_loaders,
+    cast,
+    recommends,
     synth,
-    to_tensor,
 )
 from morel.core.config import Config, Masking
 from morel.core.fidelity import render
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 from morel.core.seed import seed as seed_everything
 from morel.data import build_mask
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import cooccurrence
 from morel.data.manifest import Manifest
-from morel.eval import ablate, conditions, ndcg_at_k, recall_at_k, results
+from morel.eval import ablate, conditions, ndcg, recall, results
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, Fit
 from morel.train.recommendation import Rec, Recommendation
 
-log = get_logger("app.experiment")
+log = logger("app.experiment")
 
 
 def synthetic(
@@ -72,7 +72,7 @@ def synthetic(
         modalities=2,
         ratio=settings.ratio,
         seed=settings.seed,
-    ).to_numpy()
+    ).as_numpy()
     return {
         "ui": ui,
         "item_adj": adj,
@@ -95,7 +95,7 @@ class Experiment:
     epochs: int | None = None
     seed: int | None = None
 
-    def resolved_epochs(self) -> int:
+    def resolved(self) -> int:
         """Return the epoch count to train for.
 
         An explicit ``epochs`` on the experiment wins; otherwise the value
@@ -157,7 +157,7 @@ class Experiment:
             monitor=None,
             checkpoint_dir=self.run_dir,
         )
-        epochs = self.resolved_epochs()
+        epochs = self.resolved()
         history = trainer.fit(
             loader, val_loader, epochs=epochs, patience=self.config.completion.patience
         )
@@ -193,7 +193,7 @@ class Experiment:
             },
         )
         manifest_path = self.run_dir / "manifest.json"
-        manifest_path.write_text(manifest.to_json(), encoding="utf-8")
+        manifest_path.write_text(manifest.as_json(), encoding="utf-8")
 
         report = self.run_dir / "report.md"
         report.write_text(
@@ -242,7 +242,7 @@ class Rank:
     epochs: int | None = None
     seed: int | None = None
 
-    def resolved_epochs(self) -> int:
+    def resolved(self) -> int:
         """Return the epoch count, falling back to ``config.recommendation.epochs``."""
         if self.epochs is not None:
             return self.epochs
@@ -272,7 +272,7 @@ class Rank:
         pipeline.attach_recommend(ui)
         assert pipeline.recommender is not None
 
-        loader, val_loader = recommend_loaders(
+        loader, val_loader = recommends(
             ui,
             batch_size=self.config.recommendation.batch,
             val_fraction=self.config.recommendation.val,
@@ -291,7 +291,7 @@ class Rank:
             monitor=None,
             checkpoint_dir=self.run_dir,
         )
-        epochs = self.resolved_epochs()
+        epochs = self.resolved()
         history = trainer.fit(
             loader, val_loader, epochs=epochs, patience=self.config.recommendation.patience
         )
@@ -327,7 +327,7 @@ class Rank:
                 "recommender": self.config.recommend.kind,
             },
         )
-        (self.run_dir / "manifest.json").write_text(manifest.to_json(), encoding="utf-8")
+        (self.run_dir / "manifest.json").write_text(manifest.as_json(), encoding="utf-8")
         (self.run_dir / "report.md").write_text(
             "# morel — Recommendation Report\n\n"
             f"- run_dir: `{self.run_dir}`\n"
@@ -429,11 +429,9 @@ class Ablate:
         metrics: dict[str, dict[str, float]] = {}
         for k in self.config.eval.ks:
             metrics[f"recall@{k}"] = results(
-                scores_by_condition, labels, metric=partial(recall_at_k, k=k)
+                scores_by_condition, labels, metric=partial(recall, k=k)
             )
-            metrics[f"ndcg@{k}"] = results(
-                scores_by_condition, labels, metric=partial(ndcg_at_k, k=k)
-            )
+            metrics[f"ndcg@{k}"] = results(scores_by_condition, labels, metric=partial(ndcg, k=k))
 
         (self.run_dir / "ablations.json").write_text(
             json.dumps({"cfg_hash": cfg_hash, "metrics": metrics}, indent=2, sort_keys=True),
@@ -483,9 +481,9 @@ class Benchmark:
                 dims={"visual": 4, "text": 2},
             )
             pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
-            features = {k: to_tensor(v) for k, v in dataset["features"].items()}
-            mask = to_tensor(dataset["mask"])
-            index_t = to_tensor(np.arange(size))
+            features = {k: cast(v) for k, v in dataset["features"].items()}
+            mask = cast(dataset["mask"])
+            index_t = cast(np.arange(size))
             start = time.time()
             for _ in range(self.epochs):
                 pipeline(features, mask, dataset["item_adj"], index=index_t, training=True)

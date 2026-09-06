@@ -36,12 +36,12 @@ class Checker:
     def resolved(self) -> None:
         config = small(epochs=7)
         experiment = Experiment(config=config, run_dir=Path("unused"))
-        assert experiment.resolved_epochs() == 7
+        assert experiment.resolved() == 7
 
     def explicit(self) -> None:
         config = small(epochs=7)
         experiment = Experiment(config=config, run_dir=Path("unused"), epochs=1)
-        assert experiment.resolved_epochs() == 1
+        assert experiment.resolved() == 1
 
     def completion(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Regression: these were dropped on the floor and defaults used instead."""

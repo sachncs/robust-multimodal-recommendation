@@ -6,15 +6,15 @@ import numpy as np
 import pytest
 
 from morel.eval import (
-    map_at_k,
+    map,
+    modal,
     mrr,
     mse,
-    ndcg_at_k,
-    per_modality,
-    precision_at_k,
-    recall_at_k,
+    ndcg,
+    precision,
+    recall,
     results,
-    robustness_sweep,
+    sweep,
     variance,
 )
 
@@ -24,24 +24,24 @@ class Checker:
 
     def perfect(self) -> None:
         labels = np.eye(5, 10, dtype=np.float32)
-        s = recall_at_k(labels, labels, k=1)
+        s = recall(labels, labels, k=1)
         assert abs(s - 1.0) < 1e-6
 
     def k(self) -> None:
         with pytest.raises(ValueError, match="k must be positive"):
-            recall_at_k(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
+            recall(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
 
     def ndcg(self) -> None:
         labels = np.eye(5, 10, dtype=np.float32)
-        s = ndcg_at_k(labels, labels, k=2)
+        s = ndcg(labels, labels, k=2)
         assert abs(s - 1.0) < 1e-6
 
     def invalid(self) -> None:
         with pytest.raises(ValueError, match="k must be positive"):
-            ndcg_at_k(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
+            ndcg(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
 
     def shape(self) -> None:
-        s = precision_at_k(np.eye(3, 5), np.eye(3, 5), k=2)
+        s = precision(np.eye(3, 5), np.eye(3, 5), k=2)
         assert 0.0 <= s <= 1.0
 
     def mrr(self) -> None:
@@ -51,7 +51,7 @@ class Checker:
 
     def range(self) -> None:
         labels = np.eye(3, 5, dtype=np.float32)
-        s = map_at_k(labels, labels, k=3)
+        s = map(labels, labels, k=3)
         assert 0.0 <= s <= 1.0
 
     def zero(self) -> None:
@@ -61,7 +61,7 @@ class Checker:
     def mse(self) -> None:
         a = np.array([[1.0, 2.0]])
         b = np.array([[0.0, 0.0]])
-        out = per_modality({"v": a}, {"v": b})
+        out = modal({"v": a}, {"v": b})
         assert out["v"] == mse(a, b)
 
     def one(self) -> None:
@@ -71,13 +71,13 @@ class Checker:
     def sweep(self) -> None:
         scores = np.random.default_rng(0).random((5, 10)).astype(np.float32)
         labels = (np.random.default_rng(1).random((5, 10)) > 0.7).astype(np.float32)
-        sweep = robustness_sweep(
+        sweep_result = sweep(
             {0.1: scores, 0.5: scores, 0.9: scores},
             labels,
-            metrics={"recall": lambda s, labels: recall_at_k(s, labels, k=3)},
+            metrics={"recall": lambda s, labels: recall(s, labels, k=3)},
         )
-        assert sweep.ratios == [0.1, 0.5, 0.9]
-        assert len(sweep.metrics["recall"]) == 3
+        assert sweep_result.ratios == [0.1, 0.5, 0.9]
+        assert len(sweep_result.metrics["recall"]) == 3
 
     def results(self) -> None:
         s = np.random.default_rng(0).random((3, 5))

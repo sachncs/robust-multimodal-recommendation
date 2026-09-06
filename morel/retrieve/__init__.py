@@ -4,10 +4,10 @@ from morel.retrieve.acs import batch as acs_batch
 from morel.retrieve.acs import compute as acs
 from morel.retrieve.anchor import batch as anchor_batch
 from morel.retrieve.anchor import query as anchor
-from morel.retrieve.bfs import bfs, neighbor_array, neighbor_iter, path
+from morel.retrieve.bfs import bfs, iter_neighbors, neighbor_array, path
 from morel.retrieve.mage import batch as mage_batch
 from morel.retrieve.mage import expand as mage
-from morel.retrieve.pipeline import KIND, Result, as_tensor, retrieve
+from morel.retrieve.pipeline import KIND, Result, cast, retrieve
 from morel.retrieve.pipeline import batch as batch
 from morel.retrieve.relevance import rel, relevance
 
@@ -18,13 +18,13 @@ __all__ = [
     "acs_batch",
     "anchor",
     "anchor_batch",
-    "as_tensor",
     "batch",
     "bfs",
+    "cast",
+    "iter_neighbors",
     "mage",
     "mage_batch",
     "neighbor_array",
-    "neighbor_iter",
     "path",
     "rel",
     "relevance",

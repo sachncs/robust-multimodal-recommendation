@@ -3,7 +3,7 @@
 `configure(dir, level, structured)` initializes the root logger with a JSON
 formatter. `log(...)` writes one JSONL line per call for downstream parsing.
 
-No module in morel uses `print()`. Every diagnostic goes through `get_logger`.
+No module in morel uses `print()`. Every diagnostic goes through `logger`.
 """
 
 from __future__ import annotations
@@ -105,7 +105,7 @@ def configure(
     root.propagate = False
 
 
-def get_logger(name: str) -> logging.Logger:
+def logger(name: str) -> logging.Logger:
     """Get a child logger of the morel root.
 
     Args:
@@ -119,8 +119,8 @@ def get_logger(name: str) -> logging.Logger:
 
 
 def get(name: str) -> logging.Logger:
-    """Return a child logger (deprecated alias for :func:`get_logger`)."""
-    return get_logger(name)
+    """Return a child logger (deprecated alias for :func:`logger`)."""
+    return logger(name)
 
 
 def log(directory: Path | str, **metrics: Any) -> None:
@@ -141,4 +141,4 @@ def log(directory: Path | str, **metrics: Any) -> None:
         handle.write("\n")
 
 
-__all__ = ["Config", "Json", "configure", "get", "get_logger", "log"]
+__all__ = ["Config", "Json", "configure", "get", "log", "logger"]

@@ -40,7 +40,7 @@ class Checker:
     @given(st.integers(min_value=2, max_value=20))
     @settings(max_examples=5, deadline=None)
     def bernoulli(self, items: int) -> None:
-        mask = bernoulli(items, 3, 0.4, seed=0).to_numpy()
+        mask = bernoulli(items, 3, 0.4, seed=0).as_numpy()
         assert (mask.sum(axis=1) >= 1).all()
 
     def top(self) -> None:

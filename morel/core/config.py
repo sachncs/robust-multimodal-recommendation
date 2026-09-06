@@ -140,7 +140,7 @@ class Eval:
 
     ks: tuple[int, ...] = (10, 20)
     robustness: tuple[float, ...] = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
-    ablations: tuple[str, ...] = ("no_retrieval", "no_pe", "no_codebook")
+    ablations: tuple[str, ...] = ("no_retrieve", "no_pe", "no_book")
 
 
 @dataclass(frozen=True)
@@ -257,7 +257,7 @@ class Config:
         return cls.parse(yaml.load(text, Loader=yaml.SafeLoader))
 
     @classmethod
-    def load_env(cls) -> Config:
+    def env(cls) -> Config:
         """Build a Config with values overridden from ``MOREL_*`` env vars.
 
         Recognized keys: ``MOREL_SEED``, ``MOREL_DEVICE``. Nested keys are not

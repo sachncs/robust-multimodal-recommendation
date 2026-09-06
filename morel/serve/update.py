@@ -179,11 +179,11 @@ class Updater:
         self.pipeline.load_state_dict(snapshot)
         return self.version
 
-    def snapshot_state(self) -> dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """Snapshot the pipeline state dict for rollback."""
         return copy.deepcopy(self.pipeline.state_dict())
 
-    def validation_loss(self, batch: list[Event]) -> float:
+    def validate_loss(self, batch: list[Event]) -> float:
         """Compute the held-out validation loss using the configured ``loss_step``."""
         if not batch:
             return float("inf")
@@ -214,7 +214,7 @@ class Updater:
         replay_sample = replay[:n_replay] if n_replay else []
         step_batch = replay_sample + train_batch
         loss = float(self.loss_step(step_batch))
-        valid_loss = self.validation_loss(val_batch)
+        valid_loss = self.validate_loss(val_batch)
         committed, version_after = self.apply(loss, valid_loss)
         return Outcome(
             committed=committed,
@@ -239,7 +239,7 @@ class Updater:
                 self.cooldown_until = time.time() + 60.0
                 log.warning("divergence: loss explosion; rolling back and cooling down")
                 return False, self.version
-            snapshot = self.snapshot_state()
+            snapshot = self.snapshot()
             self.rollback_ring.append(snapshot)
             self.pipeline.load_state_dict(snapshot)
             self.version += 1

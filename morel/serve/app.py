@@ -77,7 +77,7 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.get("/metrics")
     def metrics() -> dict[str, float]:
-        return {"requests": float(request_count(app))}
+        return {"requests": float(count(app))}
 
     @app.post("/v1/complete", response_model=Done)
     def complete(payload: Fill, _: None = Depends(auth.dependency("read"))) -> Done:
@@ -161,7 +161,7 @@ def run(pipeline: object, payload: Fill) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail="items must be non-empty")
     pipeline_obj = cast("Pipeline", pipeline)
     dims = getattr(pipeline_obj, "dims", {"visual": 4, "text": 2})
-    mask = bernoulli(len(items), len(dims), 0.4, seed=0).to_numpy()
+    mask = bernoulli(len(items), len(dims), 0.4, seed=0).as_numpy()
     features = {
         name: torch.from_numpy(np.zeros((len(items), dim), dtype=np.float32))
         for name, dim in dims.items()
@@ -189,8 +189,8 @@ def recommend_items(pipeline: object, payload: Query) -> list[Pick]:
     return [Pick(item=i, score=1.0 / (i + 1)) for i in range(top)]
 
 
-def request_count(app: FastAPI) -> int:
-    return int(getattr(app.state, "request_count", 0))
+def count(app: FastAPI) -> int:
+    return int(getattr(app.state, "count", 0))
 
 
 # (Dependencies are installed directly via Depends(_require_read).)

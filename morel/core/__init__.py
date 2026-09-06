@@ -48,7 +48,7 @@ from morel.core.fidelity import (
     render as fidelity_render_markdown,
 )
 from morel.core.log import configure as configure_log
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 from morel.core.log import log as log_metrics
 from morel.core.path import (
     checkpoints,
@@ -99,13 +99,13 @@ __all__ = [
     "fidelity_register",
     "fidelity_render_json",
     "fidelity_render_markdown",
-    "get_logger",
     "graphs",
     "init",
     "initialized",
     "is_lead",
     "local",
     "log_metrics",
+    "logger",
     "manifest",
     "mean",
     "processed",

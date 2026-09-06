@@ -58,9 +58,9 @@ class Checker:
 
         def read_loop() -> None:
             while not stop.is_set():
-                lock.read_acquire()
+                lock.acquire_read()
                 time.sleep(0.002)
-                lock.read_release()
+                lock.release_read()
 
         threads = [threading.Thread(target=read_loop, daemon=True) for _ in range(8)]
         for thread in threads:
@@ -68,9 +68,9 @@ class Checker:
         time.sleep(0.05)
 
         try:
-            acquired = lock.write_acquire(timeout=TIMEOUT)
+            acquired = lock.acquire_write(timeout=TIMEOUT)
             assert acquired, "writer was starved by the reader stream"
-            lock.write_release()
+            lock.release_write()
         finally:
             stop.set()
             for thread in threads:
@@ -79,15 +79,15 @@ class Checker:
     def new(self) -> None:
         """Writer preference is the mechanism that prevents starvation."""
         lock = RWLock()
-        lock.read_acquire()
+        lock.acquire_read()
 
         writer_waiting = threading.Event()
         writer_done = threading.Event()
 
         def write() -> None:
             writer_waiting.set()
-            lock.write_acquire()
-            lock.write_release()
+            lock.acquire_write()
+            lock.release_write()
             writer_done.set()
 
         thread = threading.Thread(target=write, daemon=True)
@@ -100,9 +100,9 @@ class Checker:
             time.sleep(0.01)
         assert lock.writers == 1
 
-        assert not lock.read_acquire(timeout=0.2), "a new reader jumped ahead of a waiting writer"
+        assert not lock.acquire_read(timeout=0.2), "a new reader jumped ahead of a waiting writer"
 
-        lock.read_release()
+        lock.release_read()
         assert writer_done.wait(timeout=TIMEOUT)
         thread.join(timeout=TIMEOUT)
 
@@ -111,16 +111,16 @@ class Checker:
         lock = RWLock()
         overlaps: list[str] = []
         inside_write = threading.Event()
-        write_release = threading.Event()
+        release_write = threading.Event()
 
         def write() -> None:
             with writer(lock):
                 inside_write.set()
-                write_release.wait(timeout=TIMEOUT)
+                release_write.wait(timeout=TIMEOUT)
 
         def read() -> None:
             with reader(lock):
-                if inside_write.is_set() and not write_release.is_set():
+                if inside_write.is_set() and not release_write.is_set():
                     overlaps.append("reader overlapped an active writer")
 
         writer_thread = threading.Thread(target=write, daemon=True)
@@ -131,7 +131,7 @@ class Checker:
         for thread in reader_threads:
             thread.start()
         time.sleep(0.1)
-        write_release.set()
+        release_write.set()
         for thread in reader_threads:
             thread.join(timeout=TIMEOUT)
         writer_thread.join(timeout=TIMEOUT)
@@ -204,41 +204,41 @@ class Checker:
     def out(self) -> None:
         """A writer that gives up must not leave readers queued behind it."""
         lock = RWLock()
-        lock.read_acquire()
+        lock.acquire_read()
 
-        assert lock.write_acquire(timeout=0.05) is False
+        assert lock.acquire_write(timeout=0.05) is False
         assert lock.writers == 0, "a timed-out writer must deregister itself"
 
-        lock.read_release()
-        assert lock.read_acquire(timeout=TIMEOUT) is True
-        lock.read_release()
+        lock.release_read()
+        assert lock.acquire_read(timeout=TIMEOUT) is True
+        lock.release_read()
 
     def acquiring(self) -> None:
         lock = RWLock()
-        lock.write_acquire()
+        lock.acquire_write()
         try:
-            assert lock.read_acquire(timeout=0.05) is False
+            assert lock.acquire_read(timeout=0.05) is False
             assert lock.readers == 0
         finally:
-            lock.write_release()
+            lock.release_write()
 
     def without(self) -> None:
         lock = RWLock()
-        lock.read_acquire()
+        lock.acquire_read()
         try:
-            assert lock.write_acquire(timeout=0.05) is False
+            assert lock.acquire_write(timeout=0.05) is False
             assert lock.writer is False
         finally:
-            lock.read_release()
+            lock.release_read()
 
     def rejected(self) -> None:
         """Going negative would let a writer in while a reader is still inside."""
         with pytest.raises(RuntimeError, match="without holding a read lock"):
-            RWLock().read_release()
+            RWLock().release_read()
 
     def check(self) -> None:
         with pytest.raises(RuntimeError, match="without holding the write lock"):
-            RWLock().write_release()
+            RWLock().release_write()
 
     def exception(self) -> None:
         lock = RWLock()

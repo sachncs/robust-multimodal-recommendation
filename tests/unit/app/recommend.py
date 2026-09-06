@@ -68,8 +68,8 @@ class Checker:
 
     def epochs(self, tmp_path: Path) -> None:
         experiment = Rank(config=small(epochs=5), run_dir=tmp_path)
-        assert experiment.resolved_epochs() == 5
-        assert Rank(config=small(epochs=5), run_dir=tmp_path, epochs=1).resolved_epochs() == 1
+        assert experiment.resolved() == 5
+        assert Rank(config=small(epochs=5), run_dir=tmp_path, epochs=1).resolved() == 1
 
     def hyperparameters(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}

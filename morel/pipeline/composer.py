@@ -299,7 +299,7 @@ class Pipeline(nn.Module):
     ) -> torch.Tensor:
         """Encode each query item with its retrieved subgraph as one padded batch.
 
-        All per-query subgraphs are padded to ``result.max_size`` and processed
+        All per-query subgraphs are padded to ``result.peak`` and processed
         in a single transformer call with a batched attention mask, instead of
         one Python loop iteration per query. Empty subgraphs are padded with a
         single attention-masked token so the transformer still produces one
@@ -316,15 +316,15 @@ class Pipeline(nn.Module):
             raise Model(
                 "encode needs a bound corpus; call Pipeline.attach(features, mask, adjacency) first"
             )
-        max_size = max(int(result.max_size), 1)
+        peak = max(int(result.peak), 1)
         batch = int(result.batch)
         modalities = list(self.dims.keys())
         node_features: dict[str, torch.Tensor] = {}
-        node_mask = torch.zeros(batch, max_size, len(modalities), device=device)
-        pe = torch.zeros(batch, max_size, pe_full.shape[-1], device=device)
-        attention = torch.zeros(batch, max_size, dtype=torch.bool, device=device)
+        node_mask = torch.zeros(batch, peak, len(modalities), device=device)
+        pe = torch.zeros(batch, peak, pe_full.shape[-1], device=device)
+        attention = torch.zeros(batch, peak, dtype=torch.bool, device=device)
         for name in modalities:
-            node_features[name] = torch.zeros(batch, max_size, self.dims[name], device=device)
+            node_features[name] = torch.zeros(batch, peak, self.dims[name], device=device)
 
         for b in range(batch):
             size = int(result.sizes[b])

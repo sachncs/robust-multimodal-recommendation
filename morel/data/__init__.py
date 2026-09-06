@@ -33,10 +33,10 @@ from morel.data.manifest import (
 from morel.data.mask import Mask, bernoulli, block, stack, structured
 from morel.data.store import load_graph, load_npz, save_graph, save_npz
 from morel.data.stream import (
+    cooc,
     exact_interactions,
     review,
-    stream_cooc,
-    stream_interactions,
+    stream,
 )
 from morel.data.validate import features, graph
 from morel.data.validate import interactions as validate_interactions
@@ -135,6 +135,7 @@ __all__ = [
     "build_mask",
     "check",
     "checksum",
+    "cooc",
     "cooccurrence",
     "download",
     "exact_interactions",
@@ -154,8 +155,7 @@ __all__ = [
     "save_manifest",
     "save_npz",
     "stack",
-    "stream_cooc",
-    "stream_interactions",
+    "stream",
     "structured",
     "text",
     "validate_interactions",

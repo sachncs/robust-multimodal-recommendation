@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 
-def recall_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def recall(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     """Mean Recall@K across users with at least one relevant item.
 
     Args:
@@ -30,7 +30,7 @@ def recall_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float
     return float((hits[mask] / relevant[mask]).mean())
 
 
-def ndcg_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def ndcg(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     """Mean NDCG@K.
 
     Args:
@@ -59,7 +59,7 @@ def ndcg_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     return float((dcg[valid] / idcg[valid]).mean())
 
 
-def precision_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def precision(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     """Mean Precision@K."""
     if k <= 0:
         raise ValueError(f"k must be positive, got {k}")
@@ -87,7 +87,7 @@ def mrr(scores: np.ndarray, labels: np.ndarray) -> float:
     return float(rr.mean())
 
 
-def map_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def map(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     """Mean Average Precision@K."""
     if k <= 0:
         raise ValueError(f"k must be positive, got {k}")
@@ -101,4 +101,4 @@ def map_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     return float((average / relevant).mean())
 
 
-__all__ = ["map_at_k", "mrr", "ndcg_at_k", "precision_at_k", "recall_at_k"]
+__all__ = ["map", "mrr", "ndcg", "precision", "recall"]

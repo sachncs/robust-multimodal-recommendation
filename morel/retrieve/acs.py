@@ -19,10 +19,10 @@ import numpy as np
 import scipy.sparse as sp
 
 from morel.core.errors import Net
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 from morel.graph import invariants
 
-log = get_logger("retrieve.acs")
+log = logger("retrieve.acs")
 
 
 def validate_acs(adj: sp.csr_matrix, anchors: list[int]) -> None:
@@ -64,7 +64,7 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
     if adj.ndim != 2 or adj.shape[0] != adj.shape[1]:
         raise Net(f"adj must be square, got {adj.shape}")
     validate_acs(adj, anchors)
-    invariants.no_loops(adj)
+    invariants.loopless(adj)
     if not anchors:
         return set()
     if len(anchors) == 1:

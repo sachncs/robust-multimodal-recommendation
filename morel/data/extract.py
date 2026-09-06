@@ -14,9 +14,9 @@ import numpy as np
 import torch
 
 from morel.core.errors import Datum
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 
-log = get_logger("data.extract")
+log = logger("data.extract")
 
 
 class Feature(Protocol):

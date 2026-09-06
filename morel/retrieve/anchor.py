@@ -5,9 +5,9 @@ from __future__ import annotations
 import numpy as np
 
 from morel.core.errors import Net, Shape
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 
-log = get_logger("retrieve.anchor")
+log = logger("retrieve.anchor")
 
 
 def validate_anchor(features: dict[str, np.ndarray], mask: np.ndarray) -> int:

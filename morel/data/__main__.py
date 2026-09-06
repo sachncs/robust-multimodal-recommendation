@@ -12,10 +12,10 @@ from pathlib import Path
 from morel.core.config import Config
 from morel.core.errors import Error
 from morel.core.log import configure as configure_log
-from morel.core.log import get as get_logger
+from morel.core.log import get as logger
 from morel.core.seed import seed as seed_everything
 
-log = get_logger("data.cli")
+log = logger("data.cli")
 
 
 def load_config(args: argparse.Namespace) -> Config:
@@ -113,7 +113,7 @@ def main(argv: list[str] | None = None) -> int:
             out.parent.mkdir(parents=True, exist_ok=True)
             import numpy as np
 
-            np.save(out, mask.to_numpy())
+            np.save(out, mask.as_numpy())
             print(out)
         elif args.cmd == "verify":
             for path in Path(args.data_dir).rglob("*.manifest.json"):
@@ -188,7 +188,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
             extractor="random",
             cfg_hash=config.hash(),
             extras={"items": items},
-        ).to_json(),
+        ).as_json(),
         encoding="utf-8",
     )
     print(out_dir / "features.npz")
@@ -231,7 +231,7 @@ def run_build(args: argparse.Namespace, config: Config) -> None:
             extractor="random",
             cfg_hash=config.hash(),
             extras={"users": users, "items": items, "min_edges": args.min_edges},
-        ).to_json(),
+        ).as_json(),
         encoding="utf-8",
     )
     print(out_dir / "bipartite.npz")

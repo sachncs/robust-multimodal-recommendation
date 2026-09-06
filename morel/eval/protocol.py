@@ -16,7 +16,7 @@ class Robust:
     metrics: dict[str, list[float]] = field(default_factory=dict)
 
 
-def robustness_sweep(
+def sweep(
     scores_by_ratio: dict[float, np.ndarray],
     labels: np.ndarray,
     *,
@@ -64,4 +64,4 @@ def results(
     return {name: metric(scores, labels) for name, scores in scores_by_condition.items()}
 
 
-__all__ = ["Robust", "results", "robustness_sweep"]
+__all__ = ["Robust", "results", "sweep"]

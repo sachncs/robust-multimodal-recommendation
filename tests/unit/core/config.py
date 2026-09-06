@@ -49,5 +49,5 @@ class Checker:
 
     def env(self, monkeypatch) -> None:
         monkeypatch.setenv("MOREL_SEED", "123")
-        c = Config.load_env()
+        c = Config.env()
         assert c.seed == 123

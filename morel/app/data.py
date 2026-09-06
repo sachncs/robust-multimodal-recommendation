@@ -49,7 +49,7 @@ class Corpus(Dataset[dict[str, Any]]):
         }
 
 
-def to_tensor(array: np.ndarray) -> torch.Tensor:
+def cast(array: np.ndarray) -> torch.Tensor:
     """Wrap :func:`torch.from_numpy` for type convenience."""
     return torch.from_numpy(array)
 
@@ -213,7 +213,7 @@ def recommend_loader(
     )
 
 
-def recommend_loaders(
+def recommends(
     ui_graph: sp.csr_matrix,
     *,
     batch_size: int = 1024,
@@ -249,10 +249,10 @@ __all__ = [
     "Corpus",
     "build",
     "build_loaders",
+    "cast",
     "collate",
     "recommend_loader",
-    "recommend_loaders",
+    "recommends",
     "split",
     "synth",
-    "to_tensor",
 ]

@@ -15,7 +15,7 @@ from morel.core import (
     Mask,
     Modality,
     configure_log,
-    get_logger,
+    logger,
     seed_everything,
 )
 from morel.data.manifest import Manifest
@@ -42,6 +42,6 @@ __all__ = [
     "Output",
     "Pipeline",
     "configure_log",
-    "get_logger",
+    "logger",
     "seed_everything",
 ]

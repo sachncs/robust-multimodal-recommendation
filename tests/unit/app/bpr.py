@@ -9,7 +9,7 @@ import scipy.sparse as sp
 from morel.app.data import (
     BPR,
     recommend_loader,
-    recommend_loaders,
+    recommends,
     split,
 )
 from morel.core.errors import Datum
@@ -124,6 +124,6 @@ class Checker:
 
     def recommendation(self) -> None:
         ui = interactions()
-        train, val = recommend_loaders(ui, batch_size=8, val_fraction=0.25, seed=0)
+        train, val = recommends(ui, batch_size=8, val_fraction=0.25, seed=0)
         assert val is not None
         assert len(train.dataset) + len(val.dataset) == ui.nnz
