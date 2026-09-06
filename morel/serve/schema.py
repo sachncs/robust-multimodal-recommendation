@@ -7,7 +7,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-class CompleteRequest(BaseModel):
+class Fill(BaseModel):
     """Request to complete missing modalities for a set of items."""
 
     items: list[int] = Field(..., description="Item ids to complete.")
@@ -25,7 +25,7 @@ class Done(BaseModel):
     )
 
 
-class RecommendRequest(BaseModel):
+class Query(BaseModel):
     """Request to score a user against the catalogue."""
 
     user: int = Field(..., description="User id.")
@@ -39,7 +39,7 @@ class Pick(BaseModel):
     score: float
 
 
-class RecommendResponse(BaseModel):
+class List(BaseModel):
     """Response with ranked items for the requested user."""
 
     items: list[Pick]
@@ -58,11 +58,11 @@ def serialize(completed: dict[str, Any]) -> dict[str, list[list[float]]]:
 
 
 __all__ = [
-    "CompleteRequest",
+    "Fill",
     "Done",
     "Health",
     "Pick",
-    "RecommendRequest",
-    "RecommendResponse",
+    "Query",
+    "List",
     "serialize",
 ]

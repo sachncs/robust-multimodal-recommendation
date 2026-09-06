@@ -18,12 +18,12 @@ from morel.serve.auth import (
 from morel.serve.loader import Loader
 from morel.serve.lock import Read, RWLock, Write, reader, writer
 from morel.serve.schema import (
-    CompleteRequest,
+    Fill,
     Done,
     Health,
     Pick,
-    RecommendRequest,
-    RecommendResponse,
+    Query,
+    List,
     serialize,
 )
 from morel.serve.update import (
@@ -36,7 +36,7 @@ from morel.serve.update import (
 )
 
 __all__ = [
-    "CompleteRequest",
+    "Fill",
     "Done",
     "DefaultStp",
     "Event",
@@ -48,8 +48,8 @@ __all__ = [
     "Pick",
     "RWLock",
     "Read",
-    "RecommendRequest",
-    "RecommendResponse",
+    "Query",
+    "List",
     "Rollback",
     "Scope",
     "Signal",

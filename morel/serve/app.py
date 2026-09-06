@@ -11,12 +11,12 @@ from morel.core.errors import Error
 from morel.serve import auth
 from morel.serve.loader import Loader
 from morel.serve.schema import (
-    CompleteRequest,
+    Fill,
     Done,
     Health,
     Pick,
-    RecommendRequest,
-    RecommendResponse,
+    Query,
+    List,
     serialize,
 )
 
@@ -81,7 +81,7 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.post("/v1/complete", response_model=Done)
     def complete(
-        payload: CompleteRequest, _: None = Depends(auth.dependency("read"))
+        payload: Fill, _: None = Depends(auth.dependency("read"))
     ) -> Done:
         try:
             pipeline = app.state.loader.get("default", default)
@@ -90,16 +90,16 @@ def create(loader: Loader | None = None) -> FastAPI:
         completed = run(pipeline, payload)
         return Done(completed=serialize(completed))
 
-    @app.post("/v1/recommend", response_model=RecommendResponse)
+    @app.post("/v1/recommend", response_model=List)
     def recommend(
-        payload: RecommendRequest, _: None = Depends(auth.dependency("read"))
-    ) -> RecommendResponse:
+        payload: Query, _: None = Depends(auth.dependency("read"))
+    ) -> List:
         try:
             pipeline = app.state.loader.get("default", default)
         except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         items = recommend_items(pipeline, payload)
-        return RecommendResponse(items=items)
+        return List(items=items)
 
     @app.post("/v1/feedback", response_model=Tell)
     def feedback(
@@ -154,7 +154,7 @@ def default() -> object:
     return Pipeline(Config(), dims={"visual": 4, "text": 2})
 
 
-def run(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
+def run(pipeline: object, payload: Fill) -> dict[str, Any]:
     """Run the completion forward pass."""
     import numpy as np
     import scipy.sparse as sp
@@ -186,7 +186,7 @@ def run(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
     return completed
 
 
-def recommend_items(pipeline: object, payload: RecommendRequest) -> list[Pick]:
+def recommend_items(pipeline: object, payload: Query) -> list[Pick]:
     """Return the top-``top`` items for a user.
 
     Stub implementation: returns a uniformly-ranked slice of the catalogue.
