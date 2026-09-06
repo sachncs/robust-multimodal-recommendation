@@ -124,6 +124,6 @@ __all__ = [
 
 # Register every paper-component fidelity entry on import. The call is
 # idempotent so callers may also invoke it explicitly.
-from morel.core import fidelity_registry
+from morel.core import fidelity as fidelity_mod
 
-fidelity_registry.register_all()
+fidelity_mod.register_all()
