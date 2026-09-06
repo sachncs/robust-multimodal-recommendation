@@ -47,7 +47,7 @@ def ui() -> sp.csr_matrix:
 class Checker:
     """Aggregated test methods for this module."""
 
-    @pytest.mark.parametrize(("kind", "expected"), [("gumbel", "GumbelVQ"), ("vq", "VQ"), ("identity", "IdentityCodebook")])
+    @pytest.mark.parametrize(("kind", "expected"), [("gumbel", "GumbelCodebook"), ("vq", "VQ"), ("identity", "IdentityCodebook")])
     def implementation(self, kind: str, expected: str) -> None:
         pipeline = Pipeline(make(codebook={"kind": kind}), dims={"visual": 4, "text": 2})
         assert type(pipeline.codebook).__name__ == expected

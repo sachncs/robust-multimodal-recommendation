@@ -271,7 +271,7 @@ def register_all() -> None:
             paper="GRE-MC Section 4.4",
             equation="g_top @ codebook",
             status="EXACT",
-            implementation="morel.codebook.codebook.GumbelVQ",
+            implementation="morel.codebook.codebook.GumbelCodebook",
             test="tests/unit/codebook/codebook.py",
             deviation=None,
         )

@@ -7,7 +7,7 @@ import torch
 from morel.codebook import (
     VQ,
     Codebook,
-    GumbelVQ,
+    GumbelCodebook,
     IdentityCodebook,
     balance,
     usage,
@@ -22,7 +22,7 @@ class Checker:
         vq = VQ(dim=4, size=8)
         z, one_hot = vq(torch.randn(3, 4))
         assert z.shape == (3, 4)
-        # VQ returns a one-hot routing vector so its output shape matches GumbelVQ.
+        # VQ returns a one-hot routing vector so its output shape matches GumbelCodebook.
         assert one_hot.shape == (3, 8)
         assert torch.allclose(one_hot.sum(dim=-1), torch.ones(3))
 
@@ -34,7 +34,7 @@ class Checker:
 
     def gumbel(self) -> None:
         router = Top(dim=8, k=10, p=3, tau=0.5)
-        gvq = GumbelVQ(dim=8, size=10, router=router)
+        gvq = GumbelCodebook(dim=8, size=10, router=router)
         q, p = gvq(torch.randn(2, 8), training=True)
         assert q.shape == (2, 8)
         assert p.shape == (2, 10)
@@ -42,7 +42,7 @@ class Checker:
     def a(self) -> None:
         from morel.route import Dense
 
-        gvq = GumbelVQ(dim=4, size=10, router=Dense(dim=4, k=10))
+        gvq = GumbelCodebook(dim=4, size=10, router=Dense(dim=4, k=10))
         assert isinstance(gvq, Codebook)
 
     def identity(self) -> None:
@@ -86,7 +86,7 @@ class Checker:
 
     def makes(self) -> None:
         torch.manual_seed(1)
-        first = GumbelVQ(dim=8, size=16, router=Top(dim=8, k=16, p=4), seed=5)
+        first = GumbelCodebook(dim=8, size=16, router=Top(dim=8, k=16, p=4), seed=5)
         torch.manual_seed(9999)
-        second = GumbelVQ(dim=8, size=16, router=Top(dim=8, k=16, p=4), seed=5)
+        second = GumbelCodebook(dim=8, size=16, router=Top(dim=8, k=16, p=4), seed=5)
         assert torch.equal(first.codebook.weight, second.codebook.weight)
