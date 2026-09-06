@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 
 from morel.core.errors import ConfigError, ModelError
-from morel.train.checkpoint import State, hash_config, load, unsafe
+from morel.train.checkpoint import State, hash_cfg, load, unsafe
 from morel.train.monitor import Monitor
 
 
@@ -51,7 +51,7 @@ class Checker:
 
         from morel.core.config import Config
 
-        h = hash_config(Config())
+        h = hash_cfg(Config())
         assert len(h) == 64
 
     def read(self, tmp_path: Path) -> None:

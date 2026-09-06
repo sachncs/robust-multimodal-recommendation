@@ -12,7 +12,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from morel.core.device import device as resolve_device
-from morel.train.checkpoint import State, hash_config
+from morel.train.checkpoint import State, hash_cfg
 from morel.train.loss import Loss
 from morel.train.monitor import Monitor
 
@@ -48,7 +48,7 @@ class Trainer(ABC):
             Path(checkpoint_dir).resolve() if checkpoint_dir is not None else None
         )
         self.best_metric: float = float("inf")
-        self.config_hash = hash_config(config)
+        self.config_hash = hash_cfg(config)
         self.scaler = (
             torch.amp.GradScaler(self.device.type)
             if amp and self.device.type in {"cuda", "cpu"}

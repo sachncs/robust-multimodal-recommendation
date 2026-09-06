@@ -1,6 +1,6 @@
 """Public API for the morel.train package."""
 
-from morel.train.checkpoint import State, hash_config
+from morel.train.checkpoint import State, hash_cfg
 from morel.train.completion import Completion, FitConfig
 from morel.train.loss import BPR, Composite, Loss, Reconstruction, ce
 from morel.train.monitor import Monitor
@@ -20,5 +20,5 @@ __all__ = [
     "State",
     "Trainer",
     "ce",
-    "hash_config",
+    "hash_cfg",
 ]
