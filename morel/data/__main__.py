@@ -57,11 +57,6 @@ def main(argv: list[str] | None = None) -> int:
     download_cmd.add_argument("--category", default=None, help="overrides data.category")
     download_cmd.add_argument("--dest", default=None, help="overrides data.raw")
     download_cmd.add_argument("--config", default=None)
-    download_cmd.add_argument(
-        "--legacy",
-        action="store_true",
-        help="use the legacy McAuley UCSD URL via download_legacy",
-    )
 
     extract = sub.add_parser("extract", help="extract features from raw data")
     extract.add_argument("--data-dir", default=None, help="overrides data.raw")
@@ -94,10 +89,9 @@ def main(argv: list[str] | None = None) -> int:
     configure_log(level=config.log.level, structured=config.log.structured)
     try:
         if args.cmd == "download":
-            from morel.data.acquire import download, download_legacy
+            from morel.data.acquire import download
 
-            download_fn = download_legacy if args.legacy else download
-            paths = download_fn(args.category, args.dest)
+            paths = download(args.category, args.dest)
             for p in paths:
                 print(p)
         elif args.cmd == "extract":

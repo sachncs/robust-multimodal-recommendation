@@ -18,7 +18,7 @@ from typing import Any
 
 from morel.core.errors import DataError
 
-SCHEMA_VERSION = 1
+VERSION = 1
 
 
 @dataclass
@@ -32,7 +32,7 @@ class Manifest:
     extractor: str
     config_hash: str
     parents: list[str] = field(default_factory=list)
-    schema: int = SCHEMA_VERSION
+    schema: int = VERSION
     timestamp: str = field(default_factory=lambda: dt.datetime.now(dt.timezone.utc).isoformat())
     extras: dict[str, Any] = field(default_factory=dict)
 
@@ -110,7 +110,7 @@ def checksum(path: Path | str) -> str:
 
 
 __all__ = [
-    "SCHEMA_VERSION",
+    "VERSION",
     "Manifest",
     "checksum",
     "load",

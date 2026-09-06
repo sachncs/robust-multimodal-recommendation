@@ -23,7 +23,7 @@ log = get_logger("graph.laplacian")
 
 #: Seed for the fixed ARPACK start vector. Any constant works; it only has to
 #: be the same on every run so the Lanczos iteration is reproducible.
-START_VECTOR_SEED = 0
+SEED = 0
 
 
 def start_vector(nodes: int) -> np.ndarray:
@@ -33,7 +33,7 @@ def start_vector(nodes: int) -> np.ndarray:
     caller does not supply one, which makes the resulting eigenvectors depend
     on ambient process state. Supplying this vector removes that dependence.
     """
-    return np.random.default_rng(START_VECTOR_SEED).standard_normal(nodes)
+    return np.random.default_rng(SEED).standard_normal(nodes)
 
 
 def coo_data_hash(matrix: sp.spmatrix) -> str:
@@ -91,12 +91,10 @@ def canonical_signs(eigvecs: np.ndarray) -> np.ndarray:
 #: graphs this operates on). If the tolerance is too tight, a genuine
 #: degenerate pair intermittently splits into two singleton clusters, which
 #: skips canonicalization and lets the basis rotate freely between runs.
-DEGENERACY_TOL = 1e-6
+TOL = 1e-6
 
 
-def canonical_basis(
-    eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = DEGENERACY_TOL
-) -> np.ndarray:
+def canonical_basis(eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = TOL) -> np.ndarray:
     """Pick a reproducible basis inside each degenerate eigenspace.
 
     Sign-fixing is not enough when an eigenvalue is repeated: any orthogonal
@@ -124,7 +122,7 @@ def canonical_basis(
     if k == 0:
         return eigvecs
     out = eigvecs.copy()
-    reference = np.random.default_rng(START_VECTOR_SEED).standard_normal((nodes, k))
+    reference = np.random.default_rng(SEED).standard_normal((nodes, k))
     start = 0
     while start < k:
         stop = start + 1
@@ -153,10 +151,10 @@ def canonical_basis(
 #: this size is a good trade for a reproducible result. Above the threshold
 #: the dense path would be too costly and the sparse solver is used instead;
 #: see :func:`pe` for what that means for reproducibility.
-DENSE_MAX_NODES = 2048
+LIMIT = 2048
 
 
-def cluster_straddles(eigvals: np.ndarray, want: int, *, tol: float = DEGENERACY_TOL) -> bool:
+def cluster_straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
     """Return whether a degenerate cluster is cut in half by the ``want`` cutoff.
 
     If the last kept eigenvalue equals the first discarded one, the solver has
@@ -177,7 +175,7 @@ def bottom_eigenpairs(
     ARPACK cannot return every eigenpair of a matrix anyway, so requests that
     approach the matrix size also use the dense path.
     """
-    if count >= nodes or nodes <= DENSE_MAX_NODES:
+    if count >= nodes or nodes <= LIMIT:
         dense_vals, dense_vecs = np.linalg.eigh(lap.toarray())
         return dense_vals, dense_vecs
     try:
@@ -210,7 +208,7 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
     much larger eigenspace, and no post-processing can make that reproducible.
     This widens the request until the boundary cluster is whole.
 
-    Graphs of up to :data:`DENSE_MAX_NODES` nodes use the direct dense solver,
+    Graphs of up to :data:`LIMIT` nodes use the direct dense solver,
     which is bitwise reproducible. Larger graphs use ARPACK, where the
     canonicalization above removes the arbitrary signs and the rotation within
     fully-captured degenerate clusters, but the iterative solver's own drift
@@ -294,8 +292,8 @@ class Laplace(nn.Module):
 
 
 __all__ = [
-    "DEGENERACY_TOL",
-    "DENSE_MAX_NODES",
+    "LIMIT",
+    "TOL",
     "Laplace",
     "bottom_eigenpairs",
     "canonical_basis",

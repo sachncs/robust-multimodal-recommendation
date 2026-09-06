@@ -13,22 +13,21 @@ from pathlib import Path
 
 from morel.core.errors import DataError
 
-DEFAULT_TIMEOUT = 60
-DEFAULT_RETRIES = 3
-DEFAULT_BACKOFF = 1.5
-USER_AGENT = "morel/0.1"
+TIMEOUT = 60
+RETRIES = 3
+BACKOFF = 1.5
+AGENT = "morel/0.1"
 
-DEFAULT_BASE = "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFilesSmall/"
-LEGACY_BASE = "https://jmcauley.ucsd.edu/data/amazon_v2/categoryFilesSmall/"
+BASE = "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFilesSmall/"
 
 
 def fetch(
     url: str,
     dest: Path | str,
     *,
-    timeout: float = DEFAULT_TIMEOUT,
-    retries: int = DEFAULT_RETRIES,
-    backoff: float = DEFAULT_BACKOFF,
+    timeout: float = TIMEOUT,
+    retries: int = RETRIES,
+    backoff: float = BACKOFF,
     sha: str | None = None,
     progress: Callable[[int, int | None], None] | None = None,
 ) -> Path:
@@ -57,7 +56,7 @@ def fetch(
     last_error: Exception | None = None
     while attempt <= retries:
         try:
-            request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+            request = urllib.request.Request(url, headers={"User-Agent": AGENT})
             with (
                 urllib.request.urlopen(request, timeout=timeout) as response,
                 target.open("wb") as out,
@@ -108,7 +107,7 @@ def download_from_base(base: str, category: str, dest: Path | str, *, timeout: f
     return decompressed
 
 
-def download(category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOUT) -> list[Path]:
+def download(category: str, dest: Path | str, *, timeout: float = TIMEOUT) -> list[Path]:
     """Download Amazon 5-core review and metadata for a category.
 
     Defaults to the Amazon-Reviews-2023 mirror. Raises an actionable
@@ -123,37 +122,18 @@ def download(category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOU
     -------
         The list of decompressed file paths.
 
-    Raises
-    ------
-        DataError: When neither the default nor legacy URL responds.
+    Returns
+    -------
+        The list of decompressed file paths.
     """
-    try:
-        return download_from_base(DEFAULT_BASE, category, dest, timeout=timeout)
-    except DataError as primary:
-        try:
-            return download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
-        except DataError as legacy:
-            raise DataError(
-                f"failed to fetch {category} from {DEFAULT_BASE} ({primary}) "
-                f"and from {LEGACY_BASE} ({legacy}); "
-                "check network access or use download_legacy directly"
-            ) from legacy
-
-
-def download_legacy(
-    category: str, dest: Path | str, *, timeout: float = DEFAULT_TIMEOUT
-) -> list[Path]:
-    """Download Amazon 5-core review and metadata from the legacy McAuley URL."""
-    return download_from_base(LEGACY_BASE, category, dest, timeout=timeout)
+    return download_from_base(BASE, category, dest, timeout=timeout)
 
 
 __all__ = [
-    "DEFAULT_BACKOFF",
-    "DEFAULT_BASE",
-    "DEFAULT_RETRIES",
-    "DEFAULT_TIMEOUT",
-    "LEGACY_BASE",
+    "BACKOFF",
+    "BASE",
+    "RETRIES",
+    "TIMEOUT",
     "download",
-    "download_legacy",
     "fetch",
 ]

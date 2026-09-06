@@ -6,7 +6,7 @@ Every stage produces artifacts with manifests.
 
 from morel.core.errors import DataError
 from morel.core.registry import Registry
-from morel.data.acquire import download, download_legacy, fetch
+from morel.data.acquire import download, fetch
 from morel.data.build import bipartite, interactions, item_cooccurrence, kcore
 from morel.data.extract import (
     FeatureEncoder,
@@ -130,7 +130,6 @@ __all__ = [
     "build_resnet50",
     "checksum",
     "download",
-    "download_legacy",
     "exact_two_pass_interactions",
     "features",
     "fetch",
