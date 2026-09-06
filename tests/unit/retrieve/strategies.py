@@ -14,7 +14,7 @@ import scipy.sparse as sp
 import torch
 
 from morel.core.config import Config
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 from morel.pipeline import Pipeline
 from morel.retrieve import KIND as STRATEGIES, retrieve, batch
 
@@ -77,7 +77,7 @@ class Checker:
 
     def rejected(self) -> None:
         features, mask, adjacency = corpus()
-        with pytest.raises(ConfigError, match="unknown retrieval strategy 'nope'; available: "):
+        with pytest.raises(Cfg, match="unknown retrieval strategy 'nope'; available: "):
             retrieve(0, features, mask, adjacency, kind="nope")
 
     def strategy(self) -> None:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import DataError, ShapeError
+from morel.core.errors import DataError, Shape
 
 
 def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> None:
@@ -22,9 +22,9 @@ def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> 
         DataError: On shape, dtype, or range violations.
     """
     if user.ndim != 1 or item.ndim != 1:
-        raise ShapeError("user and item must be 1-D")
+        raise Shape("user and item must be 1-D")
     if user.shape != item.shape:
-        raise ShapeError(f"shape mismatch: user {user.shape} vs item {item.shape}")
+        raise Shape(f"shape mismatch: user {user.shape} vs item {item.shape}")
     if user.size == 0:
         raise DataError("interactions are empty")
     if user.min() < 0 or item.min() < 0:
@@ -50,9 +50,9 @@ def features(payload: dict[str, np.ndarray], *, items: int) -> None:
         raise DataError("features dict is empty")
     for name, array in payload.items():
         if array.ndim != 2:
-            raise ShapeError(f"feature {name!r} must be 2-D, got {array.ndim}-D")
+            raise Shape(f"feature {name!r} must be 2-D, got {array.ndim}-D")
         if array.shape[0] != items:
-            raise ShapeError(f"feature {name!r} row count {array.shape[0]} != items ({items})")
+            raise Shape(f"feature {name!r} row count {array.shape[0]} != items ({items})")
         if not np.isfinite(array).all():
             raise DataError(f"feature {name!r} contains NaN or Inf")
         if array.dtype != np.float32:
@@ -70,7 +70,7 @@ def graph(adj: sp.spmatrix) -> None:
         DataError: On invariant violations.
     """
     if adj.ndim != 2:
-        raise ShapeError(f"graph must be 2-D, got {adj.ndim}-D")
+        raise Shape(f"graph must be 2-D, got {adj.ndim}-D")
     rows, cols = adj.shape
     if rows != cols:
         raise DataError(f"graph must be square, got {adj.shape}")
@@ -93,7 +93,7 @@ def mask(mask: np.ndarray) -> None:
         DataError: On shape, dtype, or value-range violations.
     """
     if mask.ndim != 2:
-        raise ShapeError(f"mask must be 2-D, got {mask.ndim}-D")
+        raise Shape(f"mask must be 2-D, got {mask.ndim}-D")
     if mask.shape[0] == 0:
         raise DataError("mask has no items")
     unique = np.unique(mask)

@@ -17,7 +17,7 @@ from __future__ import annotations
 from dataclasses import replace
 
 from morel.core.config import Config
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 
 #: Name used for the unmodified configuration in an ablation sweep.
 BASELINE = "baseline"
@@ -59,12 +59,12 @@ def ablate(config: Config, name: str) -> Config:
 
     Raises
     ------
-        ConfigError: If ``name`` is not a registered ablation.
+        Cfg: If ``name`` is not a registered ablation.
     """
     if name == BASELINE:
         return config
     if name not in KIND:
-        raise ConfigError(
+        raise Cfg(
             f"unknown ablation {name!r}; available: {', '.join(sorted(KIND)) or '(none)'}"
         )
     return KIND[name](config)  # type: ignore[operator,no-any-return]

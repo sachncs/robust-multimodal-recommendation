@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 from morel.core.config import Config
-from morel.core.errors import ConfigError, DataError
+from morel.core.errors import Cfg, DataError
 from morel.data import EXTRACTORS, build_extractor
 from morel.data.__main__ import main
 from morel.data.extract import Random
@@ -53,7 +53,7 @@ class Checker:
         assert config.encoder.visual in EXTRACTORS
 
     def unknown(self) -> None:
-        with pytest.raises(ConfigError, match="unknown feature extractor"):
+        with pytest.raises(Cfg, match="unknown feature extractor"):
             build_extractor("not-a-model", dim=8)
 
     def random(self) -> None:

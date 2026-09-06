@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from morel.core.errors import ShapeError
+from morel.core.errors import Shape
 
 
 def normalize(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -48,9 +48,9 @@ def relevance(
         jointly observed.
     """
     if not features:
-        raise ShapeError("features dict is empty")
+        raise Shape("features dict is empty")
     if mask.ndim != 2:
-        raise ShapeError(f"mask must be 2-D, got {mask.ndim}-D")
+        raise Shape(f"mask must be 2-D, got {mask.ndim}-D")
     modalities = list(features.keys())
     numerator = 0.0
     denominator = 0.0

@@ -18,7 +18,7 @@ from typing import Literal
 
 from fastapi import HTTPException, Request
 
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 
 Scope = Literal["read", "admin"]
 
@@ -89,7 +89,7 @@ def dependency(scope: Scope) -> Callable[[Request], None]:
 def assert_set() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
     if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (is_admin() or is_read()):
-        raise ConfigError("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
+        raise Cfg("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
 
 
 __all__ = [

@@ -18,7 +18,7 @@ import torch.nn as nn
 from morel.codebook import build as build_codebook
 from morel.complete import build as build_complete
 from morel.core.config import Config
-from morel.core.errors import ConfigError, GraphError, ModelError
+from morel.core.errors import Cfg, GraphError, Model
 from morel.core.seed import deterministic
 from morel.encode import build as build_encode
 from morel.graph import Laplace
@@ -91,7 +91,7 @@ class Pipeline(nn.Module):
 
         Raises
         ------
-            ConfigError: If any stage names an implementation that is not
+            Cfg: If any stage names an implementation that is not
                 registered. The message lists the available names.
         """
         super().__init__()
@@ -133,7 +133,7 @@ class Pipeline(nn.Module):
             # Validate the recommend kind eagerly so a bad config fails
             # at Pipeline construction, matching the other components.
             if config.recommend.kind not in RECOMMEND_KIND:
-                raise ConfigError(
+                raise Cfg(
                     f"unknown recommender '{config.recommend.kind}'; "
                     f"available: {', '.join(sorted(RECOMMEND_KIND))}"
                 )
@@ -158,7 +158,7 @@ class Pipeline(nn.Module):
 
         Raises
         ------
-            ConfigError: If ``config.recommend.kind`` is not registered.
+            Cfg: If ``config.recommend.kind`` is not registered.
         """
         users = ui_graph.shape[0]
         items = ui_graph.shape[1]
@@ -309,13 +309,13 @@ class Pipeline(nn.Module):
 
         Raises
         ------
-            ModelError: If no corpus has been attached. Call
+            Model: If no corpus has been attached. Call
                 :meth:`attach` before encoding subgraphs.
         """
         corpus_features = self.corpus_features
         corpus_mask = self.corpus_mask
         if corpus_features is None or corpus_mask is None:
-            raise ModelError(
+            raise Model(
                 "encode needs a bound corpus; call Pipeline.attach(features, mask, adjacency) first"
             )
         max_size = max(int(result.max_size), 1)

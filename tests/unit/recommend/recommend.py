@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 import torch
 
-from morel.core.errors import DataError, ModelError
+from morel.core.errors import DataError, Model
 from morel.recommend import MF, Light, Pop, bpr, negatives
 from morel.recommend.bpr import distinct, to_items
 
@@ -223,13 +223,13 @@ class Checker:
     def projection(self) -> None:
         ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
         light = Light(users=3, items=4, embed=8, layers=1, seed=0)
-        with pytest.raises(ModelError, match="built without feature_dim"):
+        with pytest.raises(Model, match="built without feature_dim"):
             light(torch.arange(3), torch.arange(4), ui, item_features=torch.ones(4, 5))
 
     def row(self) -> None:
         ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
         light = Light(users=3, items=4, embed=8, layers=1, feature_dim=5, seed=0)
-        with pytest.raises(ModelError, match="expected 4"):
+        with pytest.raises(Model, match="expected 4"):
             light(torch.arange(3), torch.arange(4), ui, item_features=torch.ones(2, 5))
 
     def dim(self) -> None:

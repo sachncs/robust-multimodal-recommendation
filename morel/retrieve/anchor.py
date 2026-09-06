@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from morel.core.errors import GraphError, ShapeError
+from morel.core.errors import GraphError, Shape
 from morel.core.log import get as get_logger
 
 log = get_logger("retrieve.anchor")
@@ -17,15 +17,15 @@ def validate_anchor(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
     items_seen = set()
     for arr in features.values():
         if arr.ndim != 2:
-            raise ShapeError(f"feature array must be 2-D, got {arr.ndim}-D")
+            raise Shape(f"feature array must be 2-D, got {arr.ndim}-D")
         items_seen.add(arr.shape[0])
     if len(items_seen) != 1:
-        raise ShapeError("feature arrays have inconsistent row counts")
+        raise Shape("feature arrays have inconsistent row counts")
     items: int = int(next(iter(items_seen)))
     if mask.shape[0] != items:
-        raise ShapeError(f"mask rows {mask.shape[0]} != feature rows {items}")
+        raise Shape(f"mask rows {mask.shape[0]} != feature rows {items}")
     if mask.ndim != 2 or mask.shape[1] != len(features):
-        raise ShapeError(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
+        raise Shape(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
     return items
 
 

@@ -17,7 +17,7 @@ from typing import Any
 
 import torch
 
-from morel.core.errors import MorelError
+from morel.core.errors import Error
 
 
 @dataclass
@@ -47,7 +47,7 @@ def init(backend: str | None = None) -> dict[str, Any]:
 
     Raises
     ------
-    MorelError
+    Error
         If torch.distributed fails to initialise.
     """
     if state.initialized:
@@ -81,7 +81,7 @@ def init(backend: str | None = None) -> dict[str, Any]:
     try:
         torch.distributed.init_process_group(backend=backend)
     except Exception as exc:
-        raise MorelError(f"failed to init distributed group with backend={backend}: {exc}") from exc
+        raise Error(f"failed to init distributed group with backend={backend}: {exc}") from exc
     state.backend = backend
     state.initialized = True
     if torch.cuda.is_available() and local() < torch.cuda.device_count():

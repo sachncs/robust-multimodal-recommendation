@@ -2,7 +2,7 @@
 
 import torch.nn as nn
 
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, distinct, negatives, to_items
 from morel.recommend.light import Light
@@ -51,7 +51,7 @@ def build(
         return MF(users=users, items=items, embed=embed, seed=seed)
     if kind == "pop":
         return Pop(users=users, items=items)
-    raise ConfigError(f"unknown recommender '{kind}'; available: light, mf, pop")
+    raise Cfg(f"unknown recommender '{kind}'; available: light, mf, pop")
 
 
 #: Map from config name to ranker class for introspection.

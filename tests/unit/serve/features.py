@@ -82,7 +82,7 @@ class Checker:
     def without(self, 
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        from morel.core.errors import ConfigError
+        from morel.core.errors import Cfg
 
         for var in (
             "MOREL_AUTH_TOKEN",
@@ -91,7 +91,7 @@ class Checker:
         ):
             monkeypatch.delenv(var, raising=False)
         monkeypatch.setenv("MOREL_AUTH_ENABLED", "1")
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             assert_set()
 
     def noop(self) -> None:

@@ -20,7 +20,7 @@ import torch
 from morel.codebook import KIND as CODEBOOK_KIND, Codebook
 from morel.complete import KIND as COMPLETE_KIND
 from morel.core.config import Config
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 from morel.encode import KIND as ENCODE_KIND
 from morel.pipeline import Pipeline
 from morel.recommend import KIND as RECOMMEND_KIND
@@ -91,12 +91,12 @@ class Checker:
     )
     def names(self, section: str, field: str) -> None:
         config = make(**{section: {"kind": "definitely-not-real"}})
-        with pytest.raises(ConfigError, match=rf"unknown {field} 'definitely-not-real'; available: "):
+        with pytest.raises(Cfg, match=rf"unknown {field} 'definitely-not-real'; available: "):
             Pipeline(config, dims={"visual": 4, "text": 2})
 
     def rejected(self) -> None:
         config = make(recommend={"kind": "definitely-not-real"})
-        with pytest.raises(ConfigError, match="unknown recommender"):
+        with pytest.raises(Cfg, match="unknown recommender"):
             Pipeline(config, dims={"visual": 4, "text": 2})
 
     def end(self) -> None:

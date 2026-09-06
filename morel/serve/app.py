@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from morel.core.errors import MorelError
+from morel.core.errors import Error
 from morel.serve import auth
 from morel.serve.loader import Loader
 from morel.serve.schema import (
@@ -85,7 +85,7 @@ def create(loader: Loader | None = None) -> FastAPI:
     ) -> CompleteResponse:
         try:
             pipeline = app.state.loader.get("default", default)
-        except MorelError as exc:
+        except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         completed = run(pipeline, payload)
         return CompleteResponse(completed=serialize(completed))
@@ -96,7 +96,7 @@ def create(loader: Loader | None = None) -> FastAPI:
     ) -> RecommendResponse:
         try:
             pipeline = app.state.loader.get("default", default)
-        except MorelError as exc:
+        except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         items = recommend_items(pipeline, payload)
         return RecommendResponse(items=items)

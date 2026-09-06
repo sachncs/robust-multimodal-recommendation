@@ -6,7 +6,7 @@ import threading
 from collections import OrderedDict
 from typing import Any
 
-from morel.core.errors import ModelError
+from morel.core.errors import Model
 
 
 class Loader:
@@ -32,7 +32,7 @@ class Loader:
                 return self.cache[key]
         model = factory()
         if model is None:
-            raise ModelError(f"loader factory returned None for key {key!r}")
+            raise Model(f"loader factory returned None for key {key!r}")
         with self.lock:
             if key in self.cache:
                 existing = self.cache[key]

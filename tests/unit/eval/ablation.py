@@ -17,7 +17,7 @@ import pytest
 
 from morel.app import Ablate
 from morel.core.config import Config
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 from morel.eval import ABLATIONS, BASELINE, ablate, conditions
 
 
@@ -78,7 +78,7 @@ class Checker:
         assert ablated.encode.pe != config.encode.pe
 
     def rejected(self) -> None:
-        with pytest.raises(ConfigError, match="unknown ablation 'nope'; available: "):
+        with pytest.raises(Cfg, match="unknown ablation 'nope'; available: "):
             ablate(small(), "nope")
 
     def cutoff(self, tmp_path: Path) -> None:

@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 
 
 def root() -> Path:
@@ -37,7 +37,7 @@ def processed(name: str) -> Path:
         Path under ``<root>/processed/<name>``.
     """
     if not name or not name.replace("_", "").replace("-", "").isalnum():
-        raise ConfigError(f"invalid dataset name: {name!r}")
+        raise Cfg(f"invalid dataset name: {name!r}")
     return root() / "processed" / name
 
 
@@ -62,14 +62,14 @@ def checkpoints(run: str) -> Path:
         Path under ``<root>/checkpoints/<run>``.
     """
     if not run:
-        raise ConfigError("run identifier must be non-empty")
+        raise Cfg("run identifier must be non-empty")
     return root() / "checkpoints" / run
 
 
 def runs(run: str) -> Path:
     """Return the run-artifact directory."""
     if not run:
-        raise ConfigError("run identifier must be non-empty")
+        raise Cfg("run identifier must be non-empty")
     return root() / "runs" / run
 
 

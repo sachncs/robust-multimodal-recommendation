@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 from morel.core.path import checkpoints, features, graphs, manifest, processed, root, runs
 
 
@@ -16,9 +16,9 @@ class Checker:
         assert root() == tmp_path.resolve()
 
     def processed(self) -> None:
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             processed("../escape")
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             processed("")
 
     def manifest(self, tmp_path) -> None:
@@ -27,7 +27,7 @@ class Checker:
         assert manifest(target).name == "x.npz.manifest.json"
 
     def checkpoints(self, tmp_path) -> None:
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             checkpoints("")
 
     def features(self, tmp_path) -> None:
@@ -40,5 +40,5 @@ class Checker:
         monkeypatch.undo()
 
     def runs(self) -> None:
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             runs("")

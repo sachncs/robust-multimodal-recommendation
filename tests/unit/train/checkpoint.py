@@ -8,7 +8,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from morel.core.errors import ConfigError, ModelError
+from morel.core.errors import Cfg, Model
 from morel.train.checkpoint import State, hash_cfg, load, unsafe
 from morel.train.monitor import Monitor
 
@@ -44,7 +44,7 @@ class Checker:
         )
         path = tmp_path / "c.pt"
         state.save(path)
-        with __import__("pytest").raises(ConfigError):
+        with __import__("pytest").raises(Cfg):
             State.load(path, expected_config_hash="b")
 
     def dataclass(self) -> None:
@@ -76,13 +76,13 @@ class Checker:
 
         bad_path = tmp_path / "exploit.pt"
         torch.save({"model": {"evil": Exploit()}}, bad_path)
-        with pytest.raises(ModelError):
+        with pytest.raises(Model):
             load(bad_path)
 
     def keys(self, tmp_path: Path) -> None:
         bad_path = tmp_path / "bad.pt"
         torch.save({"model": {}, "unexpected": True}, bad_path)
-        with pytest.raises(ModelError):
+        with pytest.raises(Model):
             load(bad_path)
 
     def exploit(self, tmp_path: Path) -> None:
@@ -98,7 +98,7 @@ class Checker:
     def dict(self, tmp_path: Path) -> None:
         p = tmp_path / "scalar.pt"
         torch.save(42, p)
-        with pytest.raises(ModelError):
+        with pytest.raises(Model):
             load(p)
 
     def raises(self, tmp_path: Path) -> None:

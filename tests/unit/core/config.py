@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from morel.core.config import Config
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 
 
 class Checker:
@@ -26,14 +26,14 @@ class Checker:
         assert a.hash() != b.hash()
 
     def invalid(self) -> None:
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             Config(seed=-1).validate()
 
     def mask(self) -> None:
         from dataclasses import replace
 
         bad = replace(Config(), masking=replace(Config().masking, ratio=2.0))
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             bad.validate()
 
     def to(self, tmp_path) -> None:
@@ -44,7 +44,7 @@ class Checker:
         assert loaded.hash() == c.hash()
 
     def rejects(self) -> None:
-        with pytest.raises(ConfigError):
+        with pytest.raises(Cfg):
             Config.parse({"seed": 0, "totally_made_up": True})
 
     def env(self, monkeypatch) -> None:

@@ -4,7 +4,7 @@ Lifecycle: acquire -> validate -> extract -> build -> mask -> store.
 Every stage produces artifacts with manifests.
 """
 
-from morel.core.errors import ConfigError, DataError
+from morel.core.errors import Cfg, DataError
 from morel.data.acquire import download, fetch
 from morel.data.build import bipartite, cooccurrence, interactions, kcore
 from morel.data.extract import (
@@ -67,7 +67,7 @@ def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> F
         return Sentence(name, batch=batch)
     if name == "resnet50":
         return Vision(name, batch=batch)
-    raise ConfigError(
+    raise Cfg(
         f"unknown feature extractor {name!r}; available: random, "
         f"sentence-transformers/all-MiniLM-L6-v2, resnet50"
     )

@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from morel.core.config import Config
-from morel.core.errors import MorelError
+from morel.core.errors import Error
 from morel.core.log import configure as configure_log
 from morel.core.log import get as get_logger
 from morel.core.seed import seed as seed_everything
@@ -120,7 +120,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(path)
         else:
             parser.error(f"unknown subcommand {args.cmd!r}")
-    except MorelError as exc:
+    except Error as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
     return 0

@@ -5,15 +5,15 @@ from __future__ import annotations
 import pytest
 
 from morel.core.errors import (
-    ConfigError,
+    Cfg,
     DataError,
-    DeterminismError,
+    Determinism,
     EvalError,
     GraphError,
-    ModelError,
-    MorelError,
-    ShapeError,
-    TrainError,
+    Model,
+    Error,
+    Shape,
+    Train,
 )
 
 
@@ -24,18 +24,18 @@ class Checker:
         "cls",
         [
             DataError,
-            ConfigError,
-            ModelError,
+            Cfg,
+            Model,
             GraphError,
-            TrainError,
+            Train,
             EvalError,
-            ShapeError,
-            DeterminismError,
+            Shape,
+            Determinism,
         ],
     )
     def specializations(self, cls: type) -> None:
-        assert issubclass(cls, MorelError)
+        assert issubclass(cls, Error)
 
     def can(self) -> None:
-        with pytest.raises(MorelError):
+        with pytest.raises(Error):
             raise GraphError("boom")

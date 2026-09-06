@@ -14,7 +14,7 @@ from typing import Any
 
 import yaml
 
-from morel.core.errors import ConfigError
+from morel.core.errors import Cfg
 
 
 @dataclass(frozen=True)
@@ -184,23 +184,23 @@ class Config:
     log: Log = field(default_factory=Log)
 
     def validate(self) -> None:
-        """Raise ConfigError on invalid values."""
+        """Raise Cfg on invalid values."""
         if self.seed < 0:
-            raise ConfigError(f"seed must be non-negative, got {self.seed}")
+            raise Cfg(f"seed must be non-negative, got {self.seed}")
         if not 0.0 <= self.masking.ratio <= 1.0:
-            raise ConfigError(f"masking.ratio must be in [0, 1], got {self.masking.ratio}")
+            raise Cfg(f"masking.ratio must be in [0, 1], got {self.masking.ratio}")
         if self.route.p <= 0:
-            raise ConfigError(f"route.p must be positive, got {self.route.p}")
+            raise Cfg(f"route.p must be positive, got {self.route.p}")
         if self.codebook.size <= 0:
-            raise ConfigError(f"codebook.size must be positive, got {self.codebook.size}")
+            raise Cfg(f"codebook.size must be positive, got {self.codebook.size}")
         if self.encode.hidden <= 0:
-            raise ConfigError(f"encode.hidden must be positive, got {self.encode.hidden}")
+            raise Cfg(f"encode.hidden must be positive, got {self.encode.hidden}")
         if any(k <= 0 for k in self.eval.ks):
-            raise ConfigError(f"eval.ks must all be positive, got {self.eval.ks}")
+            raise Cfg(f"eval.ks must all be positive, got {self.eval.ks}")
         if not 0.0 <= self.completion.val <= 1.0:
-            raise ConfigError("completion.val must be in [0, 1]")
+            raise Cfg("completion.val must be in [0, 1]")
         if not 0.0 <= self.recommendation.val <= 1.0:
-            raise ConfigError("recommendation.val must be in [0, 1]")
+            raise Cfg("recommendation.val must be in [0, 1]")
 
     def hash(self) -> str:
         """Return a stable SHA256 of the configuration for manifest binding."""
@@ -225,15 +225,15 @@ class Config:
     def parse(cls, payload: dict[str, Any]) -> Config:
         """Build a Config from a nested dict.
 
-        Unknown keys raise ConfigError. Missing keys take defaults.
+        Unknown keys raise Cfg. Missing keys take defaults.
         """
         if not isinstance(payload, dict):
-            raise ConfigError(f"config payload must be a dict, got {type(payload).__name__}")
+            raise Cfg(f"config payload must be a dict, got {type(payload).__name__}")
         cls_fields = {f.name for f in fields(cls)}
         clean_top: dict[str, Any] = {}
         for key, value in payload.items():
             if key not in cls_fields:
-                raise ConfigError(f"unknown top-level config key: {key!r}")
+                raise Cfg(f"unknown top-level config key: {key!r}")
             clean_top[key] = value
         coerced = coerce(cls, clean_top)
         result: dict[str, Any] = {}

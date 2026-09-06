@@ -10,7 +10,7 @@ from typing import Any
 
 import torch
 
-from morel.core.errors import ConfigError, ModelError
+from morel.core.errors import Cfg, Model
 
 ALLOWED = {"model", "optimizer", "epoch", "metric", "rng", "cfg_hash", "extras"}
 
@@ -31,7 +31,7 @@ def load(target: Path | str) -> dict[str, Any]:
     Raises
     ------
         FileNotFoundError: If the file does not exist.
-        ModelError: If the payload shape does not match the morel checkpoint contract.
+        Model: If the payload shape does not match the morel checkpoint contract.
     """
     path = Path(target)
     if not path.exists():
@@ -39,12 +39,12 @@ def load(target: Path | str) -> dict[str, Any]:
     try:
         payload = torch.load(path, map_location="cpu", weights_only=True)
     except Exception as exc:
-        raise ModelError(f"checkpoint at {path} could not be loaded safely: {exc}") from exc
+        raise Model(f"checkpoint at {path} could not be loaded safely: {exc}") from exc
     if not isinstance(payload, dict):
-        raise ModelError(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
+        raise Model(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
     unknown = set(payload.keys()) - ALLOWED
     if unknown:
-        raise ModelError(f"checkpoint at {path} has unknown keys: {sorted(unknown)}")
+        raise Model(f"checkpoint at {path} has unknown keys: {sorted(unknown)}")
     return payload
 
 
@@ -59,7 +59,7 @@ def unsafe(target: Path | str) -> dict[str, Any]:
         raise FileNotFoundError(path)
     payload = torch.load(path, map_location="cpu", weights_only=False)
     if not isinstance(payload, dict):
-        raise ModelError(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
+        raise Model(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
     return payload
 
 
@@ -97,7 +97,7 @@ class State:
         """Load a checkpoint, optionally verifying the config hash."""
         payload = load(target)
         if expected_config_hash is not None and payload.get("cfg_hash") != expected_config_hash:
-            raise ConfigError(
+            raise Cfg(
                 f"checkpoint config hash mismatch: "
                 f"got {payload.get('cfg_hash')}, expected {expected_config_hash}"
             )

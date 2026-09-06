@@ -1,56 +1,56 @@
 """Typed exception hierarchy for morel.
 
-Every error raised by the library is a `MorelError`. Specializations live in
+Every error raised by the library is a `Error`. Specializations live in
 submodules and re-export here.
 """
 
 from __future__ import annotations
 
 
-class MorelError(Exception):
+class Error(Exception):
     """Base class for every exception raised by morel."""
 
 
-class DataError(MorelError):
+class DataError(Error):
     """Data acquisition, validation, or loading failures."""
 
 
-class ConfigError(MorelError):
+class Cfg(Error):
     """Invalid or inconsistent configuration."""
 
 
-class ModelError(MorelError):
+class Model(Error):
     """Model construction, forward, or parameter validation failures."""
 
 
-class GraphError(MorelError):
+class GraphError(Error):
     """Graph construction, invariant violation, or retrieval failures."""
 
 
-class TrainError(MorelError):
+class Train(Error):
     """Training loop failures (NaN loss, missing checkpoint, etc.)."""
 
 
-class EvalError(MorelError):
+class EvalError(Error):
     """Evaluation failures (empty score matrix, etc.)."""
 
 
-class ShapeError(MorelError):
+class Shape(Error):
     """Tensor shape mismatch."""
 
 
-class DeterminismError(MorelError):
+class Determinism(Error):
     """Reproducibility invariant violated."""
 
 
 __all__ = [
-    "ConfigError",
+    "Cfg",
     "DataError",
-    "DeterminismError",
+    "Determinism",
     "EvalError",
     "GraphError",
-    "ModelError",
-    "MorelError",
-    "ShapeError",
-    "TrainError",
+    "Model",
+    "Error",
+    "Shape",
+    "Train",
 ]

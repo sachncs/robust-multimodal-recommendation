@@ -13,7 +13,7 @@ import pytest
 
 from morel.app.experiment import synthetic
 from morel.core.config import Masking
-from morel.core.errors import ConfigError, DataError
+from morel.core.errors import Cfg, DataError
 from morel.data import MASKS
 
 
@@ -43,7 +43,7 @@ class Checker:
             MASKS.create("block", items=5, modalities=1, ratio=0.5, seed=0)
 
     def unknown(self) -> None:
-        with pytest.raises(ConfigError, match="unknown masking strategy"):
+        with pytest.raises(Cfg, match="unknown masking strategy"):
             MASKS.create("nope", items=5, modalities=2, ratio=0.5, seed=0)
 
     def synthetic(self) -> None:

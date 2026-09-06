@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError, ShapeError
+from morel.core.errors import GraphError, Shape
 from morel.retrieve.anchor import batch, query
 
 
@@ -58,5 +58,5 @@ class Checker:
     def mask(self) -> None:
         features = {"a": np.zeros((3, 4), dtype=np.float32)}
         mask = np.ones((4, 1), dtype=np.float32)
-        with pytest.raises(ShapeError):
+        with pytest.raises(Shape):
             query(0, "a", features, mask, top=2)

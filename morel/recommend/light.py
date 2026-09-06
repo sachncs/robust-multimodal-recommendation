@@ -10,7 +10,7 @@ import scipy.sparse as sp
 import torch
 import torch.nn as nn
 
-from morel.core.errors import ModelError
+from morel.core.errors import Model
 from morel.core.seed import deterministic
 
 
@@ -110,7 +110,7 @@ class Light(nn.Module):
 
         Raises
         ------
-            ModelError: If ``item_features`` is supplied but no projection was
+            Model: If ``item_features`` is supplied but no projection was
                 configured, or if its shape does not match.
         """
         if users.max() >= self.users:
@@ -121,13 +121,13 @@ class Light(nn.Module):
         item_emb = self.item_emb.weight
         if item_features is not None:
             if self.feature_proj is None:
-                raise ModelError(
+                raise Model(
                     "item_features was passed but Light was built without "
                     "feature_dim; construct it with feature_dim set to the "
                     "width of the completion output"
                 )
             if item_features.shape[0] != self.items:
-                raise ModelError(
+                raise Model(
                     f"item_features has {item_features.shape[0]} rows, expected {self.items}"
                 )
             item_emb = item_emb + self.feature_proj(item_features.to(item_emb.dtype))
