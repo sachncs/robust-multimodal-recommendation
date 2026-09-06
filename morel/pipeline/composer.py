@@ -6,6 +6,8 @@ training and inference have one canonical entry point.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 import numpy as np
@@ -16,6 +18,8 @@ import torch.nn as nn
 from morel.codebook import GumbelVQ
 from morel.complete import Decoders
 from morel.core.config import Config
+from morel.core.errors import GraphError, ModelError
+from morel.core.seed import deterministic
 from morel.encode import Transformer
 from morel.graph import Laplace
 from morel.recommend import Light
@@ -33,6 +37,31 @@ class Output:
     subgraph_mask: np.ndarray | None = None
 
 
+@contextmanager
+def module_mode(module: nn.Module, training: bool) -> Iterator[None]:
+    """Run a block with ``module`` in the given train/eval mode, then restore.
+
+    ``nn.Dropout`` and friends key off :attr:`torch.nn.Module.training`, which
+    a ``training=`` keyword argument on a ``forward`` method does not change.
+    Without this, asking a pipeline for an inference pass still applies
+    dropout, which makes the result both wrong and nondeterministic.
+
+    Args:
+        module: Module whose mode (and that of its children) is switched.
+        training: ``True`` for train mode, ``False`` for eval mode.
+
+    Yields
+    ------
+        ``None``. The block body runs with the requested mode applied.
+    """
+    previous = module.training
+    module.train(training)
+    try:
+        yield
+    finally:
+        module.train(previous)
+
+
 class Pipeline(nn.Module):
     """End-to-end GRE-MC pipeline."""
 
@@ -42,43 +71,64 @@ class Pipeline(nn.Module):
         *,
         dims: dict[str, int] | None = None,
     ) -> None:
+        """Compose the GRE-MC stages into one module.
+
+        Every parameter-bearing stage is initialized under ``config.seed``, so
+        two pipelines built from the same config hold identical weights
+        regardless of what the calling process did to the global RNG
+        beforehand. The caller's RNG state is restored on exit.
+
+        Args:
+            config: Validated configuration supplying every stage's
+                hyperparameters and the initialization seed.
+            dims: Per-modality input widths; defaults to the demo dims.
+        """
         super().__init__()
         self.config = config
         if dims is None:
             dims = {"visual": 16, "text": 8}
         self.dims = dims
         self.pe_encoder = Laplace(k=config.encode.pe)
-        self.transformer = Transformer(
-            dims=dims,
-            pe_dim=config.encode.pe,
-            hidden=config.encode.hidden,
-            layers=config.encode.layers,
-            heads=config.encode.heads,
-            dropout=config.encode.dropout,
-        )
-        self.router = Top(
-            dim=config.encode.hidden,
-            k=config.codebook.size,
-            p=min(config.route.p, config.codebook.size),
-            tau=config.route.tau,
-        )
-        self.codebook = GumbelVQ(
-            dim=config.encode.hidden,
-            size=config.codebook.size,
-            router=self.router,
-        )
-        self.decoders = Decoders(
-            latent_dim=config.encode.hidden,
-            dims=dims,
-            hidden=config.complete.hidden,
-        )
+        with deterministic(config.seed):
+            self.transformer = Transformer(
+                dims=dims,
+                pe_dim=config.encode.pe,
+                hidden=config.encode.hidden,
+                layers=config.encode.layers,
+                heads=config.encode.heads,
+                dropout=config.encode.dropout,
+            )
+            self.router = Top(
+                dim=config.encode.hidden,
+                k=config.codebook.size,
+                p=min(config.route.p, config.codebook.size),
+                tau=config.route.tau,
+            )
+            self.codebook = GumbelVQ(
+                dim=config.encode.hidden,
+                size=config.codebook.size,
+                router=self.router,
+            )
+            self.decoders = Decoders(
+                latent_dim=config.encode.hidden,
+                dims=dims,
+                hidden=config.complete.hidden,
+            )
         self.recommender: nn.Module | None = None
         self.retrieval_features: dict[str, np.ndarray] | None = None
         self.retrieval_mask: np.ndarray | None = None
         self.retrieval_adj: sp.csr_matrix | None = None
 
     def attach_recommender(self, ui_graph: sp.csr_matrix) -> None:
-        """Attach a downstream LightGCN recommender sized for the graph."""
+        """Attach a downstream LightGCN recommender sized for the graph.
+
+        The recommender is initialized under ``config.seed`` and its
+        normalized-adjacency cache is primed from ``ui_graph`` so the first
+        scoring call does not pay the build cost.
+
+        Args:
+            ui_graph: Bipartite ``(users, items)`` interaction matrix.
+        """
         users = ui_graph.shape[0]
         items = ui_graph.shape[1]
         self.recommender = Light(
@@ -86,8 +136,9 @@ class Pipeline(nn.Module):
             items=items,
             embed=self.config.recommend.embed,
             layers=self.config.recommend.layers,
+            seed=self.config.seed,
         )
-        self.recommender.adjacency(ui_graph)
+        self.recommender.normalized_adjacency(ui_graph)
 
     def attach_corpus(
         self,
@@ -120,7 +171,11 @@ class Pipeline(nn.Module):
             mask: ``(B, M)`` availability.
             adjacency: Sparse item-item adjacency.
             index: Optional ``(B,)`` item ids for retrieval.
-            training: Whether to apply Gumbel noise.
+            training: Whether the pass is stochastic. This governs *all*
+                stochastic components, not just Gumbel noise: the encoder's
+                dropout layers are switched to match for the duration of the
+                call and restored afterwards. Pass ``False`` for inference to
+                get a deterministic, dropout-free result.
 
         Returns
         -------
@@ -133,8 +188,6 @@ class Pipeline(nn.Module):
                 once with ``morel.data.build.item_cooccurrence``; that
                 builder removes self-loops before persisting.
         """
-        from morel.core.errors import GraphError
-
         if adjacency.diagonal().any():
             raise GraphError(
                 "Pipeline.forward received an adjacency with self-loops; "
@@ -142,51 +195,54 @@ class Pipeline(nn.Module):
                 "morel.data.build.item_cooccurrence (which removes them) "
                 "and pass that adjacency here."
             )
-        device = features[next(iter(features))].device
-        pe_full = self.pe_encoder(adjacency).to(device)
-        # Pad PE up to configured pe_dim if the graph is too small to provide
-        # the requested number of nontrivial eigenvectors.
-        if pe_full.shape[-1] < self.config.encode.pe:
-            pad = torch.zeros(
-                *pe_full.shape[:-1],
-                self.config.encode.pe - pe_full.shape[-1],
-                device=device,
-                dtype=pe_full.dtype,
-            )
-            pe_full = torch.cat([pe_full, pad], dim=-1)
-        subgraph_indices: np.ndarray | None = None
-        subgraph_mask: np.ndarray | None = None
+        with module_mode(self, training):
+            device = features[next(iter(features))].device
+            pe_full = self.pe_encoder(adjacency).to(device)
+            # Pad PE up to configured pe_dim if the graph is too small to provide
+            # the requested number of nontrivial eigenvectors.
+            if pe_full.shape[-1] < self.config.encode.pe:
+                pad = torch.zeros(
+                    *pe_full.shape[:-1],
+                    self.config.encode.pe - pe_full.shape[-1],
+                    device=device,
+                    dtype=pe_full.dtype,
+                )
+                pe_full = torch.cat([pe_full, pad], dim=-1)
+            subgraph_indices: np.ndarray | None = None
+            subgraph_mask: np.ndarray | None = None
 
-        if (
-            self.retrieval_features is not None
-            and self.retrieval_mask is not None
-            and index is not None
-        ):
-            queries = [int(i) for i in index.detach().cpu().tolist()]
-            result = retrieve_batch(
-                queries,
-                self.retrieval_features,
-                self.retrieval_mask,
-                self.retrieval_adj if self.retrieval_adj is not None else sp.csr_matrix(adjacency),
-                anchors=self.config.retrieve.anchors,
-                iters=self.config.retrieve.iters,
-            )
-            subgraph_indices = result.nodes
-            subgraph_mask = result.mask
-            hidden = self.encode_subgraph(
-                features,
-                mask,
-                pe_full,
-                result,
-                device=device,
-            )
-        else:
-            batch_size = mask.shape[0]
-            pe_batch = pe_full[index] if index is not None else pe_full[:batch_size]
-            hidden = self.transformer(features, mask, pe_batch)
+            if (
+                self.retrieval_features is not None
+                and self.retrieval_mask is not None
+                and index is not None
+            ):
+                queries = [int(i) for i in index.detach().cpu().tolist()]
+                result = retrieve_batch(
+                    queries,
+                    self.retrieval_features,
+                    self.retrieval_mask,
+                    self.retrieval_adj
+                    if self.retrieval_adj is not None
+                    else sp.csr_matrix(adjacency),
+                    anchors=self.config.retrieve.anchors,
+                    iters=self.config.retrieve.iters,
+                )
+                subgraph_indices = result.nodes
+                subgraph_mask = result.mask
+                hidden = self.encode_subgraph(
+                    features,
+                    mask,
+                    pe_full,
+                    result,
+                    device=device,
+                )
+            else:
+                batch_size = mask.shape[0]
+                pe_batch = pe_full[index] if index is not None else pe_full[:batch_size]
+                hidden = self.transformer(features, mask, pe_batch)
 
-        quantized, routing = self.codebook(hidden, training=training)
-        completed = self.decoders(quantized, mask=mask)
+            quantized, routing = self.codebook(hidden, training=training)
+            completed = self.decoders(quantized, mask=mask)
         return Output(
             completed=completed,
             routing=routing,
@@ -210,7 +266,19 @@ class Pipeline(nn.Module):
         one Python loop iteration per query. Empty subgraphs are padded with a
         single attention-masked token so the transformer still produces one
         embedding per query.
+
+        Raises
+        ------
+            ModelError: If no corpus has been attached. Call
+                :meth:`attach_corpus` before encoding subgraphs.
         """
+        corpus_features = self.retrieval_features
+        corpus_mask = self.retrieval_mask
+        if corpus_features is None or corpus_mask is None:
+            raise ModelError(
+                "encode_subgraph needs a bound corpus; "
+                "call Pipeline.attach_corpus(features, mask, adjacency) first"
+            )
         max_size = max(int(result.max_size), 1)
         batch = int(result.batch)
         modalities = list(self.dims.keys())
@@ -228,23 +296,22 @@ class Pipeline(nn.Module):
                 node_mask[b, 0, :] = 1.0
                 continue
             node_ids_np = result.nodes[b, :size]
-            for _, name in enumerate(modalities):
+            for name in modalities:
                 node_features[name][b, :size] = (
-                    torch.from_numpy(self.retrieval_features[name][node_ids_np]).to(device).float()
+                    torch.from_numpy(corpus_features[name][node_ids_np]).to(device).float()
                 )
-            node_mask[b, :size] = (
-                torch.from_numpy(self.retrieval_mask[node_ids_np]).to(device).float()
-            )
+            node_mask[b, :size] = torch.from_numpy(corpus_mask[node_ids_np]).to(device).float()
             pe[b, :size] = pe_full[node_ids_np]
             attention[b, :size] = torch.from_numpy(result.mask[b, :size]).bool().to(device)
 
-        return self.transformer(
+        hidden: torch.Tensor = self.transformer(
             node_features,
             node_mask,
             pe,
             attention_mask=attention,
             sequence=True,
         )
+        return hidden
 
 
-__all__ = ["Output", "Pipeline"]
+__all__ = ["Output", "Pipeline", "module_mode"]
