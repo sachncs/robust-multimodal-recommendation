@@ -61,6 +61,7 @@ from morel.core.path import (
     runs,
 )
 from morel.core.seed import State as SeedState
+from morel.core.seed import deterministic
 from morel.core.seed import restore as seed_restore
 from morel.core.seed import seed as seed_everything
 from morel.core.seed import state as seed_state
@@ -90,6 +91,7 @@ __all__ = [
     "checkpoints",
     "cleanup",
     "configure_log",
+    "deterministic",
     "device",
     "features",
     "fidelity_all",
