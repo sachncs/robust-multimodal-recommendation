@@ -14,8 +14,11 @@ from morel.train.completion import Completion, CompletionConfig
 
 
 class SilentMonitor:
+    """Test monitor that discards metric logs."""
+
     def log(self, step: int | None = None, **metrics: object) -> None:
-        return None
+        """Discard the call and accept any keyword arguments."""
+        return
 
 
 def build_path_graph(n: int) -> sp.csr_matrix:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
+from typing import ClassVar
 
 import pytest
 import torch.nn as nn
@@ -20,6 +21,8 @@ from morel.serve.update import PipelineUpdater
 
 
 class TinyModel(nn.Module):
+    """Small module used as a stand-in pipeline for updater tests."""
+
     def __init__(self) -> None:
         super().__init__()
         self.linear = nn.Linear(2, 2)
@@ -80,7 +83,7 @@ def test_auth_assert_configured_errors_when_enabled_without_token(
 
 def test_auth_require_no_token_is_noop() -> None:
     class Req:
-        headers: dict[str, str] = {}
+        headers: ClassVar[dict[str, str]] = {}
 
     require(Req(), scope="read")  # no token configured → no-op
 
@@ -91,7 +94,7 @@ def test_auth_require_wrong_token_raises(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "real-token")
 
     class Req:
-        headers = {"authorization": "Bearer wrong"}
+        headers: ClassVar[dict[str, str]] = {"authorization": "Bearer wrong"}
 
     with pytest.raises(HTTPException):
         require(Req(), scope="read")

@@ -27,7 +27,7 @@ def deterministic_seed() -> None:
         torch.cuda.manual_seed_all(0)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    yield
+    return
 
 
 @pytest.fixture
@@ -84,7 +84,7 @@ def full_mask() -> np.ndarray:
 
 @pytest.fixture
 def tmp_manifest(tmp_path: Path) -> Path:
-    """A directory pre-created for manifest artifacts."""
+    """Pre-create a directory for manifest artifacts."""
     d = tmp_path / "artifacts"
     d.mkdir(parents=True, exist_ok=True)
     return d
@@ -92,11 +92,11 @@ def tmp_manifest(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def path_graph_factory():
-    """Factory exposing :func:`build_path_graph` for parametric tests."""
+    """Expose :func:`build_path_graph` for parametric tests."""
     return build_path_graph
 
 
 @pytest.fixture
 def silent_monitor_factory():
-    """Factory exposing :func:`silent_monitor` for parametric tests."""
+    """Expose :func:`silent_monitor` for parametric tests."""
     return silent_monitor

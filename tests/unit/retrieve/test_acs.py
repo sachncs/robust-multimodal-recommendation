@@ -70,7 +70,9 @@ def test_acs_iterative_handles_long_paths() -> None:
     col_arr = np.array([c for r, c in rows] + [r for r, _ in rows], dtype=np.int32)
     g = sp.csr_matrix((data, (row_arr, col_arr)), shape=(n, n))
     sub = compute(g, [0, n - 1])
-    assert 0 in sub and (n - 1) in sub and len(sub) == n
+    assert 0 in sub
+    assert (n - 1) in sub
+    assert len(sub) == n
 
 
 def test_acs_batch() -> None:

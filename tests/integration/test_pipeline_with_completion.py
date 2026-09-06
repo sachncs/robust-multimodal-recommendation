@@ -16,8 +16,11 @@ from tests.shared import CompletionDataset, build_path_graph, make_completion_co
 
 
 class SilentMonitor:
+    """Test monitor that discards metric logs."""
+
     def log(self, step: int | None = None, **metrics: object) -> None:
-        return None
+        """Discard the call and accept any keyword arguments."""
+        return
 
 
 def test_real_pipeline_completion_fit(tmp_path) -> None:

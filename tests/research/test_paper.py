@@ -47,7 +47,7 @@ def test_acs_fallback_to_anchors() -> None:
     assert sub == {0, 2}
 
 
-def test_load_loss_includes_K_multiplier() -> None:
+def test_load_loss_includes_k_multiplier() -> None:
     """Per the paper, L_load = K * sum_e bar_g_e^2."""
     probs = torch.full((16, 10), 0.1)
     assert abs(float(balance(probs)) - 1.0) < 1e-3  # K=10, sum=10*0.01=0.1, K*sum=1

@@ -7,7 +7,7 @@ Re-exports the application-layer helpers (``CompletionDataset``,
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 import scipy.sparse as sp
@@ -31,7 +31,7 @@ class SilentMonitor:
 
     def log(self, step: int | None = None, **metrics: object) -> None:
         """Discard the call. Accepts any keyword arguments."""
-        return None
+        return
 
 
 def silent_monitor() -> SilentMonitor:
@@ -104,9 +104,11 @@ class BPRDataset(Dataset):
         self.seed = seed
 
     def __len__(self) -> int:
+        """Return the number of batches in the dataset."""
         return self.n_batches
 
     def __getitem__(self, idx: int) -> dict:
+        """Return the generated BPR triple for index ``idx``."""
         rng = np.random.default_rng(idx + self.seed)
         return {
             "users": int(rng.integers(0, self.users)),
