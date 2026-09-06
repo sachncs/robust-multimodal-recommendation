@@ -57,7 +57,10 @@ class Checker:
         w = Weights(probs=torch.zeros(2, 5))
         assert w.shape == (2, 5)
 
-    def index(self) -> None:
+    def uniform(self) -> None:
+        """Fixed router returns a uniform distribution over its k entries."""
         r = Fixed(k=5)
-        with pytest.raises(NotImplementedError):
-            r(torch.randn(2, 8))
+        w = r(torch.randn(2, 8))
+        assert w.probs.shape == (2, 5)
+        assert torch.allclose(w.probs.sum(-1), torch.ones(2))
+        assert torch.allclose(w.probs, torch.full((2, 5), 1.0 / 5))

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from contextlib import nullcontext
 
 import torch
@@ -11,7 +12,7 @@ import torch.nn.functional as F  # noqa: N812
 from morel.core.seed import deterministic
 
 
-class Codebook(nn.Module):
+class Codebook(nn.Module, ABC):
     """Abstract base class for vector-quantization codebooks.
 
     Subclasses implement :meth:`forward` to map a hidden representation to
@@ -22,11 +23,21 @@ class Codebook(nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
-    def forward(  # pragma: no cover - abstract
+    @abstractmethod
+    def forward(
         self, hidden: torch.Tensor, *, training: bool = True
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Quantize hidden representations; implemented by subclasses."""
-        raise NotImplementedError
+        """Quantize hidden representations; implemented by subclasses.
+
+        Args:
+            hidden: Input tensor of shape ``(B, D)``.
+            training: Whether the codebook is in training mode.
+
+        Returns
+        -------
+            A tuple ``(quantized, probs)`` where ``quantized`` has the
+            same shape as the input and ``probs`` has shape ``(B, K)``.
+        """
 
 
 class VQ(Codebook):

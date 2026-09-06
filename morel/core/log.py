@@ -105,7 +105,7 @@ def configure(
     root.propagate = False
 
 
-def get(name: str) -> logging.Logger:
+def get_logger(name: str) -> logging.Logger:
     """Get a child logger of the morel root.
 
     Args:
@@ -116,6 +116,11 @@ def get(name: str) -> logging.Logger:
         A logger configured at the morel root.
     """
     return logging.getLogger(f"morel.{name}")
+
+
+def get(name: str) -> logging.Logger:
+    """Return a child logger (deprecated alias for :func:`get_logger`)."""
+    return get_logger(name)
 
 
 def log(directory: Path | str, **metrics: Any) -> None:
@@ -136,4 +141,4 @@ def log(directory: Path | str, **metrics: Any) -> None:
         handle.write("\n")
 
 
-__all__ = ["Config", "JsonFormatter", "configure", "get", "log"]
+__all__ = ["Config", "JsonFormatter", "configure", "get", "get_logger", "log"]

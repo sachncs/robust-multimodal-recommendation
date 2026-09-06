@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 import torch
@@ -24,17 +25,26 @@ class Weights:
         return self.probs.shape
 
 
-class Router(nn.Module):
+class Router(nn.Module, ABC):
     """Protocol-style base for routers (kept as nn.Module so parameters register)."""
 
     def __init__(self) -> None:
         super().__init__()
 
+    @abstractmethod
     def forward(
         self, hidden: torch.Tensor, *, training: bool = True
-    ) -> Weights:  # pragma: no cover - abstract
-        """Route hidden states to a routing distribution."""
-        raise NotImplementedError
+    ) -> Weights:
+        """Route hidden states to a routing distribution.
+
+        Args:
+            hidden: Input tensor of shape ``(B, D)``.
+            training: Whether the router is in training mode.
+
+        Returns
+        -------
+            A :class:`Weights` carrying the routing distribution.
+        """
 
 
 class Dense(Router):
@@ -96,15 +106,37 @@ class Top(Router):
 
 
 class Fixed(Router):
-    """A non-trainable router that returns one-hot vectors from an index tensor."""
+    """A non-trainable router that returns a uniform distribution.
+
+    The fixed router has no learnable parameters. Without an explicit
+    index input it falls back to a uniform distribution over the
+    ``k`` codebook entries, which is the maximum-entropy default and
+    makes the downstream codebook's behaviour visible end-to-end.
+    """
 
     def __init__(self, k: int) -> None:
         super().__init__()
         self.k = k
 
     def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:
-        """Require an explicit fixed index input."""
-        raise NotImplementedError("Fixed router requires explicit index input")
+        """Return a uniform distribution over ``k`` entries.
+
+        Args:
+            hidden: Input tensor of shape ``(B, D)``. Only the batch
+                dimension is used.
+            training: Unused; the fixed router has no stochastic path.
+
+        Returns
+        -------
+            A :class:`Weights` carrying a uniform probability over the
+            ``k`` codebook entries and zero logits.
+        """
+        batch = int(hidden.shape[0])
+        logits = torch.zeros(batch, self.k, device=hidden.device, dtype=hidden.dtype)
+        probs = torch.full(
+            (batch, self.k), 1.0 / self.k, device=hidden.device, dtype=hidden.dtype
+        )
+        return Weights(probs=probs, logits=logits)
 
 
 class Gumbel(Router):
