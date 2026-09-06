@@ -106,7 +106,7 @@ class Trainer(ABC):
         completed = 0
         for epoch in range(start_epoch, start_epoch + epochs):
             self.model.train()
-            epoch_metrics = self.run_epoch(train_loader, epoch)
+            epoch_metrics = self.run(train_loader, epoch)
             train_loss = float(epoch_metrics.get("loss", float("nan")))
             completed = epoch - start_epoch + 1
             self.monitor.log(epoch=epoch, phase="train", **epoch_metrics)
@@ -132,7 +132,7 @@ class Trainer(ABC):
                 self.scheduler.step()
         return {"best": self.best_metric, "train_loss": train_loss, "epochs": completed}
 
-    def run_epoch(self, loader: DataLoader[Any], epoch: int) -> dict[str, Any]:
+    def run(self, loader: DataLoader[Any], epoch: int) -> dict[str, Any]:
         """Run one training epoch and return the average loss."""
         self.model.train()
         running = 0.0
