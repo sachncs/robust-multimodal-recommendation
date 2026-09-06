@@ -24,7 +24,7 @@ from morel.serve.schema import (
     Pick,
     RecommendRequest,
     RecommendResponse,
-    serialize_completed,
+    serialize,
 )
 from morel.serve.update import (
     DefaultStp,
@@ -63,7 +63,7 @@ __all__ = [
     "is_admin",
     "is_read",
     "reader",
-    "serialize_completed",
+    "serialize",
     "token",
     "writer",
 ]

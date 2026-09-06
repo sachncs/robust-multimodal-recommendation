@@ -17,7 +17,7 @@ from morel.serve.schema import (
     Pick,
     RecommendRequest,
     RecommendResponse,
-    serialize_completed,
+    serialize,
 )
 
 if TYPE_CHECKING:
@@ -88,7 +88,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         except MorelError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         completed = run(pipeline, payload)
-        return CompleteResponse(completed=serialize_completed(completed))
+        return CompleteResponse(completed=serialize(completed))
 
     @app.post("/v1/recommend", response_model=RecommendResponse)
     def recommend(

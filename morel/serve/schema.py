@@ -52,7 +52,7 @@ class HealthResponse(BaseModel):
     version: str
 
 
-def serialize_completed(completed: dict[str, Any]) -> dict[str, list[list[float]]]:
+def serialize(completed: dict[str, Any]) -> dict[str, list[list[float]]]:
     """Convert torch tensors to nested Python lists for JSON serialization."""
     return {name: tensor.detach().cpu().tolist() for name, tensor in completed.items()}
 
@@ -64,5 +64,5 @@ __all__ = [
     "Pick",
     "RecommendRequest",
     "RecommendResponse",
-    "serialize_completed",
+    "serialize",
 ]
