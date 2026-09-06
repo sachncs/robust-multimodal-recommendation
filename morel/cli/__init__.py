@@ -103,12 +103,12 @@ def run_train(argv: list[str]) -> int:
         print(f"completion trained: {result}")
         return 0
     if args.sub == "recommendation":
-        from morel.app import Experiment
+        from morel.app import RecommendationExperiment
 
         config = load_config_or_default(config_path)
         run_dir = Path("runs") / "recommendation"
-        exp = Experiment(config=config, run_dir=run_dir, items=50, users=20)
-        result = exp.run()
+        rec = RecommendationExperiment(config=config, run_dir=run_dir, items=50, users=20)
+        result = rec.run()
         print(f"recommendation trained: {result}")
         return 0
     parser.error(f"unknown train subcommand {args.sub!r}")

@@ -13,6 +13,7 @@ import numpy as np
 
 from morel.app.data import (
     build_completion_loader,
+    build_recommendation_loader,
     numpy_to_tensor,
     synth_bipartite,
 )
@@ -26,6 +27,7 @@ from morel.data.manifest import Manifest
 from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
+from morel.train.recommendation import Recommendation, RecommendationConfig
 
 log = get_logger("app.experiment")
 
@@ -132,6 +134,7 @@ class Experiment:
                         "event": "experiment.end",
                         "duration_s": time.time() - start,
                         "best_loss": history.get("best", None),
+                        "train_loss": history.get("train_loss", None),
                         "config_hash": config_hash,
                     }
                 )
@@ -163,7 +166,8 @@ class Experiment:
             f"- items: {self.items}\n"
             f"- users: {self.users}\n"
             f"- epochs: {epochs}\n"
-            f"- best_loss: {history.get('best', None)}\n",
+            f"- best_loss: {history.get('best', None)}\n"
+            f"- train_loss: {history.get('train_loss', None)}\n",
             encoding="utf-8",
         )
 
@@ -180,6 +184,135 @@ class Experiment:
             "run_dir": str(self.run_dir),
             "config_hash": config_hash,
             "best": history.get("best", None),
+            "train_loss": history.get("train_loss", None),
+        }
+
+
+@dataclass
+class RecommendationExperiment:
+    """Train the downstream ranker with BPR and write artifacts.
+
+    ``morel train recommendation`` previously ran the completion experiment
+    and reported it as recommendation training, so the ``Recommendation``
+    trainer was unreachable from any entry point. This is the service that
+    actually drives it.
+    """
+
+    config: Config
+    run_dir: Path
+    items: int = 50
+    users: int = 20
+    epochs: int | None = None
+    seed: int | None = None
+
+    def resolved_epochs(self) -> int:
+        """Return the epoch count, falling back to ``config.recommendation.epochs``."""
+        if self.epochs is not None:
+            return self.epochs
+        return self.config.recommendation.epochs
+
+    def run(self) -> dict[str, Any]:
+        """Train the ranker and write config, manifest, metrics and report.
+
+        Returns
+        -------
+            Dict with duration, run_dir, config_hash and best validation loss.
+        """
+        self.run_dir.mkdir(parents=True, exist_ok=True)
+        seed_value = self.seed if self.seed is not None else self.config.seed
+        seed_everything(seed_value)
+        config_hash = self.config.hash()
+        log.info(
+            "recommendation.start",
+            extra={"run_dir": str(self.run_dir), "config_hash": config_hash},
+        )
+        self.config.to_yaml(self.run_dir / "config.yaml")
+        start = time.time()
+
+        dataset = synthetic_dataset(self.items, 8, 4, self.users)
+        ui = dataset["ui"]
+        pipeline = Pipeline(self.config, dims={"visual": 8, "text": 4})
+        pipeline.attach_recommender(ui)
+        assert pipeline.recommender is not None
+
+        loader = build_recommendation_loader(
+            ui,
+            batch_size=self.config.recommendation.batch,
+            seed=seed_value,
+        )
+        trainer = Recommendation(
+            pipeline.recommender,
+            RecommendationConfig(grad_clip=self.config.recommendation.grad_clip),
+            ui_graph=ui,
+            negatives_count=self.config.recommendation.negatives,
+            seed=seed_value,
+            lr=self.config.recommendation.lr,
+            weight_decay=self.config.recommendation.weight_decay,
+            amp=self.config.recommendation.amp,
+            monitor=None,
+            checkpoint_dir=self.run_dir,
+        )
+        epochs = self.resolved_epochs()
+        history = trainer.fit(
+            loader, None, epochs=epochs, patience=self.config.recommendation.patience
+        )
+
+        metrics_path = self.run_dir / "metrics.jsonl"
+        with metrics_path.open("a", encoding="utf-8") as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "time": datetime.now(tz=UTC).isoformat(),
+                        "event": "recommendation.end",
+                        "duration_s": time.time() - start,
+                        "best_loss": history.get("best", None),
+                        "train_loss": history.get("train_loss", None),
+                        "config_hash": config_hash,
+                    }
+                )
+                + "\n"
+            )
+
+        manifest = Manifest(
+            dataset="synthetic",
+            version="0",
+            code="morel.app.RecommendationExperiment",
+            seed=seed_value,
+            extractor="synthetic",
+            config_hash=config_hash,
+            parents=[],
+            extras={
+                "items": self.items,
+                "users": self.users,
+                "epochs": epochs,
+                "recommender": self.config.recommend.kind,
+            },
+        )
+        (self.run_dir / "manifest.json").write_text(manifest.to_json(), encoding="utf-8")
+        (self.run_dir / "report.md").write_text(
+            "# morel — Recommendation Report\n\n"
+            f"- run_dir: `{self.run_dir}`\n"
+            f"- config_hash: `{config_hash}`\n"
+            f"- recommender: {self.config.recommend.kind}\n"
+            f"- items: {self.items}\n"
+            f"- users: {self.users}\n"
+            f"- epochs: {epochs}\n"
+            f"- best_loss: {history.get('best', None)}\n"
+            f"- train_loss: {history.get('train_loss', None)}\n",
+            encoding="utf-8",
+        )
+
+        duration = time.time() - start
+        log.info(
+            "recommendation.end",
+            extra={"duration": duration, "best_loss": history.get("best", None)},
+        )
+        return {
+            "duration": duration,
+            "run_dir": str(self.run_dir),
+            "config_hash": config_hash,
+            "best": history.get("best", None),
+            "train_loss": history.get("train_loss", None),
         }
 
 

@@ -13,6 +13,9 @@ import scipy.sparse as sp
 import torch
 from torch.utils.data import DataLoader, Dataset
 
+from morel.core.errors import DataError
+from morel.recommend.bpr import ranks_to_items
+
 
 class CompletionDataset(Dataset[dict[str, Any]]):
     """In-memory completion-stage dataset.
@@ -78,6 +81,89 @@ def build_completion_loader(
     )
 
 
+class BPRDataset(Dataset[dict[str, Any]]):
+    """BPR triples drawn from a real interaction matrix.
+
+    Each item is a ``(user, positive, negative)`` triple where the positive is
+    an item the user actually interacted with and the negative is one they did
+    not. Users with no interactions are skipped, since a BPR triple is
+    undefined for them.
+
+    Indexing is a pure function of the index and the seed, so the epoch a
+    sample belongs to does not change it and the dataset is reproducible
+    across processes and workers.
+    """
+
+    def __init__(self, ui_graph: sp.csr_matrix, *, length: int, seed: int = 0) -> None:
+        """Bind the interaction matrix and precompute each user's positives.
+
+        Args:
+            ui_graph: ``(users, items)`` interaction matrix.
+            length: Number of triples one epoch draws.
+            seed: Base seed; sample ``i`` is derived from ``seed + i``.
+
+        Raises
+        ------
+            DataError: If no user has any interaction, or if any user has no
+                negative available.
+        """
+        self.items = int(ui_graph.shape[1])
+        self.length = int(length)
+        self.seed = int(seed)
+        indptr, indices = ui_graph.indptr, ui_graph.indices
+        self.positives = {
+            user: np.unique(indices[indptr[user] : indptr[user + 1]])
+            for user in range(int(ui_graph.shape[0]))
+            if indptr[user + 1] > indptr[user]
+        }
+        if not self.positives:
+            raise DataError("no user has any interaction; cannot form BPR triples")
+        self.users = sorted(self.positives)
+        crowded = [u for u, pos in self.positives.items() if pos.size >= self.items]
+        if crowded:
+            raise DataError(
+                f"user {crowded[0]} interacts with every one of {self.items} items; "
+                "no negative can be sampled"
+            )
+
+    def __len__(self) -> int:
+        """Return the number of triples in one epoch."""
+        return self.length
+
+    def __getitem__(self, idx: int) -> dict[str, Any]:
+        """Return the BPR triple for ``idx``, sampled deterministically."""
+        rng = np.random.default_rng(self.seed + idx)
+        user = int(self.users[int(rng.integers(0, len(self.users)))])
+        positives = self.positives[user]
+        positive = int(positives[int(rng.integers(0, positives.size))])
+        rank = int(rng.integers(0, self.items - positives.size))
+        negative = int(ranks_to_items(np.array([rank], dtype=np.int64), positives)[0])
+        return {"users": user, "positive": positive, "negative": negative}
+
+
+def build_recommendation_loader(
+    ui_graph: sp.csr_matrix,
+    *,
+    batch_size: int = 1024,
+    length: int | None = None,
+    seed: int = 0,
+) -> DataLoader[dict[str, Any]]:
+    """Build the BPR DataLoader for the recommendation stage.
+
+    Args:
+        ui_graph: ``(users, items)`` interaction matrix.
+        batch_size: Triples per batch.
+        length: Triples per epoch; defaults to the number of interactions.
+        seed: Base seed for deterministic sampling.
+    """
+    if length is None:
+        length = max(int(ui_graph.nnz), 1)
+    return DataLoader(
+        BPRDataset(ui_graph, length=length, seed=seed),
+        batch_size=batch_size,
+    )
+
+
 def synth_bipartite(
     rng: np.random.Generator, items: int, users: int
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -92,8 +178,10 @@ def synth_bipartite(
 
 
 __all__ = [
+    "BPRDataset",
     "CompletionDataset",
     "build_completion_loader",
+    "build_recommendation_loader",
     "collate_completion",
     "numpy_to_tensor",
     "synth_bipartite",
