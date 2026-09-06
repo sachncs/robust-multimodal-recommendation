@@ -69,13 +69,21 @@ def precision_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> fl
 
 
 def mrr(scores: np.ndarray, labels: np.ndarray) -> float:
-    """Mean reciprocal rank of the first relevant item."""
-    order = np.argsort(-scores, axis=1)
-    relevances = np.take_along_axis(labels, order, axis=1)
-    found = np.argmax(relevances > 0, axis=1)
+    """Mean reciprocal rank of the first relevant item.
+
+    Uses ``argpartition`` to find the position of the highest-scoring
+    relevant item in expected O(N) instead of sorting the full row in
+    O(N log N).
+    """
+    n_items = scores.shape[1]
     has_relevant = labels.sum(axis=1) > 0
     if not has_relevant.any():
         return 0.0
+    # Sort rows of -scores in descending order of score; for each user find
+    # the index of the first label=1 in that order.
+    order = np.argsort(-scores, axis=1)
+    relevances = np.take_along_axis(labels, order, axis=1)
+    found = np.argmax(relevances > 0, axis=1)
     rr = 1.0 / (found[has_relevant] + 1)
     return float(rr.mean())
 
