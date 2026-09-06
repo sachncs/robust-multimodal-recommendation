@@ -6,7 +6,7 @@ import importlib
 from pathlib import Path
 
 from morel.core.fidelity import all as fidelity_all
-from morel.core.fidelity import registry, render, render
+from morel.core.fidelity import registry, render, render_json
 
 
 def split(test_ref: str) -> tuple[str, str]:
@@ -71,7 +71,7 @@ class Checker:
         md_path = tmp_path / "FIDELITY.md"
         json_path = tmp_path / "FIDELITY.json"
         render(md_path)
-        render(json_path)
+        render_json(json_path)
         assert md_path.read_text().count("\n") > 5
         assert json_path.read_text().startswith("{")
 

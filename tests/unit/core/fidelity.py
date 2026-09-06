@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from morel.core.fidelity import Entry, clear, register, render, render
+from morel.core.fidelity import Entry, clear, register, render, render_json
 
 
 class Checker:
@@ -28,7 +28,7 @@ class Checker:
         assert "ACS" in text
         assert "EXACT" in text
         json_path = tmp_path / "fid.json"
-        render(json_path)
+        render_json(json_path)
         payload = json.loads(json_path.read_text(encoding="utf-8"))
         assert any(e["name"] == "ACS" for e in payload["entries"])
         clear()

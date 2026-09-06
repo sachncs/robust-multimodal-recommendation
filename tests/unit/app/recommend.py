@@ -74,11 +74,11 @@ class Checker:
 
     def epochs(self, tmp_path: Path) -> None:
         experiment = RecommendationExperiment(config=small(epochs=5), run_dir=tmp_path)
-        assert experiment.epochs() == 5
+        assert experiment.resolved_epochs() == 5
         assert (
             RecommendationExperiment(
                 config=small(epochs=5), run_dir=tmp_path, epochs=1
-            ).epochs()
+            ).resolved_epochs()
             == 1
         )
 
