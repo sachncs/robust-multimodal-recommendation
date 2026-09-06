@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from morel.core.errors import GraphError, Shape
+from morel.core.errors import Net, Shape
 from morel.core.log import get as get_logger
 
 log = get_logger("retrieve.anchor")
@@ -13,7 +13,7 @@ log = get_logger("retrieve.anchor")
 def validate_anchor(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
     """Validate feature-array shapes and return the number of items."""
     if not features:
-        raise GraphError("features dict is empty")
+        raise Net("features dict is empty")
     items_seen = set()
     for arr in features.values():
         if arr.ndim != 2:
@@ -77,9 +77,9 @@ def query(
         return np.empty(0, dtype=np.int64)
     items = validate_anchor(features, mask)
     if query_item < 0 or query_item >= items:
-        raise GraphError(f"query_item {query_item} out of range [0, {items})")
+        raise Net(f"query_item {query_item} out of range [0, {items})")
     if top <= 0:
-        raise GraphError(f"top must be positive, got {top}")
+        raise Net(f"top must be positive, got {top}")
     mod_idx = list(features.keys()).index(query_modality)
     observed = np.where(mask[:, mod_idx] > 0)[0]
     if observed.size <= 1:

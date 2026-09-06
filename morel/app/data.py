@@ -13,7 +13,7 @@ import scipy.sparse as sp
 import torch
 from torch.utils.data import DataLoader, Dataset, Subset
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.recommend.bpr import to_items
 
 
@@ -85,10 +85,10 @@ def split(
 
     Raises
     ------
-        DataError: If ``val_fraction`` is outside ``[0, 1)``.
+        Datum: If ``val_fraction`` is outside ``[0, 1)``.
     """
     if not 0.0 <= val_fraction < 1.0:
-        raise DataError(f"validation fraction must be in [0, 1), got {val_fraction}")
+        raise Datum(f"validation fraction must be in [0, 1), got {val_fraction}")
     total = len(dataset)  # type: ignore[arg-type]  # Dataset has no Sized bound
     held_out = round(total * val_fraction)
     if held_out == 0 or held_out >= total:
@@ -153,7 +153,7 @@ class BPR(Dataset[dict[str, Any]]):
 
         Raises
         ------
-            DataError: If no user has any interaction, or if any user has no
+            Datum: If no user has any interaction, or if any user has no
                 negative available.
         """
         self.items = int(ui_graph.shape[1])
@@ -166,11 +166,11 @@ class BPR(Dataset[dict[str, Any]]):
             if indptr[user + 1] > indptr[user]
         }
         if not self.positives:
-            raise DataError("no user has any interaction; cannot form BPR triples")
+            raise Datum("no user has any interaction; cannot form BPR triples")
         self.users = sorted(self.positives)
         crowded = [u for u, pos in self.positives.items() if pos.size >= self.items]
         if crowded:
-            raise DataError(
+            raise Datum(
                 f"user {crowded[0]} interacts with every one of {self.items} items; "
                 "no negative can be sampled"
             )

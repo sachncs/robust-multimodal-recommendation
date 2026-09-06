@@ -40,9 +40,9 @@ class Checker:
         assert len(flat) == len(records)
 
     def raises(self, tmp_path: Path) -> None:
-        from morel.core.errors import DataError
+        from morel.core.errors import Datum
 
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             list(review(tmp_path / "nope.json"))
 
     def memory(self, tmp_path: Path) -> None:

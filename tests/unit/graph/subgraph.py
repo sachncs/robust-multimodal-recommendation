@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.graph import Subgraph
 
 
@@ -22,7 +22,7 @@ class Checker:
         assert 99 not in sg
 
     def rejected(self) -> None:
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             Subgraph(nodes=np.array([-1, 0]))
 
     def iter(self) -> None:

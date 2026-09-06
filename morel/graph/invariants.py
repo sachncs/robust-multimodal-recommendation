@@ -5,14 +5,14 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 
 
 def no_loops(adj: sp.spmatrix) -> None:
     """Raise if the adjacency has any self-loops."""
     diag = adj.diagonal()
     if (diag != 0).any():
-        raise GraphError("graph has self-loops")
+        raise Net("graph has self-loops")
 
 
 def symmetric(adj: sp.spmatrix, *, atol: float = 1e-6) -> None:
@@ -21,23 +21,23 @@ def symmetric(adj: sp.spmatrix, *, atol: float = 1e-6) -> None:
     if isinstance(diff, sp.spmatrix):
         diff = diff.tocsr()
     if abs(diff).max() > atol:
-        raise GraphError("graph is not symmetric")
+        raise Net("graph is not symmetric")
 
 
 def no_iso(adj: sp.spmatrix, *, min_degree: int = 1) -> None:
     """Raise if any node has degree below ``min_degree``."""
     degrees = np.asarray(adj.sum(axis=1)).flatten()
     if (degrees < min_degree).any():
-        raise GraphError("graph has isolated nodes")
+        raise Net("graph has isolated nodes")
 
 
 def finite(adj: sp.spmatrix) -> None:
     """Raise if the adjacency contains non-finite values."""
     if sp.issparse(adj):
         if not np.isfinite(adj.data).all():
-            raise GraphError("graph contains non-finite values")
+            raise Net("graph contains non-finite values")
     elif not np.isfinite(adj).all():
-        raise GraphError("graph contains non-finite values")
+        raise Net("graph contains non-finite values")
 
 
 def all_invar(adj: sp.spmatrix) -> None:

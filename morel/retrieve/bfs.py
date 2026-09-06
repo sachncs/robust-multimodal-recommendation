@@ -8,7 +8,7 @@ from collections.abc import Iterator
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 
 
 def bfs(adj: sp.csr_matrix, sources: list[int]) -> dict[int, int]:
@@ -54,9 +54,9 @@ def path(adj: sp.csr_matrix, start: int, end: int) -> list[int]:
     if start == end:
         return [start]
     if start < 0 or end < 0:
-        raise GraphError("negative node id")
+        raise Net("negative node id")
     if start >= adj.shape[0] or end >= adj.shape[0]:
-        raise GraphError("node id out of range")
+        raise Net("node id out of range")
     previous: dict[int, int | None] = {start: None}
     distances: dict[int, int] = {start: 0}
     queue: deque[int] = deque([start])

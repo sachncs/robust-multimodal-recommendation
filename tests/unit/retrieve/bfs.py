@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.retrieve.bfs import bfs, neighbor_array, neighbor_iter, path
 
 
@@ -37,7 +37,7 @@ class Checker:
 
     def range(self) -> None:
         g = sp.csr_matrix(np.eye(3, dtype=np.float32))
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             path(g, 0, 99)
 
     def array(self) -> None:

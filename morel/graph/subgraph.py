@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 
 
 @dataclass(frozen=True)
@@ -24,9 +24,9 @@ class Subgraph:
     def __post_init__(self) -> None:
         """Validate that nodes are a 1-D array of non-negative indices."""
         if self.nodes.ndim != 1:
-            raise GraphError("subgraph nodes must be 1-D")
+            raise Net("subgraph nodes must be 1-D")
         if self.nodes.size > 0 and self.nodes.min() < 0:
-            raise GraphError("subgraph nodes must be non-negative")
+            raise Net("subgraph nodes must be non-negative")
 
     @property
     def size(self) -> int:

@@ -16,7 +16,7 @@ from typing import Any
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.data.build import bipartite as build_bipartite
 
 
@@ -37,7 +37,7 @@ def review(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict
     """
     target = Path(path)
     if not target.exists():
-        raise DataError(f"review file not found: {target}")
+        raise Datum(f"review file not found: {target}")
     chunk: list[dict[str, Any]] = []
     with target.open(encoding="utf-8") as handle:
         for line in handle:
@@ -130,7 +130,7 @@ def exact_interactions(
     """
     review_path = Path(review_path)
     if not review_path.exists():
-        raise DataError(f"review file not found: {review_path}")
+        raise Datum(f"review file not found: {review_path}")
 
     user_counts: Counter[str] = Counter()
     item_counts: Counter[str] = Counter()
@@ -163,7 +163,7 @@ def exact_interactions(
             pairs.append(key)
 
     if not pairs:
-        raise DataError("k-core filtering produced empty interaction set")
+        raise Datum("k-core filtering produced empty interaction set")
 
     users = sorted({u for u, _ in pairs})
     items = sorted({i for _, i in pairs})

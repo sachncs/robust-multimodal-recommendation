@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 
 VERSION = 1
 
@@ -78,7 +78,7 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
 
     Args:
         artifact: Path to the artifact whose manifest to load.
-        expected_config_hash: If provided, raise DataError on mismatch.
+        expected_config_hash: If provided, raise Datum on mismatch.
 
     Returns
     -------
@@ -86,14 +86,14 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
 
     Raises
     ------
-        DataError: If the sidecar is missing or its config hash mismatches.
+        Datum: If the sidecar is missing or its config hash mismatches.
     """
     sidecar = path_for(artifact)
     if not sidecar.exists():
-        raise DataError(f"manifest not found for {artifact}: {sidecar}")
+        raise Datum(f"manifest not found for {artifact}: {sidecar}")
     manifest = Manifest.from_json(sidecar.read_text(encoding="utf-8"))
     if expected_config_hash is not None and manifest.cfg_hash != expected_config_hash:
-        raise DataError(
+        raise Datum(
             f"manifest config hash mismatch for {artifact}: "
             f"got {manifest.cfg_hash}, expected {expected_config_hash}"
         )

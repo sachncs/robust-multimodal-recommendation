@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.data import manifest
 
 
@@ -53,7 +53,7 @@ def save_npz(
         The destination path.
     """
     if not arrays:
-        raise DataError("save_npz requires at least one array")
+        raise Datum("save_npz requires at least one array")
     final = Path(target).resolve()
     # A key literally named ``allow_pickle`` would bind to savez's own keyword;
     # that raises rather than silently dropping data, so the narrowing is safe.
@@ -78,7 +78,7 @@ def load_npz(
     """
     path = Path(target)
     if not path.exists():
-        raise DataError(f"npz artifact not found: {path}")
+        raise Datum(f"npz artifact not found: {path}")
     if manifest.path_for(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     with np.load(path, allow_pickle=False) as npz:
@@ -118,7 +118,7 @@ def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -
     """Load a sparse graph and verify its manifest."""
     path = Path(target)
     if not path.exists():
-        raise DataError(f"graph artifact not found: {path}")
+        raise Datum(f"graph artifact not found: {path}")
     if manifest.path_for(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     with np.load(path, allow_pickle=False) as npz:

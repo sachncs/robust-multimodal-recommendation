@@ -11,7 +11,7 @@ class Error(Exception):
     """Base class for every exception raised by morel."""
 
 
-class DataError(Error):
+class Datum(Error):
     """Data acquisition, validation, or loading failures."""
 
 
@@ -23,7 +23,7 @@ class Model(Error):
     """Model construction, forward, or parameter validation failures."""
 
 
-class GraphError(Error):
+class Net(Error):
     """Graph construction, invariant violation, or retrieval failures."""
 
 
@@ -31,7 +31,7 @@ class Train(Error):
     """Training loop failures (NaN loss, missing checkpoint, etc.)."""
 
 
-class EvalError(Error):
+class Rate(Error):
     """Evaluation failures (empty score matrix, etc.)."""
 
 
@@ -45,10 +45,10 @@ class Determinism(Error):
 
 __all__ = [
     "Cfg",
-    "DataError",
+    "Datum",
     "Determinism",
-    "EvalError",
-    "GraphError",
+    "Rate",
+    "Net",
     "Model",
     "Error",
     "Shape",

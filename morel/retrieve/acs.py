@@ -18,7 +18,7 @@ from collections import deque
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.core.log import get as get_logger
 from morel.graph import invariants
 
@@ -27,19 +27,19 @@ log = get_logger("retrieve.acs")
 
 def validate_acs(adj: sp.csr_matrix, anchors: list[int]) -> None:
     if anchors is None:
-        raise GraphError("anchors must not be None")
+        raise Net("anchors must not be None")
     if not anchors:
         return
     nodes = adj.shape[0]
     seen: set[int] = set()
     for anchor in anchors:
         if not isinstance(anchor, (int, np.integer)):
-            raise GraphError(f"anchor must be int, got {type(anchor).__name__}")
+            raise Net(f"anchor must be int, got {type(anchor).__name__}")
         idx = int(anchor)
         if idx < 0 or idx >= nodes:
-            raise GraphError(f"anchor {idx} out of range [0, {nodes})")
+            raise Net(f"anchor {idx} out of range [0, {nodes})")
         if idx in seen:
-            raise GraphError(f"duplicate anchor {idx}")
+            raise Net(f"duplicate anchor {idx}")
         seen.add(idx)
 
 
@@ -59,10 +59,10 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
 
     Raises
     ------
-        GraphError: On bad input.
+        Net: On bad input.
     """
     if adj.ndim != 2 or adj.shape[0] != adj.shape[1]:
-        raise GraphError(f"adj must be square, got {adj.shape}")
+        raise Net(f"adj must be square, got {adj.shape}")
     validate_acs(adj, anchors)
     invariants.no_loops(adj)
     if not anchors:
@@ -118,7 +118,7 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
                 extra={"anchors": anchors_int},
             )
             return set(anchors_int)
-        raise GraphError(f"unknown fallback strategy: {fallback!r}")
+        raise Net(f"unknown fallback strategy: {fallback!r}")
 
     subgraph: set[int] = {int(collision)}
     for anchor_idx, target in enumerate(anchors_int):
@@ -135,7 +135,7 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
                 continue
             nxt = previous.get(node, {}).get(anchor_idx)
             if nxt is None:
-                raise GraphError(f"backtrack failed at node {node} for anchor {target}")
+                raise Net(f"backtrack failed at node {node} for anchor {target}")
             stack.append(int(nxt))
         subgraph.update(visited)
     return subgraph

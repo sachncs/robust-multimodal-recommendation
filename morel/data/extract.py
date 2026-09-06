@@ -13,7 +13,7 @@ from typing import Protocol
 import numpy as np
 import torch
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.core.log import get as get_logger
 
 log = get_logger("data.extract")
@@ -57,7 +57,7 @@ def text(
         Array of shape ``(len(inputs), encoder.dim)``, L2-normalized, float32.
     """
     if not inputs:
-        raise DataError("text encoder received empty input list")
+        raise Datum("text encoder received empty input list")
     return encoder.encode(inputs, device=device)
 
 
@@ -83,7 +83,7 @@ def visual(
         are positions in the original ``paths`` that succeeded.
     """
     if not paths:
-        raise DataError("visual encoder received empty input list")
+        raise Datum("visual encoder received empty input list")
     return encoder.encode(paths, device=device), list(range(len(paths)))
 
 
@@ -93,9 +93,9 @@ def random(items: int, dim: int, *, seed: int, name: str = "random") -> np.ndarr
     Used in tests, demos, and as a fallback when real encoders are unavailable.
     """
     if items <= 0:
-        raise DataError(f"items must be positive, got {items}")
+        raise Datum(f"items must be positive, got {items}")
     if dim <= 0:
-        raise DataError(f"dim must be positive, got {dim}")
+        raise Datum(f"dim must be positive, got {dim}")
     rng = np.random.default_rng(seed)
     array = rng.normal(size=(items, dim)).astype(np.float32)
     return l2_normalize(array)
@@ -111,7 +111,7 @@ class Random:
     def __init__(self, dim: int, *, seed: int = 0, name: str = "random") -> None:
         """Build an encoder producing ``dim``-wide rows."""
         if dim <= 0:
-            raise DataError(f"dim must be positive, got {dim}")
+            raise Datum(f"dim must be positive, got {dim}")
         self.name = name
         self.dim = dim
         self.seed = seed
@@ -139,7 +139,7 @@ class Sentence:
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError as exc:  # pragma: no cover - depends on optional extra
-            raise DataError(
+            raise Datum(
                 f"encoder {model!r} needs sentence-transformers; install morel[text]"
             ) from exc
         self.name = model
@@ -165,10 +165,10 @@ class Vision:
         try:
             import torchvision
         except ImportError as exc:  # pragma: no cover - depends on optional extra
-            raise DataError(f"encoder {model!r} needs torchvision; install morel[vision]") from exc
+            raise Datum(f"encoder {model!r} needs torchvision; install morel[vision]") from exc
         builder = getattr(torchvision.models, model, None)
         if builder is None:
-            raise DataError(f"torchvision has no model named {model!r}")
+            raise Datum(f"torchvision has no model named {model!r}")
         self.name = model
         self.batch = batch
         self.model = builder(weights="DEFAULT")

@@ -18,7 +18,7 @@ import torch.nn as nn
 from morel.codebook import build as build_codebook
 from morel.complete import build as build_complete
 from morel.core.config import Config
-from morel.core.errors import Cfg, GraphError, Model
+from morel.core.errors import Cfg, Net, Model
 from morel.core.seed import deterministic
 from morel.encode import build as build_encode
 from morel.graph import Laplace
@@ -223,12 +223,12 @@ class Pipeline(nn.Module):
 
         Raises
         ------
-            GraphError: If the adjacency has self-loops. Build the item graph
+            Net: If the adjacency has self-loops. Build the item graph
                 once with ``morel.data.build.cooccurrence``; that
                 builder removes self-loops before persisting.
         """
         if adjacency.diagonal().any():
-            raise GraphError(
+            raise Net(
                 "Pipeline.forward received an adjacency with self-loops; "
                 "build the item graph once with "
                 "morel.data.build.cooccurrence (which removes them) "

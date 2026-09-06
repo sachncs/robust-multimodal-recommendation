@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.data.manifest import Manifest
 from morel.data.store import load_graph, load_npz, save_graph, save_npz
 
@@ -32,7 +32,7 @@ class Checker:
         assert load_npz(target).get("a") is not None
 
     def raises(self, tmp_path: Path) -> None:
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             load_npz(tmp_path / "missing.npz")
 
     def graph(self, tmp_path: Path) -> None:
@@ -44,9 +44,9 @@ class Checker:
         assert np.allclose(out.toarray(), np.eye(4))
 
     def missing(self, tmp_path: Path) -> None:
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             load_graph(tmp_path / "missing.npz")
 
     def empty(self, tmp_path: Path) -> None:
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             save_npz(tmp_path / "x.npz")

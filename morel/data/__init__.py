@@ -4,7 +4,7 @@ Lifecycle: acquire -> validate -> extract -> build -> mask -> store.
 Every stage produces artifacts with manifests.
 """
 
-from morel.core.errors import Cfg, DataError
+from morel.core.errors import Cfg, Datum
 from morel.data.acquire import download, fetch
 from morel.data.build import bipartite, cooccurrence, interactions, kcore
 from morel.data.extract import (
@@ -59,7 +59,7 @@ def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> F
 
     Raises
     ------
-        DataError: If ``name`` is not a known encoder.
+        Datum: If ``name`` is not a known encoder.
     """
     if name == "random":
         return Random(dim, seed=seed)
@@ -97,19 +97,19 @@ def build_mask(kind: str, *, items: int, modalities: int, ratio: float, seed: in
 
     Raises
     ------
-        DataError: If ``kind`` is not a known mask name.
+        Datum: If ``kind`` is not a known mask name.
     """
     if kind == "bernoulli":
         return bernoulli(items, modalities, ratio, seed=seed)
     if kind == "block":
         if modalities < 2:
-            raise DataError(
+            raise Datum(
                 f"block masking needs at least 2 modalities, got {modalities}; "
                 "every item must keep one observed modality"
             )
         span = min(max(1, round(modalities * ratio)), modalities - 1)
         return block(items, modalities, span, seed=seed)
-    raise DataError(f"unknown masking kind {kind!r}; available: bernoulli, block")
+    raise Datum(f"unknown masking kind {kind!r}; available: bernoulli, block")
 
 
 #: Map from config name to mask factory for introspection.

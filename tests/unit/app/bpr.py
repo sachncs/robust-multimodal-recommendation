@@ -12,7 +12,7 @@ from morel.app.data import (
     recommend_loaders,
     split,
 )
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 
 
 def interactions(users: int = 20, items: int = 50, count: int = 200) -> sp.csr_matrix:
@@ -65,11 +65,11 @@ class Checker:
         assert {dataset[i]["users"] for i in range(40)} <= {1, 3}
 
     def graph(self) -> None:
-        with pytest.raises(DataError, match="no user has any interaction"):
+        with pytest.raises(Datum, match="no user has any interaction"):
             BPR(sp.csr_matrix((3, 4), dtype=np.float32), length=5)
 
     def user(self) -> None:
-        with pytest.raises(DataError, match="no negative can be sampled"):
+        with pytest.raises(Datum, match="no negative can be sampled"):
             BPR(sp.csr_matrix(np.ones((2, 3), dtype=np.float32)), length=5)
 
     def loader(self) -> None:
@@ -119,7 +119,7 @@ class Checker:
     def invalid(self) -> None:
         dataset = BPR(interactions(), length=10, seed=0)
         for bad in (-0.1, 1.0, 1.5):
-            with pytest.raises(DataError, match=r"validation fraction must be in \[0, 1\)"):
+            with pytest.raises(Datum, match=r"validation fraction must be in \[0, 1\)"):
                 split(dataset, val_fraction=bad, seed=0)
 
     def recommendation(self) -> None:

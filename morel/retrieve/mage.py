@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.core.log import get as get_logger
 from morel.graph.subgraph import connected
 from morel.retrieve.acs import compute as acs_compute
@@ -75,7 +75,7 @@ def expand(
         Set of node ids in the expanded subgraph.
     """
     if iters <= 0:
-        raise GraphError(f"iters must be positive, got {iters}")
+        raise Net(f"iters must be positive, got {iters}")
     anchors_int = [int(a) for a in anchors]
     if query_item not in anchors_int:
         anchors_int = sorted({*anchors_int, int(query_item)})

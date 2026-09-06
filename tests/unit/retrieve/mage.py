@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.retrieve.mage import expand
 
 
@@ -46,11 +46,11 @@ class Checker:
 
     def iters(self, setup) -> None:
         features, mask, g = setup
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             expand(g, [1, 3], 0, features, mask, iters=0)
 
     def loop(self, setup) -> None:
         features, mask, _ = setup
         g_loopy = sp.csr_matrix(np.eye(3, dtype=np.float32))
-        with pytest.raises(GraphError, match="graph has self-loops"):
+        with pytest.raises(Net, match="graph has self-loops"):
             expand(g_loopy, [0, 2], 0, features, mask[:3], iters=3)

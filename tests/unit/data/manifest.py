@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.data.manifest import Manifest, checksum, load, path_for, save
 
 
@@ -43,11 +43,11 @@ class Checker:
             cfg_hash="hash1",
         )
         save(artifact, m)
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             load(artifact, expected_config_hash="hash2")
 
     def missing(self, tmp_path: Path) -> None:
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             load(tmp_path / "missing.npz")
 
     def checksum(self, tmp_path: Path) -> None:

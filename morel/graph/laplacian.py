@@ -15,7 +15,7 @@ import scipy.sparse.linalg as spla
 import torch
 import torch.nn as nn
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.core.log import get as get_logger
 from morel.graph import invariants
 
@@ -222,7 +222,7 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
         excluding the trivial constant one. ``k`` is clamped to ``n - 1``.
     """
     if k < 0:
-        raise GraphError(f"k must be non-negative, got {k}")
+        raise Net(f"k must be non-negative, got {k}")
     if k == 0:
         # Zero requested dimensions means no positional encoding at all. This
         # is a meaningful configuration, not an error: it is the "no_pe"

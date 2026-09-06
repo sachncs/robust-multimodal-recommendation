@@ -29,10 +29,10 @@ class Checker:
         assert (item.matrix - item.matrix.T).max() == 0
 
     def self(self) -> None:
-        from morel.core.errors import GraphError
+        from morel.core.errors import Net
 
         g = sp.csr_matrix(np.eye(3, dtype=np.float32))
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             Item(matrix=g)
 
     def connected(self) -> None:

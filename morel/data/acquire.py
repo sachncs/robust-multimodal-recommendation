@@ -11,7 +11,7 @@ import urllib.request
 from collections.abc import Callable
 from pathlib import Path
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 
 TIMEOUT = 60
 RETRIES = 3
@@ -39,7 +39,7 @@ def fetch(
         timeout: Per-attempt timeout in seconds.
         retries: Number of retries after the first failure.
         backoff: Exponential backoff factor between attempts.
-        sha: Optional SHA256 expected digest; raises DataError on mismatch.
+        sha: Optional SHA256 expected digest; raises Datum on mismatch.
         progress: Optional callback ``(bytes_done, total_bytes_or_None)``.
 
     Returns
@@ -48,7 +48,7 @@ def fetch(
 
     Raises
     ------
-        DataError: If the URL cannot be fetched, or the checksum mismatches.
+        Datum: If the URL cannot be fetched, or the checksum mismatches.
     """
     target = Path(dest).resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -75,7 +75,7 @@ def fetch(
                 from morel.data.manifest import checksum
 
                 if checksum(target) != sha:
-                    raise DataError(
+                    raise Datum(
                         f"checksum mismatch for {target}: expected {sha}, got {checksum(target)}"
                     )
             return target
@@ -85,7 +85,7 @@ def fetch(
             if attempt > retries:
                 break
             time.sleep(backoff**attempt)
-    raise DataError(f"failed to fetch {url} after {retries + 1} attempts: {last_error}")
+    raise Datum(f"failed to fetch {url} after {retries + 1} attempts: {last_error}")
 
 
 def download_from_base(base: str, category: str, dest: Path | str, *, timeout: float) -> list[Path]:
@@ -111,7 +111,7 @@ def download(category: str, dest: Path | str, *, timeout: float = TIMEOUT) -> li
     """Download Amazon 5-core review and metadata for a category.
 
     Defaults to the Amazon-Reviews-2023 mirror. Raises an actionable
-    :class:`DataError` if the mirror is unreachable.
+    :class:`Datum` if the mirror is unreachable.
 
     Args:
         category: Amazon category slug (e.g. ``"Beauty"``).

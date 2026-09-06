@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from morel.core.config import Config
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, FitConfig
 from tests.shared import Corpus, build_path_graph, make_completion_collate
@@ -82,7 +82,7 @@ class Checker:
         assert torch.isfinite(out.completed["text"]).all()
 
     def rejects(self) -> None:
-        """Pipeline raises GraphError when an adjacency with self-loops is passed."""
+        """Pipeline raises Net when an adjacency with self-loops is passed."""
         rng = np.random.default_rng(2)
         n = 8
         features_np = {
@@ -96,5 +96,5 @@ class Checker:
 
         features_t = {k: torch.from_numpy(v) for k, v in features_np.items()}
         mask_t = torch.from_numpy(mask_np)
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             pipeline(features_t, mask_t, bad, training=False)

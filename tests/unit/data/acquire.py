@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.data.acquire import fetch
 
 
@@ -26,6 +26,6 @@ class Checker:
         target = tmp_path / "x.bin"
         with (
             patch("morel.data.acquire.urllib.request.urlopen", side_effect=OSError("boom")),
-            pytest.raises(DataError),
+            pytest.raises(Datum),
         ):
             fetch("https://example.invalid/x.bin", target, timeout=1, retries=2, backoff=1.0)

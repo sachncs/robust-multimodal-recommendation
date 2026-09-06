@@ -6,10 +6,10 @@ import pytest
 
 from morel.core.errors import (
     Cfg,
-    DataError,
+    Datum,
     Determinism,
-    EvalError,
-    GraphError,
+    Rate,
+    Net,
     Model,
     Error,
     Shape,
@@ -23,12 +23,12 @@ class Checker:
     @pytest.mark.parametrize(
         "cls",
         [
-            DataError,
+            Datum,
             Cfg,
             Model,
-            GraphError,
+            Net,
             Train,
-            EvalError,
+            Rate,
             Shape,
             Determinism,
         ],
@@ -38,4 +38,4 @@ class Checker:
 
     def can(self) -> None:
         with pytest.raises(Error):
-            raise GraphError("boom")
+            raise Net("boom")

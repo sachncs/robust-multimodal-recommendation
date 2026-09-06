@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.retrieve.acs import batch, compute
 
 
@@ -33,17 +33,17 @@ class Checker:
 
     def raises(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             compute(g, [0, 0])
 
     def range(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             compute(g, [0, 99])
 
     def loops(self) -> None:
         g = sp.csr_matrix(np.eye(3, dtype=np.float32))
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             compute(g, [0, 2])
 
     def fallback(self) -> None:

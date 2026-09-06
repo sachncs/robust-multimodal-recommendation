@@ -6,7 +6,7 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 
 
 def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-10) -> torch.Tensor:
@@ -107,15 +107,15 @@ def negatives(
 
     Raises
     ------
-    DataError
+    Datum
         If ``count`` is not positive, exceeds the catalogue size, or if some
         user has fewer than ``count`` negatives available.
     """
     users, items = ui.shape
     if count <= 0:
-        raise DataError(f"count must be positive, got {count}")
+        raise Datum(f"count must be positive, got {count}")
     if count > items:
-        raise DataError(f"count ({count}) > items ({items})")
+        raise Datum(f"count ({count}) > items ({items})")
     rng = np.random.default_rng(seed)
     indptr = ui.indptr
     indices = ui.indices
@@ -123,7 +123,7 @@ def negatives(
     per_user = [np.unique(indices[indptr[u] : indptr[u + 1]]) for u in range(users)]
     min_neg = min(items - positives.size for positives in per_user) if users else items
     if min_neg < count:
-        raise DataError(f"at least one user has only {min_neg} negatives available; need {count}")
+        raise Datum(f"at least one user has only {min_neg} negatives available; need {count}")
 
     out = np.empty((users, count), dtype=np.int64)
     for u, positives in enumerate(per_user):

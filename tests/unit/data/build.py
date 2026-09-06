@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.data.build import bipartite, cooccurrence, kcore
 
 
@@ -58,5 +58,5 @@ class Checker:
         assert (out.toarray() == arr).all()
 
     def rejects(self) -> None:
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             bipartite(np.array([0, 1]), np.array([0]), 2, 2)

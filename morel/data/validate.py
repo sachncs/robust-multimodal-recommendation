@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import DataError, Shape
+from morel.core.errors import Datum, Shape
 
 
 def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> None:
@@ -19,20 +19,20 @@ def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> 
 
     Raises
     ------
-        DataError: On shape, dtype, or range violations.
+        Datum: On shape, dtype, or range violations.
     """
     if user.ndim != 1 or item.ndim != 1:
         raise Shape("user and item must be 1-D")
     if user.shape != item.shape:
         raise Shape(f"shape mismatch: user {user.shape} vs item {item.shape}")
     if user.size == 0:
-        raise DataError("interactions are empty")
+        raise Datum("interactions are empty")
     if user.min() < 0 or item.min() < 0:
-        raise DataError("negative indices not allowed")
+        raise Datum("negative indices not allowed")
     if user.max() >= users:
-        raise DataError(f"user index {int(user.max())} >= users ({users})")
+        raise Datum(f"user index {int(user.max())} >= users ({users})")
     if item.max() >= items:
-        raise DataError(f"item index {int(item.max())} >= items ({items})")
+        raise Datum(f"item index {int(item.max())} >= items ({items})")
 
 
 def features(payload: dict[str, np.ndarray], *, items: int) -> None:
@@ -44,19 +44,19 @@ def features(payload: dict[str, np.ndarray], *, items: int) -> None:
 
     Raises
     ------
-        DataError: On shape, dtype, or value-range violations.
+        Datum: On shape, dtype, or value-range violations.
     """
     if not payload:
-        raise DataError("features dict is empty")
+        raise Datum("features dict is empty")
     for name, array in payload.items():
         if array.ndim != 2:
             raise Shape(f"feature {name!r} must be 2-D, got {array.ndim}-D")
         if array.shape[0] != items:
             raise Shape(f"feature {name!r} row count {array.shape[0]} != items ({items})")
         if not np.isfinite(array).all():
-            raise DataError(f"feature {name!r} contains NaN or Inf")
+            raise Datum(f"feature {name!r} contains NaN or Inf")
         if array.dtype != np.float32:
-            raise DataError(f"feature {name!r} dtype {array.dtype} != float32")
+            raise Datum(f"feature {name!r} dtype {array.dtype} != float32")
 
 
 def graph(adj: sp.spmatrix) -> None:
@@ -67,19 +67,19 @@ def graph(adj: sp.spmatrix) -> None:
 
     Raises
     ------
-        DataError: On invariant violations.
+        Datum: On invariant violations.
     """
     if adj.ndim != 2:
         raise Shape(f"graph must be 2-D, got {adj.ndim}-D")
     rows, cols = adj.shape
     if rows != cols:
-        raise DataError(f"graph must be square, got {adj.shape}")
+        raise Datum(f"graph must be square, got {adj.shape}")
     diag = adj.diagonal()
     if (diag != 0).any():
-        raise DataError("graph has self-loops")
+        raise Datum("graph has self-loops")
     coo = adj.tocoo()
     if (coo.data < 0).any():
-        raise DataError("graph has negative edge weights")
+        raise Datum("graph has negative edge weights")
 
 
 def mask(mask: np.ndarray) -> None:
@@ -90,18 +90,18 @@ def mask(mask: np.ndarray) -> None:
 
     Raises
     ------
-        DataError: On shape, dtype, or value-range violations.
+        Datum: On shape, dtype, or value-range violations.
     """
     if mask.ndim != 2:
         raise Shape(f"mask must be 2-D, got {mask.ndim}-D")
     if mask.shape[0] == 0:
-        raise DataError("mask has no items")
+        raise Datum("mask has no items")
     unique = np.unique(mask)
     if not np.all(np.isin(unique, [0.0, 1.0])):
-        raise DataError(f"mask values must be 0 or 1, got {unique}")
+        raise Datum(f"mask values must be 0 or 1, got {unique}")
     rowsums = mask.sum(axis=1)
     if (rowsums == 0).any():
-        raise DataError("mask has rows with no kept modalities")
+        raise Datum("mask has rows with no kept modalities")
 
 
 __all__ = ["features", "graph", "interactions", "mask"]

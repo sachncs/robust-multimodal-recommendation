@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError, Shape
+from morel.core.errors import Net, Shape
 from morel.retrieve.anchor import batch, query
 
 
@@ -36,12 +36,12 @@ class Checker:
 
     def range(self, setup) -> None:
         features, mask, _ = setup
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             query(99, "visual", features, mask, top=2)
 
     def top(self, setup) -> None:
         features, mask, _ = setup
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             query(0, "visual", features, mask, top=0)
 
     def list(self, setup) -> None:

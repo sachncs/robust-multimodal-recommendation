@@ -12,7 +12,7 @@ from typing import Protocol, runtime_checkable
 
 import numpy as np
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 
 
 @runtime_checkable
@@ -33,13 +33,13 @@ class Mask:
     def __post_init__(self) -> None:
         """Validate the mask data on construction."""
         if self.data.ndim != 2:
-            raise DataError(f"mask must be 2-D, got {self.data.ndim}-D")
+            raise Datum(f"mask must be 2-D, got {self.data.ndim}-D")
         if self.data.shape[0] == 0:
-            raise DataError("mask has no items")
+            raise Datum("mask has no items")
         if not np.all(np.isin(self.data, [0.0, 1.0])):
-            raise DataError("mask values must be 0 or 1")
+            raise Datum("mask values must be 0 or 1")
         if (self.data.sum(axis=1) == 0).any():
-            raise DataError("mask rows must keep at least one modality")
+            raise Datum("mask rows must keep at least one modality")
 
     @property
     def items(self) -> int:
@@ -80,9 +80,9 @@ def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> Mask:
         A ``Mask`` with shape ``(items, modalities)``.
     """
     if not 0.0 <= ratio <= 1.0:
-        raise DataError(f"ratio must be in [0, 1], got {ratio}")
+        raise Datum(f"ratio must be in [0, 1], got {ratio}")
     if items <= 0 or modalities <= 0:
-        raise DataError("items and modalities must be positive")
+        raise Datum("items and modalities must be positive")
     rng = np.random.default_rng(seed)
     base = (rng.random((items, modalities)) > ratio).astype(np.float32)
     # Vectorized repair: rows with no kept modality get the first one set.
@@ -112,7 +112,7 @@ def block(items: int, modalities: int, block_size: int, *, seed: int) -> Mask:
         A ``Mask``.
     """
     if block_size <= 0 or block_size > modalities:
-        raise DataError(f"block_size must be in [1, {modalities}], got {block_size}")
+        raise Datum(f"block_size must be in [1, {modalities}], got {block_size}")
     rng = np.random.default_rng(seed)
     base = np.ones((items, modalities), dtype=np.float32)
     for i in range(items):
@@ -138,7 +138,7 @@ def structured(pattern: np.ndarray) -> Mask:
 def stack(masks: list[Mask]) -> np.ndarray:
     """Stack a list of masks into a 3-D array ``(len(masks), items, modalities)``."""
     if not masks:
-        raise DataError("stack requires at least one mask")
+        raise Datum("stack requires at least one mask")
     arrays = [m.to_numpy() for m in masks]
     return np.stack(arrays, axis=0)
 

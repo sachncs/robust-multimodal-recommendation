@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 import torch
 
-from morel.core.errors import DataError, Model
+from morel.core.errors import Datum, Model
 from morel.recommend import MF, Light, Pop, bpr, negatives
 from morel.recommend.bpr import distinct, to_items
 
@@ -65,12 +65,12 @@ class Checker:
 
     def count(self) -> None:
         ui = sp.csr_matrix(np.eye(3, dtype=np.float32))
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             negatives(ui, count=0, seed=0)
 
     def items(self) -> None:
         ui = sp.csr_matrix(np.array([[1, 1], [1, 1]], dtype=np.float32))
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             negatives(ui, count=1, seed=0)
 
     def forward(self) -> None:

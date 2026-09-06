@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.core.errors import GraphError
+from morel.core.errors import Net
 from morel.graph.laplacian import Laplace, signs, laplacian, pe, start
 
 
@@ -37,7 +37,7 @@ class Checker:
 
     def loops(self) -> None:
         g = sp.csr_matrix(np.eye(3, dtype=np.float32))
-        with pytest.raises(GraphError):
+        with pytest.raises(Net):
             laplacian(g)
 
     def k(self) -> None:
@@ -47,7 +47,7 @@ class Checker:
 
     def rejected(self) -> None:
         g = sp.csr_matrix(np.array([[0, 1], [1, 0]], dtype=np.float32))
-        with pytest.raises(GraphError, match="k must be non-negative"):
+        with pytest.raises(Net, match="k must be non-negative"):
             pe(g, k=-1)
 
     def encoding(self) -> None:

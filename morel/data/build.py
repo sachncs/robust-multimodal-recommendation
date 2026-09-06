@@ -10,7 +10,7 @@ from typing import Any
 import numpy as np
 import scipy.sparse as sp
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.core.log import get as get_logger
 
 log = get_logger("data.build")
@@ -30,7 +30,7 @@ def bipartite(user: np.ndarray, item: np.ndarray, users: int, items: int) -> sp.
         Sparse CSR matrix of shape ``(users, items)`` with float32 ones.
     """
     if user.shape != item.shape:
-        raise DataError(f"shape mismatch: user {user.shape} vs item {item.shape}")
+        raise Datum(f"shape mismatch: user {user.shape} vs item {item.shape}")
     data = np.ones(user.shape[0], dtype=np.float32)
     matrix = sp.csr_matrix((data, (user, item)), shape=(users, items))
     matrix.sum_duplicates()
@@ -50,7 +50,7 @@ def cooccurrence(graph: sp.csr_matrix) -> sp.csr_matrix:
         Symmetric item-item CSR matrix with no self-loops.
     """
     if graph.ndim != 2:
-        raise DataError(f"bipartite must be 2-D, got {graph.ndim}-D")
+        raise Datum(f"bipartite must be 2-D, got {graph.ndim}-D")
     cooc = graph.T @ graph
     cooc = cooc.sign()
     cooc.setdiag(0)
@@ -155,7 +155,7 @@ def interactions(
             break
         filtered = new_filtered
     if not filtered:
-        raise DataError("k-core filtering produced empty interaction set")
+        raise Datum("k-core filtering produced empty interaction set")
 
     user2id = {u: idx for idx, u in enumerate(sorted({u for u, _ in filtered}))}
     item2id = {i: idx for idx, i in enumerate(sorted({i for _, i in filtered}))}

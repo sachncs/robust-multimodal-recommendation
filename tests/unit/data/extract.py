@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 from morel.core.config import Config
-from morel.core.errors import Cfg, DataError
+from morel.core.errors import Cfg, Datum
 from morel.data import EXTRACTORS, build_extractor
 from morel.data.__main__ import main
 from morel.data.extract import Random
@@ -78,7 +78,7 @@ class Checker:
         )
 
     def rejects(self) -> None:
-        with pytest.raises(DataError, match="dim must be positive"):
+        with pytest.raises(Datum, match="dim must be positive"):
             Random(0)
 
     def synthetic(self, 

@@ -13,7 +13,7 @@ import pytest
 
 from morel.app.experiment import synthetic
 from morel.core.config import Masking
-from morel.core.errors import Cfg, DataError
+from morel.core.errors import Cfg, Datum
 from morel.data import MASKS
 
 
@@ -39,7 +39,7 @@ class Checker:
         assert np.array_equal(first, second)
 
     def block(self) -> None:
-        with pytest.raises(DataError, match="at least 2 modalities"):
+        with pytest.raises(Datum, match="at least 2 modalities"):
             MASKS.create("block", items=5, modalities=1, ratio=0.5, seed=0)
 
     def unknown(self) -> None:
@@ -75,7 +75,7 @@ class Checker:
 import numpy as np
 import pytest
 
-from morel.core.errors import DataError
+from morel.core.errors import Datum
 from morel.data.mask import Mask, bernoulli, block, stack, structured
 
 
@@ -94,7 +94,7 @@ class Checker:
         assert (m.sum(axis=1) == 1).all()
 
     def invalid(self) -> None:
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             bernoulli(5, 3, 1.5, seed=0)
 
     def seed(self) -> None:
@@ -113,7 +113,7 @@ class Checker:
         assert m.modalities == 2
 
     def mask(self) -> None:
-        with pytest.raises(DataError):
+        with pytest.raises(Datum):
             Mask(data=np.array([[0, 0]], dtype=np.float32))
 
     def stack(self) -> None:
