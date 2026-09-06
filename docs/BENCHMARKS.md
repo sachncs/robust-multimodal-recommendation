@@ -8,12 +8,12 @@ pytest benchmarks/ --benchmark-only --benchmark-min-rounds=20 --benchmark-autosa
 
 ## Suites
 
-- `benchmarks/model.py` — forward-pass latency for the encoder + codebook +
-  decoder at scales `[1k, 10k, 100k]` items.
-- `benchmarks/data.py` — full k-core + graph construction end-to-end.
+- `benchmarks/forward.py` — forward-pass latency for the encoder + codebook
+  + decoder at scales `[1k, 10k, 100k]` items.
+- `benchmarks/dataset.py` — full k-core + graph construction end-to-end.
 - `benchmarks/retrieve.py` — anchor + ACS + MAGE throughput.
-- `benchmarks/end_to_end.py` — completion training epoch on a 50k-item
-  synthetic dataset.
+- `benchmarks/train.py` — completion training epoch on a 50k-item synthetic
+  dataset.
 
 ## Threshold
 

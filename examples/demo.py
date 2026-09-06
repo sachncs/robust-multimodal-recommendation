@@ -2,7 +2,7 @@
 
 Run with::
 
-    python examples/end_to_end_demo.py
+    python examples/demo.py
 
 This script:
 1. Generates a small synthetic user-item graph and modality features.

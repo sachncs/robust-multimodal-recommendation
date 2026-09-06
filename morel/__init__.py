@@ -23,7 +23,7 @@ from morel.pipeline import Output, Pipeline
 
 __version__ = "0.0.0+unknown"
 try:
-    from morel._version import __version__ as _scm_version
+    from morel.version import __version__ as _scm_version
 except ImportError:  # pragma: no cover - only when built without setuptools_scm
     pass
 else:
