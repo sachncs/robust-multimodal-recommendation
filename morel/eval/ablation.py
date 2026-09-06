@@ -78,7 +78,7 @@ __all__ = [
     "KIND",
     "ablate",
     "conditions",
-    "nope",
     "nobook",
+    "nope",
     "noretry",
 ]

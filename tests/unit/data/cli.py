@@ -16,8 +16,8 @@ import numpy as np
 import pytest
 
 from morel.core.config import Config
-from morel.data.__main__ import main
 from morel.data.__main__ import config as load_cfg
+from morel.data.__main__ import main
 from morel.data.__main__ import paths as resolve_paths
 
 
@@ -175,7 +175,6 @@ class Checker:
         """--category used to be required, ignoring data.category entirely."""
         import argparse
 
-        from morel.data.__main__ import config, paths
 
         config = Config.parse({"data": {"category": "Books", "raw": "r", "processed": "p"}})
         args = argparse.Namespace(cmd="download", category=None, dest=None, config=None)
