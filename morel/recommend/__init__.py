@@ -14,27 +14,55 @@ RECOMMENDERS: Registry[nn.Module] = Registry("recommender")
 
 @RECOMMENDERS.register("light")
 def build_light(
-    *, users: int, items: int, embed: int, layers: int, seed: int | None = None
+    *,
+    users: int,
+    items: int,
+    embed: int,
+    layers: int,
+    feature_dim: int | None = None,
+    seed: int | None = None,
 ) -> nn.Module:
     """Build the LightGCN ranker used by the full model."""
-    return Light(users=users, items=items, embed=embed, layers=layers, seed=seed)
+    return Light(
+        users=users,
+        items=items,
+        embed=embed,
+        layers=layers,
+        feature_dim=feature_dim,
+        seed=seed,
+    )
 
 
 @RECOMMENDERS.register("mf")
 def build_mf(
-    *, users: int, items: int, embed: int, layers: int, seed: int | None = None
+    *,
+    users: int,
+    items: int,
+    embed: int,
+    layers: int,
+    feature_dim: int | None = None,
+    seed: int | None = None,
 ) -> nn.Module:
-    """Build a matrix-factorization ranker; it has no propagation layers."""
-    del layers
+    """Build a matrix-factorization ranker.
+
+    It has no propagation layers and does not consume modality features.
+    """
+    del layers, feature_dim
     return MF(users=users, items=items, embed=embed, seed=seed)
 
 
 @RECOMMENDERS.register("pop")
 def build_pop(
-    *, users: int, items: int, embed: int, layers: int, seed: int | None = None
+    *,
+    users: int,
+    items: int,
+    embed: int,
+    layers: int,
+    feature_dim: int | None = None,
+    seed: int | None = None,
 ) -> nn.Module:
     """Build the popularity baseline, which has no learned parameters."""
-    del embed, layers, seed
+    del embed, layers, feature_dim, seed
     return Pop(users=users, items=items)
 
 

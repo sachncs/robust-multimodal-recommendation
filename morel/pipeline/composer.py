@@ -133,7 +133,9 @@ class Pipeline(nn.Module):
         self.retrieval_mask: np.ndarray | None = None
         self.retrieval_adj: sp.csr_matrix | None = None
 
-    def attach_recommender(self, ui_graph: sp.csr_matrix) -> None:
+    def attach_recommender(
+        self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None
+    ) -> None:
         """Attach the downstream ranker named by ``config.recommend.kind``.
 
         The ranker is initialized under ``config.seed``. Whatever
@@ -143,6 +145,9 @@ class Pipeline(nn.Module):
 
         Args:
             ui_graph: Bipartite ``(users, items)`` interaction matrix.
+            feature_dim: Width of the completion output that will be handed to
+                the ranker, for rankers that can consume it. Leave as ``None``
+                to rank from ID embeddings and the graph alone.
 
         Raises
         ------
@@ -156,6 +161,7 @@ class Pipeline(nn.Module):
             items=items,
             embed=self.config.recommend.embed,
             layers=self.config.recommend.layers,
+            feature_dim=feature_dim,
             seed=self.config.seed,
         )
         prime = getattr(recommender, "normalized_adjacency", None)

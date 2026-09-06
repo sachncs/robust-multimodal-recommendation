@@ -10,6 +10,7 @@ import scipy.sparse as sp
 import torch
 import torch.nn as nn
 
+from morel.core.errors import ModelError
 from morel.core.seed import deterministic
 
 
@@ -40,6 +41,7 @@ class Light(nn.Module):
         *,
         embed: int = 64,
         layers: int = 3,
+        feature_dim: int | None = None,
         seed: int | None = None,
     ) -> None:
         """Build a LightGCN ranker.
@@ -49,6 +51,10 @@ class Light(nn.Module):
             items: Number of items; must be positive.
             embed: Embedding width.
             layers: Number of propagation steps; must be non-negative.
+            feature_dim: Width of the modality features that will be supplied
+                to :meth:`forward`. When set, a projection into the embedding
+                space is created so the completion stage's output can inform
+                ranking. Leave as ``None`` for ID-embeddings only.
             seed: If given, initialize the embeddings under this seed so that
                 two ``Light`` instances built with the same seed hold
                 identical weights. The caller's global RNG state is left
@@ -69,6 +75,12 @@ class Light(nn.Module):
             self.item_emb = nn.Embedding(items, embed)
             nn.init.xavier_uniform_(self.user_emb.weight)
             nn.init.xavier_uniform_(self.item_emb.weight)
+            self.feature_proj: nn.Linear | None = None
+            if feature_dim is not None:
+                if feature_dim <= 0:
+                    raise ValueError(f"feature_dim must be positive, got {feature_dim}")
+                self.feature_proj = nn.Linear(feature_dim, embed)
+        self.feature_dim = feature_dim
         self.adj_cache: tuple[str, torch.Tensor] | None = None
 
     def forward(
@@ -76,6 +88,7 @@ class Light(nn.Module):
         users: torch.Tensor,
         items: torch.Tensor,
         ui_graph: sp.csr_matrix | None = None,
+        item_features: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Score ``users`` against ``items`` via L-step LightGCN propagation.
 
@@ -83,17 +96,42 @@ class Light(nn.Module):
             users: ``(B_u,)`` long tensor of user ids.
             items: ``(B_i,)`` long tensor of item ids.
             ui_graph: Optional new bipartite graph; uses cached one if None.
+            item_features: Optional ``(items, feature_dim)`` modality
+                representations -- in this pipeline, the output of the
+                completion stage. When given, they are projected into the
+                embedding space and added to the item embeddings before
+                propagation, so that completing a missing modality actually
+                changes what gets recommended. Requires ``feature_dim`` to
+                have been set on the constructor.
 
         Returns
         -------
             ``(B_u, B_i)`` score matrix.
+
+        Raises
+        ------
+            ModelError: If ``item_features`` is supplied but no projection was
+                configured, or if its shape does not match.
         """
         if users.max() >= self.users:
             raise IndexError(f"user index {int(users.max())} >= {self.users}")
         if items.max() >= self.items:
             raise IndexError(f"item index {int(items.max())} >= {self.items}")
         adj_norm = self.normalized_adjacency(ui_graph)
-        all_emb = torch.cat([self.user_emb.weight, self.item_emb.weight], dim=0)
+        item_emb = self.item_emb.weight
+        if item_features is not None:
+            if self.feature_proj is None:
+                raise ModelError(
+                    "item_features was passed but Light was built without "
+                    "feature_dim; construct it with feature_dim set to the "
+                    "width of the completion output"
+                )
+            if item_features.shape[0] != self.items:
+                raise ModelError(
+                    f"item_features has {item_features.shape[0]} rows, expected {self.items}"
+                )
+            item_emb = item_emb + self.feature_proj(item_features.to(item_emb.dtype))
+        all_emb = torch.cat([self.user_emb.weight, item_emb], dim=0)
         stack = [all_emb]
         for _ in range(self.layers):
             all_emb = torch.sparse.mm(adj_norm, all_emb)

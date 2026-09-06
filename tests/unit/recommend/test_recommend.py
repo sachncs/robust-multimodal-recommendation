@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 import torch
 
-from morel.core.errors import DataError
+from morel.core.errors import DataError, ModelError
 from morel.recommend import MF, Light, Pop, bpr, negatives
 from morel.recommend.bpr import distinct_ranks, ranks_to_items
 
@@ -211,3 +211,52 @@ def test_negatives_scales_to_a_wide_catalogue() -> None:
     for u in range(0, users, 50):
         positives = set(ui.indices[ui.indptr[u] : ui.indptr[u + 1]].tolist())
         assert positives.isdisjoint(out[u].tolist())
+
+
+def test_light_ignores_features_when_not_configured() -> None:
+    """Backwards compatible: no feature_dim means ID embeddings only."""
+    light = Light(users=3, items=4, embed=8, layers=1, seed=0)
+    assert light.feature_proj is None
+    ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
+    assert light(torch.arange(3), torch.arange(4), ui).shape == (3, 4)
+
+
+def test_light_features_change_the_scores() -> None:
+    """Regression: completion output was computed and then discarded."""
+    ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
+    light = Light(users=3, items=4, embed=8, layers=1, feature_dim=5, seed=0)
+
+    without = light(torch.arange(3), torch.arange(4), ui)
+    with_features = light(torch.arange(3), torch.arange(4), ui, item_features=torch.ones(4, 5))
+
+    assert not torch.equal(without, with_features)
+
+
+def test_light_features_are_deterministic() -> None:
+    ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
+    features = torch.ones(4, 5)
+    first = Light(users=3, items=4, embed=8, layers=1, feature_dim=5, seed=0)
+    second = Light(users=3, items=4, embed=8, layers=1, feature_dim=5, seed=0)
+    assert torch.equal(
+        first(torch.arange(3), torch.arange(4), ui, item_features=features),
+        second(torch.arange(3), torch.arange(4), ui, item_features=features),
+    )
+
+
+def test_light_rejects_features_without_a_projection() -> None:
+    ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
+    light = Light(users=3, items=4, embed=8, layers=1, seed=0)
+    with pytest.raises(ModelError, match="built without feature_dim"):
+        light(torch.arange(3), torch.arange(4), ui, item_features=torch.ones(4, 5))
+
+
+def test_light_rejects_features_with_the_wrong_row_count() -> None:
+    ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
+    light = Light(users=3, items=4, embed=8, layers=1, feature_dim=5, seed=0)
+    with pytest.raises(ModelError, match="expected 4"):
+        light(torch.arange(3), torch.arange(4), ui, item_features=torch.ones(2, 5))
+
+
+def test_light_rejects_a_non_positive_feature_dim() -> None:
+    with pytest.raises(ValueError, match="feature_dim must be positive"):
+        Light(users=3, items=4, embed=8, feature_dim=0)
