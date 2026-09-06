@@ -51,7 +51,7 @@ class StatsResponse(BaseModel):
     events_buffered: int
     updates_applied: int
     last_loss: float
-    last_valid_loss: float
+    valid_loss: float
     current_version: int
     cooldown_until: float
 
@@ -130,7 +130,7 @@ def create(loader: Loader | None = None) -> FastAPI:
             events_buffered=int(s["events_buffered"]),
             updates_applied=int(s["updates_applied"]),
             last_loss=float(s["last_loss"]),
-            last_valid_loss=float(s["last_valid_loss"]),
+            valid_loss=float(s["valid_loss"]),
             current_version=int(s["current_version"]),
             cooldown_until=float(s["cooldown_until"]),
         )

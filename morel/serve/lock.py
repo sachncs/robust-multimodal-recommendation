@@ -33,7 +33,7 @@ class RWLock:
         """Create an unheld lock."""
         self.condition = threading.Condition()
         self.readers = 0
-        self.active_writer = False
+        self.writer = False
         self.writers = 0
 
     def read_acquire(self, timeout: float | None = None) -> bool:
@@ -48,10 +48,10 @@ class RWLock:
         """
         with self.condition:
             if timeout is None:
-                while self.active_writer or self.writers > 0:
+                while self.writer or self.writers > 0:
                     self.condition.wait()
             elif not self.condition.wait_for(
-                lambda: not self.active_writer and self.writers == 0,
+                lambda: not self.writer and self.writers == 0,
                 timeout=timeout,
             ):
                 return False
@@ -91,18 +91,18 @@ class RWLock:
             self.writers += 1
             try:
                 if timeout is None:
-                    while self.active_writer or self.readers > 0:
+                    while self.writer or self.readers > 0:
                         self.condition.wait()
                 elif not self.condition.wait_for(
-                    lambda: not self.active_writer and self.readers == 0,
+                    lambda: not self.writer and self.readers == 0,
                     timeout=timeout,
                 ):
                     return False
-                self.active_writer = True
+                self.writer = True
                 return True
             finally:
                 self.writers -= 1
-                if not self.active_writer:
+                if not self.writer:
                     # Gave up: wake the readers that were queued behind us,
                     # otherwise they wait for a writer that is no longer coming.
                     self.condition.notify_all()
@@ -115,9 +115,9 @@ class RWLock:
             RuntimeError: If the write lock is not held.
         """
         with self.condition:
-            if not self.active_writer:
+            if not self.writer:
                 raise RuntimeError("write_release called without holding the write lock")
-            self.active_writer = False
+            self.writer = False
             self.condition.notify_all()
 
     def read(self) -> Read:

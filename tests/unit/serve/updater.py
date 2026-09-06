@@ -145,5 +145,5 @@ class Checker:
 
         assert live.lock.readers == 0
         assert live.lock.writers == 0
-        assert live.lock.active_writer is False
+        assert live.lock.writer is False
         assert not live.buffer_lock.locked()

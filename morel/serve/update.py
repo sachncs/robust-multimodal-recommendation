@@ -134,7 +134,7 @@ class Updater:
         self.version = 0
         self.loss_window: deque[float] = deque(maxlen=64)
         self.last_loss = float("nan")
-        self.last_valid_loss: float | None = None
+        self.valid_loss: float | None = None
         self.updates = 0
 
     def accept(self, user: int, item: int, signal: Signal) -> None:
@@ -157,8 +157,8 @@ class Updater:
                 "replay_buffered": replay_buffered,
                 "updates_applied": self.updates,
                 "last_loss": self.last_loss,
-                "last_valid_loss": self.last_valid_loss
-                if self.last_valid_loss is not None
+                "valid_loss": self.valid_loss
+                if self.valid_loss is not None
                 else float("nan"),
                 "current_version": self.version,
                 "cooldown_until": self.cooldown_until,
@@ -247,7 +247,7 @@ class Updater:
             self.version += 1
             self.loss_window.append(loss)
             self.last_loss = loss
-            self.last_valid_loss = valid_loss
+            self.valid_loss = valid_loss
             self.updates += 1
             return True, self.version
 

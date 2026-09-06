@@ -199,7 +199,7 @@ class Checker:
         assert not errors, errors
         assert lock.readers == 0
         assert lock.writers == 0
-        assert lock.active_writer is False
+        assert lock.writer is False
 
     def out(self) -> None:
         """A writer that gives up must not leave readers queued behind it."""
@@ -227,7 +227,7 @@ class Checker:
         lock.read_acquire()
         try:
             assert lock.write_acquire(timeout=0.05) is False
-            assert lock.active_writer is False
+            assert lock.writer is False
         finally:
             lock.read_release()
 
@@ -248,4 +248,4 @@ class Checker:
 
         with pytest.raises(ValueError, match="boom"), writer(lock):
             raise ValueError("boom")
-        assert lock.active_writer is False
+        assert lock.writer is False
