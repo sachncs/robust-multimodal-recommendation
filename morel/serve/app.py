@@ -14,7 +14,7 @@ from morel.serve.schema import (
     CompleteRequest,
     CompleteResponse,
     HealthResponse,
-    RecommendItem,
+    Pick,
     RecommendRequest,
     RecommendResponse,
     serialize_completed,
@@ -186,13 +186,13 @@ def run(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
     return completed
 
 
-def recommend_items(pipeline: object, payload: RecommendRequest) -> list[RecommendItem]:
+def recommend_items(pipeline: object, payload: RecommendRequest) -> list[Pick]:
     """Return the top-``top`` items for a user.
 
     Stub implementation: returns a uniformly-ranked slice of the catalogue.
     """
     top = max(1, int(payload.top))
-    return [RecommendItem(item=i, score=1.0 / (i + 1)) for i in range(top)]
+    return [Pick(item=i, score=1.0 / (i + 1)) for i in range(top)]
 
 
 def request_count(app: FastAPI) -> int:

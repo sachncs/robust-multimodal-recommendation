@@ -32,7 +32,7 @@ class RecommendRequest(BaseModel):
     top: int = Field(default=20, description="Number of top items to return.")
 
 
-class RecommendItem(BaseModel):
+class Pick(BaseModel):
     """One (item, score) pair."""
 
     item: int
@@ -42,7 +42,7 @@ class RecommendItem(BaseModel):
 class RecommendResponse(BaseModel):
     """Response with ranked items for the requested user."""
 
-    items: list[RecommendItem]
+    items: list[Pick]
 
 
 class HealthResponse(BaseModel):
@@ -61,7 +61,7 @@ __all__ = [
     "CompleteRequest",
     "CompleteResponse",
     "HealthResponse",
-    "RecommendItem",
+    "Pick",
     "RecommendRequest",
     "RecommendResponse",
     "serialize_completed",
