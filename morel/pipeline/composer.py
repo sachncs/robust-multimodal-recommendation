@@ -139,7 +139,7 @@ class Pipeline(nn.Module):
                 )
         self.recommender: nn.Module | None = None
         self.corpus_features: dict[str, np.ndarray] | None = None
-        self.retrieval_mask: np.ndarray | None = None
+        self.corpus_mask: np.ndarray | None = None
         self.corpus_adj: sp.csr_matrix | None = None
 
     def attach_recommend(self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None) -> None:
@@ -192,7 +192,7 @@ class Pipeline(nn.Module):
         attributes used by retrieval during :meth:`forward`.
         """
         self.corpus_features = features
-        self.retrieval_mask = mask
+        self.corpus_mask = mask
         self.corpus_adj = adjacency
 
     def forward(
@@ -252,14 +252,14 @@ class Pipeline(nn.Module):
 
             if (
                 self.corpus_features is not None
-                and self.retrieval_mask is not None
+                and self.corpus_mask is not None
                 and index is not None
             ):
                 queries = [int(i) for i in index.detach().cpu().tolist()]
                 result = batch(
                     queries,
                     self.corpus_features,
-                    self.retrieval_mask,
+                    self.corpus_mask,
                     self.corpus_adj
                     if self.corpus_adj is not None
                     else sp.csr_matrix(adjacency),
@@ -313,7 +313,7 @@ class Pipeline(nn.Module):
                 :meth:`attach` before encoding subgraphs.
         """
         corpus_features = self.corpus_features
-        corpus_mask = self.retrieval_mask
+        corpus_mask = self.corpus_mask
         if corpus_features is None or corpus_mask is None:
             raise ModelError(
                 "encode needs a bound corpus; call Pipeline.attach(features, mask, adjacency) first"
