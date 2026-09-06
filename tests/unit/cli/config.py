@@ -14,7 +14,7 @@ from typing import Any
 
 import pytest
 
-from morel.cli import configure_logging, eval
+from morel.cli import setup_log, eval
 from morel.core.config import Config
 
 
@@ -55,10 +55,10 @@ class Checker:
         import logging
 
         path = write(tmp_path, log={"level": "ERROR", "structured": True})
-        configure_logging(["--config", str(path)])
+        setup_log(["--config", str(path)])
         assert logging.getLogger("morel").level == logging.ERROR
 
-        configure_logging([])
+        setup_log([])
         assert logging.getLogger("morel").level == logging.getLevelName(Config().log.level)
 
     def survives(self, tmp_path: Path) -> None:
@@ -67,7 +67,7 @@ class Checker:
 
         bad = tmp_path / "bad.yaml"
         bad.write_text("{not: valid: yaml", encoding="utf-8")
-        configure_logging(["--config", str(bad)])
+        setup_log(["--config", str(bad)])
         assert logging.getLogger("morel").level == logging.INFO
 
     def serve(self) -> None:
@@ -92,9 +92,9 @@ class Checker:
         monkeypatch.setitem(sys.modules, "uvicorn", Fake)
         path = write(tmp_path, serve={"host": "127.0.0.1", "port": 9111, "workers": 3})
 
-        from morel.cli import serve_api
+        from morel.cli import api
 
-        assert serve_api(["--config", str(path)]) == 0
+        assert api(["--config", str(path)]) == 0
         assert captured["host"] == "127.0.0.1"
         assert captured["port"] == 9111
         assert captured["workers"] == 3
@@ -110,8 +110,8 @@ class Checker:
         monkeypatch.setitem(sys.modules, "uvicorn", Fake)
         path = write(tmp_path, serve={"host": "127.0.0.1", "port": 9111})
 
-        from morel.cli import serve_api
+        from morel.cli import api
 
-        assert serve_api(["--config", str(path), "--port", "1234"]) == 0
+        assert api(["--config", str(path), "--port", "1234"]) == 0
         assert captured["host"] == "127.0.0.1", "unspecified flags still come from config"
         assert captured["port"] == 1234, "an explicit flag must win"

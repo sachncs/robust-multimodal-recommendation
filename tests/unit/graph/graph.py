@@ -20,12 +20,12 @@ class Checker:
 
     def loops(self) -> None:
         bi = Bipartite(sp.csr_matrix(np.array([[1, 1], [1, 1]], dtype=np.float32)))
-        item = Item.from_bipartite(bi)
+        item = Item.bip(bi)
         assert (item.matrix.diagonal() == 0).all()
 
     def symmetric(self) -> None:
         bi = Bipartite(sp.csr_matrix(np.array([[1, 1, 0], [1, 0, 1], [0, 1, 1]], dtype=np.float32)))
-        item = Item.from_bipartite(bi)
+        item = Item.bip(bi)
         assert (item.matrix - item.matrix.T).max() == 0
 
     def self(self) -> None:

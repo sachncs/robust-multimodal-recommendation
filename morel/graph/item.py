@@ -31,7 +31,7 @@ class Item:
         invariants.finite(self.matrix)
 
     @classmethod
-    def from_bipartite(cls, bipartite: Bipartite) -> Item:
+    def bip(cls, bipartite: Bipartite) -> Item:
         """Construct the item-item graph from a bipartite user-item graph."""
         cooc = bipartite.matrix.T @ bipartite.matrix
         cooc = cooc.sign()
