@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rebrand: `rmr` → `morel` (MOdality-REcommended Links).
 - Single-word naming convention applied throughout (no `_` prefixes, no suffixes).
 - Module structure reorganized around explicit domain boundaries (core → data → model → train → eval → app → cli).
-- Strict layering enforced via `import-linter`.
+- Strict layering enforced by `tests/unit/test_architecture.py` (stdlib `ast` import-graph check).
 - Strict mypy mode for `morel/`.
 
 ### Added

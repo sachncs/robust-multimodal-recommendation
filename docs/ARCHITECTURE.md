@@ -5,8 +5,16 @@ This document describes the package architecture and module layering.
 ## Layering
 
 The package follows a one-way dependency layout (documented in the
-dependency-graph diagram below). A former `import-linter` enforcement of these
-rules was removed; the diagram is now descriptive rather than machine-checked.
+dependency-graph diagram below). These rules are machine-checked on every test
+run by `tests/unit/test_architecture.py`, which parses the import graph with
+`ast` and asserts that each package imports only from strictly lower layers,
+that the package graph is acyclic, and that `core/` imports nothing else from
+the project. (An earlier `import-linter` configuration enforced the same rules
+before that dependency was dropped; the stdlib test replaces it and needs no
+extra tooling.)
+
+Adding a new subpackage requires listing it in the `LAYERS` table in that test
+— an unlisted package fails the suite, so the layering cannot drift silently.
 
 ```
 cli/        (argparse dispatch; thin shim to app/)
