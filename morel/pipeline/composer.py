@@ -99,7 +99,7 @@ class Pipeline(nn.Module):
         if dims is None:
             dims = {"visual": 16, "text": 8}
         self.dims = dims
-        self.pe_encoder = Laplace(k=config.encode.pe)
+        self.encoder = Laplace(k=config.encode.pe)
         with deterministic(config.seed):
             self.transformer = build_encode(
                 config.encode.kind,
@@ -236,7 +236,7 @@ class Pipeline(nn.Module):
             )
         with mode(self, training):
             device = features[next(iter(features))].device
-            pe_full = self.pe_encoder(adjacency).to(device)
+            pe_full = self.encoder(adjacency).to(device)
             # Pad PE up to configured pe_dim if the graph is too small to provide
             # the requested number of nontrivial eigenvectors.
             if pe_full.shape[-1] < self.config.encode.pe:
