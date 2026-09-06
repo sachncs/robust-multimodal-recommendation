@@ -9,9 +9,9 @@ from morel.serve.app import (
 )
 from morel.serve.auth import (
     Scope,
-    is_admin,
     assert_set,
     dependency,
+    is_admin,
     is_read,
     token,
 )
@@ -57,10 +57,10 @@ __all__ = [
     "Step",
     "Updater",
     "Write",
-    "is_admin",
     "assert_set",
     "create",
     "dependency",
+    "is_admin",
     "is_read",
     "reader",
     "serialize_completed",

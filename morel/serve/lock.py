@@ -36,7 +36,7 @@ class RWLock:
         self.active_writer = False
         self.waiting_writers = 0
 
-    def acquire_read(self, timeout: float | None = None) -> bool:
+    def read_acquire(self, timeout: float | None = None) -> bool:
         """Acquire a read lock, waiting for any active or pending writer.
 
         Args:
@@ -58,7 +58,7 @@ class RWLock:
             self.active_readers += 1
             return True
 
-    def release_read(self) -> None:
+    def read_release(self) -> None:
         """Release a previously acquired read lock.
 
         Raises
@@ -69,12 +69,12 @@ class RWLock:
         """
         with self.condition:
             if self.active_readers <= 0:
-                raise RuntimeError("release_read called without holding a read lock")
+                raise RuntimeError("read_release called without holding a read lock")
             self.active_readers -= 1
             if self.active_readers == 0:
                 self.condition.notify_all()
 
-    def acquire_write(self, timeout: float | None = None) -> bool:
+    def write_acquire(self, timeout: float | None = None) -> bool:
         """Acquire the exclusive write lock.
 
         Registers as a waiting writer first, which holds off new readers so
@@ -107,7 +107,7 @@ class RWLock:
                     # otherwise they wait for a writer that is no longer coming.
                     self.condition.notify_all()
 
-    def release_write(self) -> None:
+    def write_release(self) -> None:
         """Release a previously acquired write lock.
 
         Raises
@@ -116,7 +116,7 @@ class RWLock:
         """
         with self.condition:
             if not self.active_writer:
-                raise RuntimeError("release_write called without holding the write lock")
+                raise RuntimeError("write_release called without holding the write lock")
             self.active_writer = False
             self.condition.notify_all()
 
@@ -137,11 +137,11 @@ class Read:
 
     def __enter__(self) -> None:
         """Acquire the read lock."""
-        self.lock.acquire_read()
+        self.lock.read_acquire()
 
     def __exit__(self, *exc: object) -> None:
         """Release the read lock."""
-        self.lock.release_read()
+        self.lock.read_release()
 
 
 class Write:
@@ -152,31 +152,31 @@ class Write:
 
     def __enter__(self) -> None:
         """Acquire the write lock."""
-        self.lock.acquire_write()
+        self.lock.write_acquire()
 
     def __exit__(self, *exc: object) -> None:
         """Release the write lock."""
-        self.lock.release_write()
+        self.lock.write_release()
 
 
 @contextmanager
 def reader(lock: RWLock) -> Iterator[None]:
     """Context manager for a read lock."""
-    lock.acquire_read()
+    lock.read_acquire()
     try:
         yield None
     finally:
-        lock.release_read()
+        lock.read_release()
 
 
 @contextmanager
 def writer(lock: RWLock) -> Iterator[None]:
     """Context manager for a write lock."""
-    lock.acquire_write()
+    lock.write_acquire()
     try:
         yield None
     finally:
-        lock.release_write()
+        lock.write_release()
 
 
 __all__ = ["RWLock", "Read", "Write", "reader", "writer"]
