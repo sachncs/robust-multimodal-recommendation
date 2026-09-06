@@ -23,10 +23,10 @@ __all__ = [
     "bfs",
     "mage",
     "mage_batch",
-    "rel",
     "neighbor_array",
     "neighbor_iter",
     "path",
+    "rel",
     "relevance",
     "retrieve",
 ]

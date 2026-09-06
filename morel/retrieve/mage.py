@@ -85,9 +85,7 @@ def expand(
         subgraph_set = set(anchors_int)
     subgraph_set.add(int(query_item))
     neighbors = neighbor_array(adj)
-    best_score = rel(
-        query_item, np.array(sorted(subgraph_set), dtype=np.int64), features, mask
-    )
+    best_score = rel(query_item, np.array(sorted(subgraph_set), dtype=np.int64), features, mask)
 
     for _ in range(iters):
         changed = False
