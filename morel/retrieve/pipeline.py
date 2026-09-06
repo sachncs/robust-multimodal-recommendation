@@ -187,8 +187,7 @@ def retrieve(
     """
     if kind not in KIND:
         raise ConfigError(
-            f"unknown retrieval strategy {kind!r}; available: "
-            f"{', '.join(sorted(KIND)) or '(none)'}"
+            f"unknown retrieval strategy {kind!r}; available: {', '.join(sorted(KIND)) or '(none)'}"
         )
     strategy = KIND[kind]
     observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
