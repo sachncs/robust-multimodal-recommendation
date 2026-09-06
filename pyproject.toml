@@ -113,7 +113,6 @@ branch = true
 source = ["morel"]
 omit = [
     "morel/_version.py",
-    "morel/serve/*",
     "examples/*",
     "benchmarks/*",
 ]

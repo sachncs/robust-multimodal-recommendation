@@ -1,4 +1,4 @@
-.PHONY: help install dev test test-fast lint lint-fix format typecheck build clean bench serve reproduce fidelity docs lock
+.PHONY: help install dev test test-fast lint lint-fix format typecheck build clean bench serve reproduce fidelity docs lock lock-check
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -52,7 +52,16 @@ fidelity: ## Render the fidelity report
 docs: ## Build documentation
 	mkdocs build --strict
 
-lock: ## Generate requirements.lock from pyproject.toml
-	pip-compile pyproject.toml -o requirements.lock
+lock: ## Regenerate requirements.lock (hash-pinned, targets the CI platform)
+	uv pip compile pyproject.toml --extra serve \
+		--python-platform linux --python-version 3.11 \
+		--generate-hashes -o requirements.lock
+
+lock-check: ## Fail if requirements.lock is out of date with pyproject.toml
+	@uv pip compile pyproject.toml --extra serve \
+		--python-platform linux --python-version 3.11 \
+		--generate-hashes -o - 2>/dev/null | grep -v '^#' > /tmp/morel-lock-check.txt
+	@grep -v '^#' requirements.lock | diff -u - /tmp/morel-lock-check.txt \
+		&& echo "requirements.lock is up to date"
 
 check: lint test ## Run lint and tests
