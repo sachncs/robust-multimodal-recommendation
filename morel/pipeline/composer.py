@@ -15,16 +15,16 @@ import scipy.sparse as sp
 import torch
 import torch.nn as nn
 
-from morel.codebook import GumbelVQ
-from morel.complete import Decoders
+from morel.codebook import CODEBOOKS
+from morel.complete import COMPLETERS
 from morel.core.config import Config
 from morel.core.errors import GraphError, ModelError
 from morel.core.seed import deterministic
-from morel.encode import Transformer
+from morel.encode import ENCODERS
 from morel.graph import Laplace
-from morel.recommend import Light
+from morel.recommend import RECOMMENDERS
 from morel.retrieve import Result, retrieve_batch
-from morel.route import Top
+from morel.route import ROUTERS
 
 
 @dataclass
@@ -78,10 +78,20 @@ class Pipeline(nn.Module):
         regardless of what the calling process did to the global RNG
         beforehand. The caller's RNG state is restored on exit.
 
+        Each stage is selected by its ``kind`` in the configuration and built
+        through the corresponding registry, so an implementation registered
+        from outside this package is usable without touching this file.
+
         Args:
             config: Validated configuration supplying every stage's
-                hyperparameters and the initialization seed.
+                hyperparameters, implementation choice, and the
+                initialization seed.
             dims: Per-modality input widths; defaults to the demo dims.
+
+        Raises
+        ------
+            ConfigError: If any stage names an implementation that is not
+                registered. The message lists the available names.
         """
         super().__init__()
         self.config = config
@@ -90,7 +100,8 @@ class Pipeline(nn.Module):
         self.dims = dims
         self.pe_encoder = Laplace(k=config.encode.pe)
         with deterministic(config.seed):
-            self.transformer = Transformer(
+            self.transformer = ENCODERS.create(
+                config.encode.kind,
                 dims=dims,
                 pe_dim=config.encode.pe,
                 hidden=config.encode.hidden,
@@ -98,18 +109,21 @@ class Pipeline(nn.Module):
                 heads=config.encode.heads,
                 dropout=config.encode.dropout,
             )
-            self.router = Top(
+            self.router = ROUTERS.create(
+                config.route.kind,
                 dim=config.encode.hidden,
                 k=config.codebook.size,
                 p=min(config.route.p, config.codebook.size),
                 tau=config.route.tau,
             )
-            self.codebook = GumbelVQ(
+            self.codebook = CODEBOOKS.create(
+                config.codebook.kind,
                 dim=config.encode.hidden,
                 size=config.codebook.size,
                 router=self.router,
             )
-            self.decoders = Decoders(
+            self.decoders = COMPLETERS.create(
+                config.complete.kind,
                 latent_dim=config.encode.hidden,
                 dims=dims,
                 hidden=config.complete.hidden,
@@ -120,25 +134,37 @@ class Pipeline(nn.Module):
         self.retrieval_adj: sp.csr_matrix | None = None
 
     def attach_recommender(self, ui_graph: sp.csr_matrix) -> None:
-        """Attach a downstream LightGCN recommender sized for the graph.
+        """Attach the downstream ranker named by ``config.recommend.kind``.
 
-        The recommender is initialized under ``config.seed`` and its
-        normalized-adjacency cache is primed from ``ui_graph`` so the first
-        scoring call does not pay the build cost.
+        The ranker is initialized under ``config.seed``. Whatever
+        graph-derived state it needs is prepared here rather than on the first
+        scoring call: a propagation-based ranker gets its normalized adjacency
+        cached, and a popularity ranker gets fitted.
 
         Args:
             ui_graph: Bipartite ``(users, items)`` interaction matrix.
+
+        Raises
+        ------
+            ConfigError: If ``config.recommend.kind`` is not registered.
         """
         users = ui_graph.shape[0]
         items = ui_graph.shape[1]
-        self.recommender = Light(
+        recommender = RECOMMENDERS.create(
+            self.config.recommend.kind,
             users=users,
             items=items,
             embed=self.config.recommend.embed,
             layers=self.config.recommend.layers,
             seed=self.config.seed,
         )
-        self.recommender.normalized_adjacency(ui_graph)
+        prime = getattr(recommender, "normalized_adjacency", None)
+        if callable(prime):
+            prime(ui_graph)
+        fit = getattr(recommender, "fit", None)
+        if callable(fit):
+            fit(ui_graph)
+        self.recommender = recommender
 
     def attach_corpus(
         self,
