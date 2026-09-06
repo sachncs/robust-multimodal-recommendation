@@ -28,6 +28,8 @@ def random(draw: st.DrawFn) -> sp.csr_matrix:
 class Checker:
     """Aggregated test methods for this module."""
 
+    @given(random(), st.integers(min_value=0, max_value=10))
+    @settings(max_examples=10, deadline=None)
     def acs(self, graph: sp.csr_matrix, anchor: int) -> None:
         if graph.shape[0] == 0:
             return
@@ -35,6 +37,8 @@ class Checker:
         sub = compute(graph, [anchor], fallback="empty")
         assert anchor in sub
 
+    @given(st.integers(min_value=2, max_value=20))
+    @settings(max_examples=5, deadline=None)
     def bernoulli(self, items: int) -> None:
         mask = bernoulli(items, 3, 0.4, seed=0).to_numpy()
         assert (mask.sum(axis=1) >= 1).all()
@@ -73,6 +77,8 @@ class Checker:
         sharp_entropy = -(sharp * torch.log(sharp + 1e-12)).sum(-1).mean()
         assert sharp_entropy < soft_entropy
 
+    @given(random(), st.integers(min_value=0, max_value=10), st.integers(min_value=0, max_value=10))
+    @settings(max_examples=5, deadline=None)
     def bfs(self, graph: sp.csr_matrix, start: int, end: int) -> None:
         if graph.shape[0] == 0:
             return
