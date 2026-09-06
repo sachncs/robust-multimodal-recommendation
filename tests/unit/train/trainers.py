@@ -14,7 +14,7 @@ from morel.pipeline import Pipeline
 from morel.recommend import Light
 from morel.train.completion import Completion, CompletionConfig
 from morel.train.recommendation import Recommendation, RecommendationConfig
-from tests.shared import BPRDataset, build_completion_loader, build_path_graph
+from tests.shared import BPR, build_completion_loader, build_path_graph
 
 
 class Checker:
@@ -54,7 +54,7 @@ class Checker:
             shape=(users, items),
         )
         model = Light(users=users, items=items, embed=4, layers=2)
-        loader = DataLoader(BPRDataset(users, items, n_batches=16), batch_size=4)
+        loader = DataLoader(BPR(users, items, n_batches=16), batch_size=4)
         cfg = RecommendationConfig()
         trainer = Recommendation(
             model, cfg, ui_graph=ui, monitor=silent_monitor_factory(), checkpoint_dir=tmp_path
@@ -103,6 +103,6 @@ class Checker:
             device="cpu",
             amp=True,
         )
-        loader = DataLoader(BPRDataset(users, items, n_batches=4), batch_size=2)
+        loader = DataLoader(BPR(users, items, n_batches=4), batch_size=2)
         trainer.fit(loader, None, epochs=1, patience=2)
         assert trainer.scaler is not None

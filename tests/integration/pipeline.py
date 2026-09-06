@@ -12,7 +12,7 @@ from morel.core.config import Config
 from morel.core.errors import GraphError
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
-from tests.shared import CompletionDataset, build_path_graph, make_completion_collate
+from tests.shared import Corpus, build_path_graph, make_completion_collate
 
 
 class SilentMonitor:
@@ -43,7 +43,7 @@ class Checker:
         pipeline.attach(features_np, mask_np, adj)
 
         loader = DataLoader(
-            CompletionDataset(features_np, mask_np, adj),
+            Corpus(features_np, mask_np, adj),
             batch_size=8,
             collate_fn=make_completion_collate(list(features_np.keys())),
         )

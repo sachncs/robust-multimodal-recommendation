@@ -17,7 +17,7 @@ from morel.core.errors import DataError
 from morel.recommend.bpr import ranks_to_items
 
 
-class CompletionDataset(Dataset[dict[str, Any]]):
+class Corpus(Dataset[dict[str, Any]]):
     """In-memory completion-stage dataset.
 
     Each item returns ``{index, features, mask, adjacency}`` shaped for the
@@ -110,7 +110,7 @@ def build_completion_loaders(
 ) -> tuple[DataLoader[dict[str, Any]], DataLoader[dict[str, Any]] | None]:
     """Build the completion train loader and, if requested, a validation loader."""
     train, val = split_dataset(
-        CompletionDataset(features, mask, adjacency), val_fraction=val_fraction, seed=seed
+        Corpus(features, mask, adjacency), val_fraction=val_fraction, seed=seed
     )
     train_loader = DataLoader(train, batch_size=batch_size, collate_fn=collate)
     if val is None:
@@ -126,13 +126,13 @@ def build_completion_loader(
 ) -> DataLoader[dict[str, Any]]:
     """Default DataLoader for the completion stage."""
     return DataLoader(
-        CompletionDataset(features, mask, adjacency),
+        Corpus(features, mask, adjacency),
         batch_size=batch_size,
         collate_fn=collate,
     )
 
 
-class BPRDataset(Dataset[dict[str, Any]]):
+class BPR(Dataset[dict[str, Any]]):
     """BPR triples drawn from a real interaction matrix.
 
     Each item is a ``(user, positive, negative)`` triple where the positive is
@@ -210,7 +210,7 @@ def build_recommendation_loader(
     if length is None:
         length = max(int(ui_graph.nnz), 1)
     return DataLoader(
-        BPRDataset(ui_graph, length=length, seed=seed),
+        BPR(ui_graph, length=length, seed=seed),
         batch_size=batch_size,
     )
 
@@ -227,7 +227,7 @@ def build_recommendation_loaders(
     if length is None:
         length = max(int(ui_graph.nnz), 1)
     train, val = split_dataset(
-        BPRDataset(ui_graph, length=length, seed=seed), val_fraction=val_fraction, seed=seed
+        BPR(ui_graph, length=length, seed=seed), val_fraction=val_fraction, seed=seed
     )
     train_loader = DataLoader(train, batch_size=batch_size)
     if val is None:
@@ -249,8 +249,8 @@ def synth_bipartite(
 
 
 __all__ = [
-    "BPRDataset",
-    "CompletionDataset",
+    "BPR",
+    "Corpus",
     "build_completion_loader",
     "build_completion_loaders",
     "build_recommendation_loader",

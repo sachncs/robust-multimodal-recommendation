@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.app.data import (
-    BPRDataset,
+    BPR,
     build_recommendation_loader,
     build_recommendation_loaders,
     split_dataset,
@@ -38,7 +38,7 @@ class Checker:
     def triples(self) -> None:
         """The positive must be a real interaction and the negative must not be."""
         ui = interactions()
-        dataset = BPRDataset(ui, length=400, seed=0)
+        dataset = BPR(ui, length=400, seed=0)
         for i in range(len(dataset)):
             sample = dataset[i]
             pos = positives(ui, sample["users"])
@@ -47,30 +47,30 @@ class Checker:
 
     def sampling(self) -> None:
         ui = interactions()
-        first = BPRDataset(ui, length=50, seed=0)
-        second = BPRDataset(ui, length=50, seed=0)
+        first = BPR(ui, length=50, seed=0)
+        second = BPR(ui, length=50, seed=0)
         assert [first[i] for i in range(50)] == [second[i] for i in range(50)]
 
     def a(self) -> None:
         ui = interactions()
-        first = BPRDataset(ui, length=50, seed=0)
-        second = BPRDataset(ui, length=50, seed=1)
+        first = BPR(ui, length=50, seed=0)
+        second = BPR(ui, length=50, seed=1)
         assert [first[i] for i in range(50)] != [second[i] for i in range(50)]
 
     def users(self) -> None:
         arr = np.zeros((4, 5), dtype=np.float32)
         arr[1, 2] = arr[3, 0] = 1.0
-        dataset = BPRDataset(sp.csr_matrix(arr), length=40, seed=0)
+        dataset = BPR(sp.csr_matrix(arr), length=40, seed=0)
         assert dataset.users == [1, 3]
         assert {dataset[i]["users"] for i in range(40)} <= {1, 3}
 
     def graph(self) -> None:
         with pytest.raises(DataError, match="no user has any interaction"):
-            BPRDataset(sp.csr_matrix((3, 4), dtype=np.float32), length=5)
+            BPR(sp.csr_matrix((3, 4), dtype=np.float32), length=5)
 
     def user(self) -> None:
         with pytest.raises(DataError, match="no negative can be sampled"):
-            BPRDataset(sp.csr_matrix(np.ones((2, 3), dtype=np.float32)), length=5)
+            BPR(sp.csr_matrix(np.ones((2, 3), dtype=np.float32)), length=5)
 
     def loader(self) -> None:
         loader = build_recommendation_loader(interactions(), batch_size=32)
@@ -85,14 +85,14 @@ class Checker:
         assert len(loader.dataset) == ui.nnz
 
     def split(self) -> None:
-        dataset = BPRDataset(interactions(), length=100, seed=0)
+        dataset = BPR(interactions(), length=100, seed=0)
         train, val = split_dataset(dataset, val_fraction=0.2, seed=0)
         assert val is not None
         assert len(val) == 20
         assert len(train) == 80
 
     def disjoint(self) -> None:
-        dataset = BPRDataset(interactions(), length=100, seed=0)
+        dataset = BPR(interactions(), length=100, seed=0)
         train, val = split_dataset(dataset, val_fraction=0.25, seed=0)
         assert val is not None
         train_idx, val_idx = set(train.indices), set(val.indices)
@@ -100,24 +100,24 @@ class Checker:
         assert train_idx | val_idx == set(range(100))
 
     def reproducible(self) -> None:
-        dataset = BPRDataset(interactions(), length=100, seed=0)
+        dataset = BPR(interactions(), length=100, seed=0)
         first, _ = split_dataset(dataset, val_fraction=0.3, seed=5)
         second, _ = split_dataset(dataset, val_fraction=0.3, seed=5)
         assert first.indices == second.indices
 
     def zero(self) -> None:
-        dataset = BPRDataset(interactions(), length=100, seed=0)
+        dataset = BPR(interactions(), length=100, seed=0)
         train, val = split_dataset(dataset, val_fraction=0.0, seed=0)
         assert val is None
         assert train is dataset
 
     def fraction(self) -> None:
-        dataset = BPRDataset(interactions(), length=4, seed=0)
+        dataset = BPR(interactions(), length=4, seed=0)
         _, val = split_dataset(dataset, val_fraction=0.01, seed=0)
         assert val is None, "rather than build an empty validation loader"
 
     def invalid(self) -> None:
-        dataset = BPRDataset(interactions(), length=10, seed=0)
+        dataset = BPR(interactions(), length=10, seed=0)
         for bad in (-0.1, 1.0, 1.5):
             with pytest.raises(DataError, match=r"validation fraction must be in \[0, 1\)"):
                 split_dataset(dataset, val_fraction=bad, seed=0)

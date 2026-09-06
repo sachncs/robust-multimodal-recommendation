@@ -10,7 +10,7 @@ from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, CompletionConfig
-from tests.shared import CompletionDataset, build_path_graph, make_completion_collate
+from tests.shared import Corpus, build_path_graph, make_completion_collate
 
 
 class SilentMonitor:
@@ -61,7 +61,7 @@ class Checker:
         mask = np.ones((n, 2), dtype=np.float32)
         adj = build_path_graph(n)
 
-        dataset = CompletionDataset(features, mask, adj)
+        dataset = Corpus(features, mask, adj)
         loader = DataLoader(
             dataset,
             batch_size=4,

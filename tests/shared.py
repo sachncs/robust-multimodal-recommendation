@@ -1,6 +1,6 @@
 """Shared test fixtures used across unit, integration, and research tests.
 
-Re-exports the application-layer helpers (``CompletionDataset``,
+Re-exports the application-layer helpers (``Corpus``,
 ``build_completion_loader``, ``make_completion_collate``, ...) from
 ``morel.app.data`` so test code has a single canonical entry point.
 """
@@ -15,7 +15,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from morel.app.data import (
-    CompletionDataset,
+    Corpus,
     build_completion_loader,
     collate,
     to_tensor,
@@ -83,7 +83,7 @@ def build_path_graph(n: int) -> sp.csr_matrix:
     )
 
 
-class BPRDataset(Dataset):
+class BPR(Dataset):
     """In-memory BPR dataset yielding ``(users, positive, negative)``.
 
     The seed controls the deterministic generator; the index controls
@@ -120,14 +120,14 @@ class BPRDataset(Dataset):
 def build_bpr_loader(users: int, items: int, n: int, batch_size: int) -> DataLoader:
     """Build a default DataLoader for BPR tests."""
     return DataLoader(
-        BPRDataset(users=users, items=items, n_batches=n),
+        BPR(users=users, items=items, n_batches=n),
         batch_size=batch_size,
     )
 
 
 __all__ = [
-    "BPRDataset",
-    "CompletionDataset",
+    "BPR",
+    "Corpus",
     "SilentMonitor",
     "build_bpr_loader",
     "build_completion_loader",
