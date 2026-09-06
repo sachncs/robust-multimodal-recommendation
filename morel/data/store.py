@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +14,7 @@ from morel.core.errors import DataError
 from morel.data import manifest
 
 
-def atomic_write(target: Path, writer) -> Path:
+def atomic_write(target: Path, writer: Callable[[Path], None]) -> Path:
     """Write to a sibling tempfile, then atomically replace the target.
 
     The tempfile name is constructed so that ``np.savez`` and ``sp.save_npz``
@@ -54,7 +55,9 @@ def save_npz(
     if not arrays:
         raise DataError("save_npz requires at least one array")
     final = Path(target).resolve()
-    atomic_write(final, lambda tmp: np.savez(tmp, **arrays))
+    # A key literally named ``allow_pickle`` would bind to savez's own keyword;
+    # that raises rather than silently dropping data, so the narrowing is safe.
+    atomic_write(final, lambda tmp: np.savez(tmp, **arrays))  # type: ignore[arg-type]
     if manifest_obj is not None:
         manifest.save(final, manifest_obj)
     return final

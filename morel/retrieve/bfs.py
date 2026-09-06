@@ -64,8 +64,10 @@ def path(adj: sp.csr_matrix, start: int, end: int) -> list[int]:
         node = queue.popleft()
         if node == end:
             result = [node]
-            while previous[result[-1]] is not None:
-                result.append(previous[result[-1]])
+            parent = previous[node]
+            while parent is not None:
+                result.append(parent)
+                parent = previous[parent]
             return result[::-1]
         row_start = adj.indptr[node]
         row_end = adj.indptr[node + 1]

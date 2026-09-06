@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Any
 
 import torch
 import torch.nn as nn
@@ -12,6 +13,7 @@ from torch.utils.data import DataLoader
 
 from morel.core.device import device as resolve_device
 from morel.train.checkpoint import State, hash_config
+from morel.train.loss import Loss
 from morel.train.monitor import Monitor
 
 
@@ -22,7 +24,7 @@ class Trainer(ABC):
         self,
         model: nn.Module,
         optimizer: torch.optim.Optimizer,
-        loss: object,
+        loss: Loss | None,
         config: object,
         *,
         scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
@@ -54,16 +56,16 @@ class Trainer(ABC):
         )
 
     @abstractmethod
-    def step(self, batch: dict) -> dict:
+    def step(self, batch: dict[str, Any]) -> dict[str, Any]:
         """One optimisation step. Returns metrics dict."""
         ...
 
     @abstractmethod
-    def validate(self, loader: DataLoader) -> float:
+    def validate(self, loader: DataLoader[Any]) -> float:
         """Return the validation metric (lower = better)."""
         ...
 
-    def autocast(self) -> torch.amp.autocast | contextlib.nullcontext:
+    def autocast(self) -> torch.amp.autocast | contextlib.nullcontext[None]:
         """Return an autocast context for the current device, when AMP is on."""
         if self.amp:
             return torch.amp.autocast(device_type=self.device.type)
@@ -71,13 +73,13 @@ class Trainer(ABC):
 
     def fit(
         self,
-        train_loader: DataLoader,
-        val_loader: DataLoader | None = None,
+        train_loader: DataLoader[Any],
+        val_loader: DataLoader[Any] | None = None,
         *,
         epochs: int,
         patience: int = 10,
         resume: Path | str | None = None,
-    ) -> dict:
+    ) -> dict[str, Any]:
         """Run the full training loop with early stopping and checkpointing.
 
         Args:
@@ -121,7 +123,7 @@ class Trainer(ABC):
                 self.scheduler.step()
         return {"best": self.best_metric}
 
-    def run_epoch(self, loader: DataLoader, epoch: int) -> dict:
+    def run_epoch(self, loader: DataLoader[Any], epoch: int) -> dict[str, Any]:
         """Run one training epoch and return the average loss."""
         self.model.train()
         running = 0.0

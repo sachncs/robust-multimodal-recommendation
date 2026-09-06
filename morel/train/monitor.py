@@ -34,7 +34,8 @@ class Monitor:
             lines = handle.readlines()
         if not lines:
             return None
-        return json.loads(lines[-1])
+        record: dict[str, Any] = json.loads(lines[-1])
+        return record
 
 
 __all__ = ["Monitor"]

@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 import numpy as np
+import scipy.sparse as sp
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from morel.recommend.bpr import bpr as bpr_loss
@@ -25,16 +29,16 @@ class Recommendation(Trainer):
 
     def __init__(
         self,
-        model,
-        config,
+        model: nn.Module,
+        config: RecommendationConfig,
         *,
-        ui_graph,
+        ui_graph: sp.csr_matrix,
         negatives_count: int = 1,
         seed: int = 0,
         lr: float = 1e-3,
         weight_decay: float = 1e-5,
         monitor: Monitor | None = None,
-        checkpoint_dir=None,
+        checkpoint_dir: Path | str | None = None,
         device: str | torch.device | None = None,
         amp: bool = False,
     ) -> None:
@@ -57,7 +61,7 @@ class Recommendation(Trainer):
         self.seed = seed
         self.negatives_matrix: np.ndarray | None = None
 
-    def step(self, batch: dict) -> dict:
+    def step(self, batch: dict[str, Any]) -> dict[str, Any]:
         """One BPR step on a user batch."""
         users = batch["users"].to(self.device)
         pos = batch["positive"].to(self.device)
@@ -67,12 +71,12 @@ class Recommendation(Trainer):
         pos_scores = scores[torch.arange(users.shape[0], device=self.device), pos]
         neg_scores = scores[torch.arange(users.shape[0], device=self.device), neg]
         loss = bpr_loss(pos_scores, neg_scores)
-        loss.backward()
+        loss.backward()  # type: ignore[no-untyped-call]  # torch stubs leave this untyped
         self.clip(list(self.model.parameters()))
         self.optimizer.step()
         return {"loss": float(loss.item())}
 
-    def validate(self, loader: DataLoader) -> float:
+    def validate(self, loader: DataLoader[Any]) -> float:
         """Return the BPR loss on the validation loader."""
         self.model.eval()
         total = 0.0

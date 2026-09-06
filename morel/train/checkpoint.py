@@ -67,13 +67,13 @@ def unsafe_load(target: Path | str) -> dict[str, Any]:
 class State:
     """Trainer state snapshot for resume."""
 
-    model: dict
-    optimizer: dict | None
+    model: dict[str, Any]
+    optimizer: dict[str, Any] | None
     epoch: int
     metric: float
-    rng: dict | None
+    rng: dict[str, Any] | None
     config_hash: str
-    extras: dict = field(default_factory=dict)
+    extras: dict[str, Any] = field(default_factory=dict)
 
     def save(self, target: Path | str) -> None:
         """Atomically save the checkpoint."""
@@ -115,7 +115,8 @@ class State:
 def hash_config(config: object) -> str:
     """Stable SHA256 hash of a configuration object's public attributes."""
     if hasattr(config, "hash") and callable(config.hash):
-        return config.hash()
+        digest: str = config.hash()
+        return digest
     raw = json.dumps(config, sort_keys=True, default=str, ensure_ascii=False)
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 

@@ -11,6 +11,7 @@ import json
 from collections import Counter, deque
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -19,7 +20,7 @@ from morel.core.errors import DataError
 from morel.data.build import bipartite as build_bipartite
 
 
-def review_stream(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict]]:
+def review_stream(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict[str, Any]]]:
     """Yield chunks of JSON-decoded records from an Amazon review file.
 
     Args
@@ -37,7 +38,7 @@ def review_stream(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[li
     target = Path(path)
     if not target.exists():
         raise DataError(f"review file not found: {target}")
-    chunk: list[dict] = []
+    chunk: list[dict[str, Any]] = []
     with target.open(encoding="utf-8") as handle:
         for line in handle:
             try:

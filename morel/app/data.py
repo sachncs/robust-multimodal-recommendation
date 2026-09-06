@@ -6,13 +6,15 @@ neither layer has to redeclare them.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import scipy.sparse as sp
 import torch
 from torch.utils.data import DataLoader, Dataset
 
 
-class CompletionDataset(Dataset):
+class CompletionDataset(Dataset[dict[str, Any]]):
     """In-memory completion-stage dataset.
 
     Each item returns ``{index, features, mask, adjacency}`` shaped for the
@@ -32,9 +34,9 @@ class CompletionDataset(Dataset):
 
     def __len__(self) -> int:
         """Return the number of samples."""
-        return self.n
+        return int(self.n)
 
-    def __getitem__(self, idx: int) -> dict:
+    def __getitem__(self, idx: int) -> dict[str, Any]:
         """Return a single sample dict for the given index."""
         return {
             "index": idx,
@@ -49,7 +51,7 @@ def numpy_to_tensor(array: np.ndarray) -> torch.Tensor:
     return torch.from_numpy(array)
 
 
-def collate_completion(batch: list[dict]) -> dict:
+def collate_completion(batch: list[dict[str, Any]]) -> dict[str, Any]:
     """Collate a list of completion-stage samples into a torch dict."""
     features_keys = list(batch[0]["features"].keys())
     return {
@@ -67,7 +69,7 @@ def build_completion_loader(
     mask: np.ndarray,
     adjacency: sp.csr_matrix,
     batch_size: int = 8,
-) -> DataLoader:
+) -> DataLoader[dict[str, Any]]:
     """Default DataLoader for the completion stage."""
     return DataLoader(
         CompletionDataset(features, mask, adjacency),

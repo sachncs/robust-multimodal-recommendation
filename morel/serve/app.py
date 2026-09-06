@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, cast
+
 from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -17,6 +19,9 @@ from morel.serve.schema import (
     RecommendResponse,
     serialize_completed,
 )
+
+if TYPE_CHECKING:
+    from morel.pipeline import Pipeline
 
 
 class FeedbackRequest(BaseModel):
@@ -149,7 +154,7 @@ def build_default_pipeline() -> object:
     return Pipeline(Config(), dims={"visual": 4, "text": 2})
 
 
-def run_complete(pipeline: object, payload: CompleteRequest) -> dict:
+def run_complete(pipeline: object, payload: CompleteRequest) -> dict[str, Any]:
     """Run the completion forward pass."""
     import numpy as np
     import scipy.sparse as sp
@@ -160,7 +165,7 @@ def run_complete(pipeline: object, payload: CompleteRequest) -> dict:
     items = payload.items
     if not items:
         raise HTTPException(status_code=400, detail="items must be non-empty")
-    pipeline_obj = pipeline
+    pipeline_obj = cast("Pipeline", pipeline)
     dims = getattr(pipeline_obj, "dims", {"visual": 4, "text": 2})
     mask = bernoulli(len(items), len(dims), 0.4, seed=0).to_numpy()
     features = {
@@ -174,7 +179,8 @@ def run_complete(pipeline: object, payload: CompleteRequest) -> dict:
         return {
             name: tensor for name, tensor in output.completed.items() if name in payload.modalities
         }
-    return output.completed
+    completed: dict[str, Any] = output.completed
+    return completed
 
 
 def run_recommend(pipeline: object, payload: RecommendRequest) -> list[RecommendItem]:

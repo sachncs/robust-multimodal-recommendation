@@ -53,7 +53,8 @@ class MF(nn.Module):
         -------
             ``(B_u, B_i)`` scores.
         """
-        return self.user_emb(users) @ self.item_emb(items).t()
+        scores: torch.Tensor = self.user_emb(users) @ self.item_emb(items).t()
+        return scores
 
 
 class Pop(nn.Module):

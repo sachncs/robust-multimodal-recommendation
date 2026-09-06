@@ -21,7 +21,7 @@ def validate_anchor_features(features: dict[str, np.ndarray], mask: np.ndarray) 
         items_seen.add(arr.shape[0])
     if len(items_seen) != 1:
         raise ShapeError("feature arrays have inconsistent row counts")
-    items = next(iter(items_seen))
+    items: int = int(next(iter(items_seen)))
     if mask.shape[0] != items:
         raise ShapeError(f"mask rows {mask.shape[0]} != feature rows {items}")
     if mask.ndim != 2 or mask.shape[1] != len(features):
@@ -90,7 +90,8 @@ def query(
     query_vec = features[query_modality][query_item]
     candidate_features = features[query_modality][candidates]
     top_local = cosine_topk(query_vec, candidate_features, top)
-    return candidates[top_local]
+    selected: np.ndarray = candidates[top_local]
+    return selected
 
 
 def batch(

@@ -240,7 +240,11 @@ class Config:
         for f in fields(cls):
             if f.name in coerced:
                 f_type = resolve_dataclass_annotation(f.type)
-                if is_dataclass(f_type) and isinstance(coerced[f.name], dict):
+                if (
+                    isinstance(f_type, type)
+                    and is_dataclass(f_type)
+                    and isinstance(coerced[f.name], dict)
+                ):
                     result[f.name] = f_type(**coerced[f.name])
                 else:
                     result[f.name] = coerced[f.name]
@@ -291,18 +295,19 @@ def coerce_config(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
             continue
         value = payload[f.name]
         f_type = resolve_dataclass_annotation(f.type)
-        if is_dataclass(f_type) and isinstance(value, dict):
+        if isinstance(f_type, type) and is_dataclass(f_type) and isinstance(value, dict):
             out[f.name] = coerce_config(f_type, value)
         else:
             out[f.name] = value
     return out
 
 
-def resolve_dataclass_annotation(annotation: Any) -> type:
+def resolve_dataclass_annotation(annotation: Any) -> Any:
     """Return the dataclass type from a string annotation or class.
 
     Returns the annotation unchanged if it is not a string and not a dataclass
-    (e.g. ``int``, ``str``, ``tuple``).
+    (e.g. ``int``, ``str``, ``tuple``), so the return value is not necessarily
+    a ``type``.
     """
     import dataclasses
 

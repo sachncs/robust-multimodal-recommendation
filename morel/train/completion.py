@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from morel.codebook.codebook import balance, usage
-from morel.train.loss import Reconstruction
+from morel.train.loss import Loss, Reconstruction
 from morel.train.monitor import Monitor
 from morel.train.trainer import Trainer
 
@@ -27,22 +30,22 @@ class Completion(Trainer):
 
     def __init__(
         self,
-        model,
-        config,
+        model: nn.Module,
+        config: CompletionConfig,
         *,
         lr: float = 1e-3,
         weight_decay: float = 1e-5,
         monitor: Monitor | None = None,
-        checkpoint_dir=None,
+        checkpoint_dir: Path | str | None = None,
         device: str | torch.device | None = None,
         amp: bool = False,
     ) -> None:
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-        loss = Reconstruction()
+        reconstruction: Loss = Reconstruction()
         super().__init__(
             model=model,
             optimizer=optimizer,
-            loss=loss,
+            loss=reconstruction,
             config=config,
             monitor=monitor,
             checkpoint_dir=checkpoint_dir,
@@ -51,8 +54,9 @@ class Completion(Trainer):
             amp=amp,
         )
         self.completion_config = config
+        self.reconstruction = reconstruction
 
-    def step(self, batch: dict) -> dict:
+    def step(self, batch: dict[str, Any]) -> dict[str, Any]:
         """One optimisation step."""
         features = {k: v.to(self.device) for k, v in batch["features"].items()}
         mask = batch["mask"].to(self.device)
@@ -64,7 +68,7 @@ class Completion(Trainer):
             output = self.model(features, mask, batch["adjacency"], index=index, training=True)
             predictions = output.completed
             probs = output.routing
-            recon = self.loss.forward(predictions, features, mask)
+            recon = self.reconstruction.forward(predictions, features, mask)
             usage_term = usage(probs)
             balance_term = balance(probs)
             total = (
@@ -73,18 +77,18 @@ class Completion(Trainer):
                 + self.completion_config.lambda_balance * balance_term
             )
         if self.scaler is not None:
-            self.scaler.scale(total).backward()
+            self.scaler.scale(total).backward()  # type: ignore[no-untyped-call]  # torch stubs leave this untyped
             self.scaler.unscale_(self.optimizer)
             self.clip(list(self.model.parameters()))
             self.scaler.step(self.optimizer)
             self.scaler.update()
         else:
-            total.backward()
+            total.backward()  # type: ignore[no-untyped-call]  # torch stubs leave this untyped
             self.clip(list(self.model.parameters()))
             self.optimizer.step()
         return {"loss": float(total.item()), "recon": float(recon.item())}
 
-    def validate(self, loader: DataLoader) -> float:
+    def validate(self, loader: DataLoader[Any]) -> float:
         """Return the mean reconstruction loss on the validation set."""
         self.model.eval()
         total = 0.0
@@ -97,7 +101,7 @@ class Completion(Trainer):
                 if index is not None:
                     index = index.to(self.device)
                 output = self.model(features, mask, batch["adjacency"], index=index, training=False)
-                recon = self.loss.forward(output.completed, features, mask)
+                recon = self.reconstruction.forward(output.completed, features, mask)
                 total += float(recon.item())
                 count += 1
         return total / max(count, 1)

@@ -7,7 +7,7 @@ import torch.nn as nn
 
 from morel.encode.input import Input
 from morel.encode.layer import Layer
-from morel.encode.pool import Attention
+from morel.encode.pool import Attention, Mean, Token
 
 
 class Transformer(nn.Module):
@@ -34,15 +34,12 @@ class Transformer(nn.Module):
             raise ValueError(f"heads must be positive, got {heads}")
         self.input = Input(dims, pe_dim, hidden, dropout)
         self.layers = nn.ModuleList([Layer(hidden, heads, dropout) for _ in range(layers)])
+        self.pool: nn.Module
         if pool == "attention":
             self.pool = Attention(hidden)
         elif pool == "mean":
-            from morel.encode.pool import Mean
-
             self.pool = Mean()
         elif pool == "token":
-            from morel.encode.pool import Token
-
             self.pool = Token()
         else:
             raise ValueError(f"unknown pool: {pool!r}")
@@ -86,7 +83,8 @@ class Transformer(nn.Module):
             attention_mask = attention_mask.unsqueeze(0).expand(hidden.shape[0], -1)
         for layer in self.layers:
             hidden = layer(hidden, attention_mask)
-        return self.pool(hidden, attention_mask)
+        pooled: torch.Tensor = self.pool(hidden, attention_mask)
+        return pooled
 
 
 __all__ = ["Transformer"]

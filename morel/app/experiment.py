@@ -7,6 +7,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -29,7 +30,7 @@ from morel.train.completion import Completion, CompletionConfig
 log = get_logger("app.experiment")
 
 
-def synthetic_dataset(items: int, dim_visual: int, dim_text: int, users: int) -> dict:
+def synthetic_dataset(items: int, dim_visual: int, dim_text: int, users: int) -> dict[str, Any]:
     """Build a small reproducible synthetic dataset."""
     rng = np.random.default_rng(0)
     user_ids, item_ids = synth_bipartite(rng, items=items, users=users)
@@ -62,7 +63,7 @@ class Experiment:
     epochs: int = 1
     seed: int | None = None
 
-    def run(self) -> dict:
+    def run(self) -> dict[str, Any]:
         """Run a full experiment and write artifacts under ``run_dir``.
 
         Returns
@@ -170,7 +171,7 @@ class Benchmark:
     sizes: list[int] = field(default_factory=lambda: [16, 32])
     epochs: int = 1
 
-    def run(self) -> dict:
+    def run(self) -> dict[str, Any]:
         """Run benchmarks at the requested sizes."""
         self.run_dir.mkdir(parents=True, exist_ok=True)
         results: dict[str, list[float]] = {}
@@ -202,7 +203,7 @@ class Reproduce:
     users: int = 20
     epochs: int = 1
 
-    def run(self) -> dict:
+    def run(self) -> dict[str, Any]:
         """Re-run a saved experiment deterministically."""
         config = Config.from_yaml(self.config_path)
         seed_everything(config.seed)

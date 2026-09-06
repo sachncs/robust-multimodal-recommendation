@@ -18,7 +18,7 @@ import math
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 import torch.nn as nn
 
@@ -114,7 +114,7 @@ class PipelineUpdater:
         self.lock = RWLock()
         self.feedback_ring: deque[FeedbackEvent] = deque(maxlen=feedback_capacity)
         self.replay_ring: deque[FeedbackEvent] = deque(maxlen=replay_capacity)
-        self.rollback_ring: deque[dict] = deque(maxlen=rollback_window)
+        self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
         self.cooldown_until: float = 0.0
         self.replay_ratio = float(replay_ratio)
         self.val_ratio = float(val_ratio)
@@ -132,7 +132,7 @@ class PipelineUpdater:
             self.feedback_ring.append(event)
             self.replay_ring.append(event)
 
-    def stats(self) -> dict:
+    def stats(self) -> dict[str, Any]:
         """Return a snapshot of the updater state."""
         with self.lock.read():
             return {
@@ -164,7 +164,7 @@ class PipelineUpdater:
         self.pipeline.load_state_dict(snapshot)
         return self.version
 
-    def snapshot_state(self) -> dict:
+    def snapshot_state(self) -> dict[str, Any]:
         """Snapshot the pipeline state dict for rollback."""
         return copy.deepcopy(self.pipeline.state_dict())
 

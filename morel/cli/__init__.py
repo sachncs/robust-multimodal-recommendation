@@ -9,9 +9,13 @@ from __future__ import annotations
 import argparse
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from morel.core.log import configure as configure_log
 from morel.core.log import get as get_logger
+
+if TYPE_CHECKING:
+    from morel.core.config import Config
 
 log = get_logger("cli")
 
@@ -233,7 +237,7 @@ def resolve_config_path(argv: list[str]) -> Path | None:
     return None
 
 
-def load_config_or_default(path: Path | None):
+def load_config_or_default(path: Path | None) -> Config:
     """Load a ``Config`` from *path*, or return the default config."""
     from morel.core.config import Config
 

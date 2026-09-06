@@ -53,11 +53,13 @@ class Mask:
 
     def kept(self, item: int) -> np.ndarray:
         """Return which modalities are kept for a given item."""
-        return self.data[item] > 0
+        kept: np.ndarray = self.data[item] > 0
+        return kept
 
     def missing(self, item: int) -> np.ndarray:
         """Return which modalities are missing for a given item."""
-        return self.data[item] == 0
+        absent: np.ndarray = self.data[item] == 0
+        return absent
 
     def to_numpy(self) -> np.ndarray:
         """Return the underlying array."""

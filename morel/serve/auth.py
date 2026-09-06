@@ -13,6 +13,7 @@ The serve stack now distinguishes:
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from typing import Literal
 
 from fastapi import HTTPException, Request
@@ -71,7 +72,7 @@ def require(request: Request, scope: Scope = "read") -> None:
         raise HTTPException(status_code=401, detail=f"invalid bearer token for {scope}")
 
 
-def dependency(scope: Scope):
+def dependency(scope: Scope) -> Callable[[Request], None]:
     """Return a FastAPI-compatible dependency callable for the given scope.
 
     The returned callable preserves the ``(request: Request) -> None``

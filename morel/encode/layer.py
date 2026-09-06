@@ -52,7 +52,8 @@ class Layer(nn.Module):
         hidden = hidden + attn_out
         normed = self.norm2(hidden)
         ffn_out = self.ffn(normed)
-        return hidden + ffn_out
+        out: torch.Tensor = hidden + ffn_out
+        return out
 
 
 __all__ = ["Layer"]

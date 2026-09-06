@@ -162,7 +162,7 @@ class Light(nn.Module):
         # emitting the "Sparse invariant checks are implicitly disabled"
         # warning. We construct well-formed tensors, so the cost is
         # negligible.
-        with torch.sparse.check_sparse_tensor_invariants():
+        with torch.sparse.check_sparse_tensor_invariants():  # type: ignore[no-untyped-call]  # torch stubs leave this untyped
             tensor = torch.sparse_coo_tensor(indices, values, shape).coalesce()
         target_device = self.user_emb.weight.device
         if tensor.device != target_device:

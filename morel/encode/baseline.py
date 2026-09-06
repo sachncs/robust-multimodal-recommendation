@@ -43,7 +43,8 @@ class Identity(nn.Module):
             features[name] * mask[..., idx : idx + 1] for idx, name in enumerate(features.keys())
         ]
         parts.append(pe)
-        return self.project(torch.cat(parts, dim=-1))
+        projected: torch.Tensor = self.project(torch.cat(parts, dim=-1))
+        return projected
 
 
 class Sum(nn.Module):
@@ -92,7 +93,8 @@ class GraphEncoderBaseline(nn.Module):
         pe: torch.Tensor,
     ) -> torch.Tensor:
         """Delegate to the configured inner encoder."""
-        return self.inner(features, mask, pe)
+        encoded: torch.Tensor = self.inner(features, mask, pe)
+        return encoded
 
 
 __all__ = ["GraphEncoder", "GraphEncoderBaseline", "Identity", "Sum"]

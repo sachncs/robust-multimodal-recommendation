@@ -43,7 +43,8 @@ class Bipartite:
 
     def to_dense(self) -> np.ndarray:
         """Return a dense copy as a numpy array."""
-        return self.matrix.toarray()
+        dense: np.ndarray = self.matrix.toarray()
+        return dense
 
     def __getstate__(self) -> dict[str, Any]:
         """Pickle support: return CSR arrays."""

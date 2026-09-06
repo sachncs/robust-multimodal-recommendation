@@ -23,10 +23,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="morel.data", description="morel data lifecycle")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
-    download = sub.add_parser("download", help="download Amazon 5-core dataset")
-    download.add_argument("--category", required=True)
-    download.add_argument("--dest", default="data/raw")
-    download.add_argument(
+    download_cmd = sub.add_parser("download", help="download Amazon 5-core dataset")
+    download_cmd.add_argument("--category", required=True)
+    download_cmd.add_argument("--dest", default="data/raw")
+    download_cmd.add_argument(
         "--legacy",
         action="store_true",
         help="use the legacy McAuley UCSD URL via download_legacy",
@@ -109,9 +109,11 @@ def run_extract(args: argparse.Namespace) -> None:
         "text": random_features(items, dim_text, seed=config.seed + 1),
     }
     validate_features(feats, items=items)
+    # ``**feats`` is modality-keyed; a key colliding with save_npz's own
+    # keyword-only parameter raises rather than silently misbinding.
     save_npz(
         out_dir / "features.npz",
-        **feats,
+        **feats,  # type: ignore[arg-type]
     )
     Manifest(
         dataset="synthetic" if args.synthetic else args.data_dir,
