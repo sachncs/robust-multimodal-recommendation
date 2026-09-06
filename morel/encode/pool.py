@@ -6,7 +6,7 @@ import math
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 
 
 class Attention(nn.Module):
@@ -70,6 +70,7 @@ class Token(nn.Module):
     """Select the first token (CLS-like) of every sequence."""
 
     def forward(self, hidden: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
+        """Select the first token of every sequence."""
         return hidden[:, 0, :]
 
 
@@ -77,7 +78,8 @@ class CLS(nn.Module):
     """Alias for Token pooling."""
 
     def forward(self, hidden: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
+        """Select the first token of every sequence."""
         return hidden[:, 0, :]
 
 
-__all__ = ["Attention", "Mean", "Token", "CLS"]
+__all__ = ["CLS", "Attention", "Mean", "Token"]

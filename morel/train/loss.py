@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 
 
 class Loss(Protocol):
@@ -39,6 +39,7 @@ class Reconstruction(Loss):
         mask: torch.Tensor,
         aux: dict[str, torch.Tensor] | None = None,
     ) -> torch.Tensor:
+        """Return the masked MSE reconstruction loss summed over modalities."""
         del aux
         if not predictions:
             return torch.tensor(0.0)
@@ -68,6 +69,7 @@ class BPR(Loss):
         mask: torch.Tensor,
         aux: dict[str, torch.Tensor] | None = None,
     ) -> torch.Tensor:
+        """Return the mean BPR ranking loss."""
         del predictions, targets, mask
         return -torch.log(torch.sigmoid(self.pos - self.neg) + self.eps).mean()
 
@@ -86,6 +88,7 @@ class Composite(Loss):
         mask: torch.Tensor,
         aux: dict[str, torch.Tensor] | None = None,
     ) -> torch.Tensor:
+        """Return the weighted sum of component losses."""
         total = predictions[next(iter(predictions))].new_zeros(())
         for name, loss in self.components.items():
             weight = self.weights.get(name, 1.0)
@@ -98,4 +101,4 @@ def ce(logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return F.cross_entropy(logits, target)
 
 
-__all__ = ["Loss", "Reconstruction", "BPR", "Composite", "ce"]
+__all__ = ["BPR", "Composite", "Loss", "Reconstruction", "ce"]

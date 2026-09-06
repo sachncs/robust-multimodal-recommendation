@@ -31,6 +31,7 @@ class Mask:
     data: np.ndarray
 
     def __post_init__(self) -> None:
+        """Validate the mask data on construction."""
         if self.data.ndim != 2:
             raise DataError(f"mask must be 2-D, got {self.data.ndim}-D")
         if self.data.shape[0] == 0:
@@ -140,4 +141,4 @@ def stack(masks: list[Mask]) -> np.ndarray:
     return np.stack(arrays, axis=0)
 
 
-__all__ = ["Spec", "Mask", "bernoulli", "block", "structured", "stack"]
+__all__ = ["Mask", "Spec", "bernoulli", "block", "stack", "structured"]

@@ -91,6 +91,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def run_extract(args: argparse.Namespace) -> None:
+    """Run the ``extract`` subcommand."""
     from morel.core.config import Config as _Config
     from morel.data.extract import random as random_features
     from morel.data.manifest import Manifest
@@ -139,6 +140,7 @@ def run_extract(args: argparse.Namespace) -> None:
 
 
 def run_build(args: argparse.Namespace) -> None:
+    """Run the ``build`` subcommand."""
     from morel.core.config import Config as _Config
     from morel.data.build import bipartite as build_bipartite
     from morel.data.build import item_cooccurrence

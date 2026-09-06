@@ -16,6 +16,7 @@ class Bipartite:
     matrix: sp.csr_matrix
 
     def __post_init__(self) -> None:
+        """Validate that the matrix is 2-D and sparse."""
         if self.matrix.ndim != 2:
             raise ValueError("bipartite matrix must be 2-D")
         if not sp.issparse(self.matrix):

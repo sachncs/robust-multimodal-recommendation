@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 
 
 class Codebook(nn.Module):
@@ -21,6 +21,7 @@ class Codebook(nn.Module):
     def forward(  # pragma: no cover - abstract
         self, hidden: torch.Tensor, *, training: bool = True
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Quantize hidden representations; implemented by subclasses."""
         raise NotImplementedError
 
 
@@ -115,6 +116,7 @@ class IdentityCodebook(Codebook):
     def forward(
         self, hidden: torch.Tensor, *, training: bool = True
     ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Return the input unchanged with a uniform routing distribution."""
         del training
         batch_shape = hidden.shape[:-1]
         probs = torch.full(
@@ -144,4 +146,4 @@ def balance(probs: torch.Tensor) -> torch.Tensor:
     return probs.shape[1] * (bar_p**2).sum()
 
 
-__all__ = ["Codebook", "VQ", "GumbelVQ", "IdentityCodebook", "usage", "balance"]
+__all__ = ["VQ", "Codebook", "GumbelVQ", "IdentityCodebook", "balance", "usage"]

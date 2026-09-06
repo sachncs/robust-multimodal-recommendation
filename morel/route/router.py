@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 
 
 @dataclass(frozen=True)
@@ -18,6 +18,7 @@ class Weights:
 
     @property
     def shape(self) -> torch.Size:
+        """Shape of the routing distribution."""
         return self.probs.shape
 
 
@@ -30,6 +31,7 @@ class Router(nn.Module):
     def forward(
         self, hidden: torch.Tensor, *, training: bool = True
     ) -> Weights:  # pragma: no cover - abstract
+        """Route hidden states to a routing distribution."""
         raise NotImplementedError
 
 
@@ -47,6 +49,7 @@ class Dense(Router):
         self.linear = nn.Linear(dim, k)
 
     def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:
+        """Route ``hidden`` through the dense softmax layer."""
         logits = self.linear(hidden) / self.tau
         probs = F.softmax(logits, dim=-1)
         return Weights(probs=probs, logits=logits)
@@ -74,13 +77,14 @@ class Top(Router):
         self.eps = 1e-10
 
     def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:
+        """Route through softmax and sparsify to the top-p entries."""
         logits = self.linear(hidden) / self.tau
         if training:
             gumbel = -torch.log(-torch.log(torch.rand_like(logits) + self.eps) + self.eps)
             logits = logits + gumbel
         probs = F.softmax(logits, dim=-1)
         if self.p < self.k:
-            top_vals, top_idx = torch.topk(probs, self.p, dim=-1)
+            _, top_idx = torch.topk(probs, self.p, dim=-1)
             mask = torch.zeros_like(probs)
             mask.scatter_(1, top_idx, 1.0)
             masked = probs * mask
@@ -97,6 +101,7 @@ class Fixed(Router):
         self.k = k
 
     def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:
+        """Require an explicit fixed index input."""
         raise NotImplementedError("Fixed router requires explicit index input")
 
 
@@ -113,6 +118,7 @@ class Gumbel(Router):
         self.eps = 1e-10
 
     def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:
+        """Route through a Gumbel-Softmax over K entries."""
         logits = self.linear(hidden) / self.tau
         if training:
             gumbel = -torch.log(-torch.log(torch.rand_like(logits) + self.eps) + self.eps)
@@ -134,4 +140,4 @@ def build(kind: str, dim: int, k: int, *, p: int, tau: float) -> Router:
     raise ValueError(f"unknown router kind: {kind!r}")
 
 
-__all__ = ["Weights", "Router", "Dense", "Top", "Gumbel", "Fixed", "build"]
+__all__ = ["Dense", "Fixed", "Gumbel", "Router", "Top", "Weights", "build"]

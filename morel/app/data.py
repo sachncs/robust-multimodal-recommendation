@@ -31,9 +31,11 @@ class CompletionDataset(Dataset):
         self.n = mask.shape[0]
 
     def __len__(self) -> int:
+        """Return the number of samples."""
         return self.n
 
     def __getitem__(self, idx: int) -> dict:
+        """Return a single sample dict for the given index."""
         return {
             "index": idx,
             "features": {k: v[idx] for k, v in self.features.items()},
@@ -81,11 +83,10 @@ def synth_bipartite(
 
     Used by the experiment's synthetic dataset builder.
     """
-    pairs = (
+    return (
         rng.integers(0, users, size=items * 5),
         rng.integers(0, items, size=items * 5),
     )
-    return pairs
 
 
 __all__ = [

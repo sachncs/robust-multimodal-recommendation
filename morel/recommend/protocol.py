@@ -27,6 +27,7 @@ class Recommender(Protocol):
         items: torch.Tensor,
         ui_graph: sp.csr_matrix | None = None,
     ) -> torch.Tensor:  # pragma: no cover - protocol
+        """Score the (users, items) batch into a ``(B_u, B_i)`` matrix."""
         ...
 
 

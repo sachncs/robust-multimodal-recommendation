@@ -9,8 +9,8 @@ serialised.
 from __future__ import annotations
 
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
 
 
 class RWLock:
@@ -40,12 +40,14 @@ class RWLock:
             return True
 
     def release_read(self) -> None:
+        """Release a previously acquired read lock."""
         with self.condition:
             self.active_readers -= 1
             if self.active_readers == 0:
                 self.condition.notify_all()
 
     def acquire_write(self, timeout: float | None = None) -> bool:
+        """Block until a write lock is acquired, or return False on timeout."""
         with self.condition:
             if timeout is None:
                 while self.active_writer or self.active_readers > 0:
@@ -62,15 +64,16 @@ class RWLock:
             return True
 
     def release_write(self) -> None:
+        """Release a previously acquired write lock."""
         with self.condition:
             self.active_writer = False
             self.condition.notify_all()
 
-    def read(self) -> "ReadGuard":
+    def read(self) -> ReadGuard:
         """Return a context manager that acquires/releases a read lock."""
         return ReadGuard(self)
 
-    def write(self) -> "WriteGuard":
+    def write(self) -> WriteGuard:
         """Return a context manager that acquires/releases a write lock."""
         return WriteGuard(self)
 
@@ -82,9 +85,11 @@ class ReadGuard:
         self.lock = lock
 
     def __enter__(self) -> None:
+        """Acquire the read lock."""
         self.lock.acquire_read()
 
     def __exit__(self, *exc: object) -> None:
+        """Release the read lock."""
         self.lock.release_read()
 
 
@@ -95,9 +100,11 @@ class WriteGuard:
         self.lock = lock
 
     def __enter__(self) -> None:
+        """Acquire the write lock."""
         self.lock.acquire_write()
 
     def __exit__(self, *exc: object) -> None:
+        """Release the write lock."""
         self.lock.release_write()
 
 

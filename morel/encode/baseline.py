@@ -38,6 +38,7 @@ class Identity(nn.Module):
         mask: torch.Tensor,
         pe: torch.Tensor,
     ) -> torch.Tensor:
+        """Concatenate masked features and PE, then project to hidden."""
         parts = [
             features[name] * mask[..., idx : idx + 1] for idx, name in enumerate(features.keys())
         ]
@@ -60,6 +61,7 @@ class Sum(nn.Module):
         mask: torch.Tensor,
         pe: torch.Tensor,
     ) -> torch.Tensor:
+        """Concatenate masked features and PE without projection."""
         parts = [features[name] * mask[..., idx : idx + 1] for idx, name in enumerate(self.dims)]
         parts.append(pe)
         return torch.cat(parts, dim=-1)
@@ -89,7 +91,8 @@ class GraphEncoderBaseline(nn.Module):
         mask: torch.Tensor,
         pe: torch.Tensor,
     ) -> torch.Tensor:
+        """Delegate to the configured inner encoder."""
         return self.inner(features, mask, pe)
 
 
-__all__ = ["GraphEncoder", "Identity", "Sum", "GraphEncoderBaseline"]
+__all__ = ["GraphEncoder", "GraphEncoderBaseline", "Identity", "Sum"]

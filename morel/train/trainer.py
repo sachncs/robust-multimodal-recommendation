@@ -122,6 +122,7 @@ class Trainer(ABC):
         return {"best": self.best_metric}
 
     def run_epoch(self, loader: DataLoader, epoch: int) -> dict:
+        """Run one training epoch and return the average loss."""
         self.model.train()
         running = 0.0
         count = 0
@@ -132,6 +133,7 @@ class Trainer(ABC):
         return {"loss": running / max(count, 1)}
 
     def save_checkpoint(self, epoch: int, metric: float) -> None:
+        """Persist the current model state to the best checkpoint."""
         if self.checkpoint_dir is None:
             return
         state = State(

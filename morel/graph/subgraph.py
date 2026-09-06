@@ -7,8 +7,8 @@ exposes neighbor queries and connectivity checks.
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Iterator
 
 import numpy as np
 
@@ -22,11 +22,11 @@ class Subgraph:
     nodes: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int64))
 
     def __post_init__(self) -> None:
+        """Validate that nodes are a 1-D array of non-negative indices."""
         if self.nodes.ndim != 1:
             raise GraphError("subgraph nodes must be 1-D")
-        if self.nodes.size > 0:
-            if self.nodes.min() < 0:
-                raise GraphError("subgraph nodes must be non-negative")
+        if self.nodes.size > 0 and self.nodes.min() < 0:
+            raise GraphError("subgraph nodes must be non-negative")
 
     @property
     def size(self) -> int:
@@ -34,12 +34,15 @@ class Subgraph:
         return int(self.nodes.size)
 
     def __len__(self) -> int:
+        """Return the number of nodes in the subgraph."""
         return self.size
 
     def __iter__(self) -> Iterator[int]:
+        """Iterate over the node indices."""
         return iter(self.nodes.tolist())
 
     def __contains__(self, node: int) -> bool:
+        """Return whether ``node`` is in the subgraph."""
         return int(node) in self.nodes
 
     def to_set(self) -> set[int]:
@@ -47,7 +50,7 @@ class Subgraph:
         return set(self.nodes.tolist())
 
     @classmethod
-    def from_indices(cls, indices: list[int] | np.ndarray) -> "Subgraph":
+    def from_indices(cls, indices: list[int] | np.ndarray) -> Subgraph:
         """Construct from a list of indices, deduplicating and sorting."""
         return cls(nodes=np.unique(np.asarray(indices, dtype=np.int64)))
 

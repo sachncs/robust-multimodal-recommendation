@@ -21,6 +21,7 @@ class JsonFormatter(logging.Formatter):
     """Format log records as one JSON object per line."""
 
     def format(self, record: logging.LogRecord) -> str:
+        """Format *record* as a single-line JSON string."""
         payload: dict[str, Any] = {
             "time": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
@@ -135,4 +136,4 @@ def log(directory: Path | str, **metrics: Any) -> None:
         handle.write("\n")
 
 
-__all__ = ["Config", "configure", "get", "log", "JsonFormatter"]
+__all__ = ["Config", "JsonFormatter", "configure", "get", "log"]

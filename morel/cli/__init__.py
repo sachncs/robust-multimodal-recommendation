@@ -17,6 +17,7 @@ log = get_logger("cli")
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the top-level CLI argument parser."""
     parser = argparse.ArgumentParser(
         prog="morel", description="morel: graph retrieval-enhanced multimodal recommendation"
     )
@@ -70,12 +71,14 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def run_data(argv: list[str]) -> int:
+    """Handle the ``data`` subcommand."""
     from morel.data.__main__ import main as data_main
 
     return int(data_main(argv) or 0)
 
 
 def run_train(argv: list[str]) -> int:
+    """Handle the ``train`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel train", description="training")
     sub = parser.add_subparsers(dest="sub", required=True)
     sub.add_parser("completion", help="train the completion stage", add_help=False)
@@ -106,6 +109,7 @@ def run_train(argv: list[str]) -> int:
 
 
 def run_eval(argv: list[str]) -> int:
+    """Handle the ``eval`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel eval", description="evaluation")
     sub = parser.add_subparsers(dest="sub", required=True)
     sub.add_parser("rank", help="rank evaluation", add_help=False)
@@ -144,6 +148,7 @@ def run_eval(argv: list[str]) -> int:
 
 
 def run_bench(argv: list[str]) -> int:
+    """Handle the ``bench`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel bench", description="benchmark")
     parser.add_argument("--sizes", default="16,32")
     parser.add_argument("--epochs", type=int, default=1)
@@ -164,6 +169,7 @@ def run_bench(argv: list[str]) -> int:
 
 
 def run_reproduce(argv: list[str]) -> int:
+    """Handle the ``reproduce`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel reproduce", description="reproduce")
     parser.add_argument("config", help="path to config.yaml")
     parser.add_argument("--items", type=int, default=50)
@@ -183,6 +189,7 @@ def run_reproduce(argv: list[str]) -> int:
 
 
 def run_render_fidelity(argv: list[str]) -> int:
+    """Handle the ``render-fidelity`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel render-fidelity", description="render fidelity")
     parser.add_argument("markdown", help="output markdown path")
     parser.add_argument("json", nargs="?", default=None, help="optional output json path")
@@ -196,10 +203,12 @@ def run_render_fidelity(argv: list[str]) -> int:
 
 
 def run_serve(argv: list[str]) -> int:
+    """Handle the ``serve`` subcommand."""
     return serve_inference(argv)
 
 
 def serve_inference(argv: list[str]) -> int:
+    """Launch the uvicorn inference server."""
     parser = argparse.ArgumentParser(prog="morel serve", description="inference server")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8080)
@@ -217,6 +226,7 @@ def serve_inference(argv: list[str]) -> int:
 
 
 def resolve_config_path(argv: list[str]) -> Path | None:
+    """Return the ``--config`` path from *argv*, or ``None``."""
     for i, a in enumerate(argv):
         if a == "--config" and i + 1 < len(argv):
             return Path(argv[i + 1])
@@ -224,6 +234,7 @@ def resolve_config_path(argv: list[str]) -> Path | None:
 
 
 def load_config_or_default(path: Path | None):
+    """Load a ``Config`` from *path*, or return the default config."""
     from morel.core.config import Config
 
     if path is None:

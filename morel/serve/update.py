@@ -58,7 +58,8 @@ class LossStep(Protocol):
     surrogate, or the ``DefaultLossStep`` baseline.
     """
 
-    def __call__(self, batch: list[FeedbackEvent]) -> float: ...
+    def __call__(self, batch: list[FeedbackEvent]) -> float:
+        """Compute the loss for ``batch``."""
 
 
 class DefaultLossStep:
@@ -70,6 +71,7 @@ class DefaultLossStep:
     """
 
     def __call__(self, batch: list[FeedbackEvent]) -> float:
+        """Compute a deterministic pseudo-loss for ``batch``."""
         import time as _time
 
         return float(_time.time()) * 0.001 + 0.1 * math.log1p(len(batch))
@@ -163,6 +165,7 @@ class PipelineUpdater:
         return self.version
 
     def snapshot_state(self) -> dict:
+        """Snapshot the pipeline state dict for rollback."""
         return copy.deepcopy(self.pipeline.state_dict())
 
     def validation_loss(self, batch: list[FeedbackEvent]) -> float:
@@ -207,6 +210,7 @@ class PipelineUpdater:
         )
 
     def apply_update(self, loss: float, valid_loss: float | None) -> tuple[bool, int]:
+        """Apply the update guarding against divergence."""
         with self.lock.write():
             if not math.isfinite(loss):
                 self.cooldown_until = time.time() + 60.0
