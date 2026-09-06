@@ -230,7 +230,7 @@ class Pipeline(nn.Module):
             size = int(result.sizes[b])
             if size == 0:
                 attention[b, 0] = True
-                node_mask[b, 0] = 1.0  # type: ignore[index]
+                node_mask[b, 0, :] = 1.0
                 continue
             node_ids_np = result.nodes[b, :size]
             for k, name in enumerate(modalities):

@@ -94,3 +94,7 @@ __all__ = [
     "seed_state",
     "to",
 ]
+
+
+# Side-effect import: registers every paper-component fidelity entry.
+import morel.core.fidelity_registry  # noqa: F401
