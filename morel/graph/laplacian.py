@@ -166,9 +166,7 @@ def straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
     return bool(abs(float(eigvals[want]) - float(eigvals[want - 1])) <= tol)
 
 
-def bottom(
-    lap: sp.csr_matrix, count: int, nodes: int, *, k: int
-) -> tuple[np.ndarray, np.ndarray]:
+def bottom(lap: sp.csr_matrix, count: int, nodes: int, *, k: int) -> tuple[np.ndarray, np.ndarray]:
     """Return the ``count`` smallest eigenpairs, sparsely when that is possible.
 
     Small graphs go through the dense solver because it is deterministic;

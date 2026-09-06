@@ -109,9 +109,7 @@ def build_loaders(
     seed: int = 0,
 ) -> tuple[DataLoader[dict[str, Any]], DataLoader[dict[str, Any]] | None]:
     """Build the completion train loader and, if requested, a validation loader."""
-    train, val = split(
-        Corpus(features, mask, adjacency), val_fraction=val_fraction, seed=seed
-    )
+    train, val = split(Corpus(features, mask, adjacency), val_fraction=val_fraction, seed=seed)
     train_loader = DataLoader(train, batch_size=batch_size, collate_fn=collate)
     if val is None:
         return train_loader, None
@@ -235,9 +233,7 @@ def recommend_loaders(
     return train_loader, DataLoader(val, batch_size=batch_size)
 
 
-def synth(
-    rng: np.random.Generator, items: int, users: int
-) -> tuple[np.ndarray, np.ndarray]:
+def synth(rng: np.random.Generator, items: int, users: int) -> tuple[np.ndarray, np.ndarray]:
     """Generate one random (user_ids, item_ids) sample.
 
     Used by the experiment's synthetic dataset builder.

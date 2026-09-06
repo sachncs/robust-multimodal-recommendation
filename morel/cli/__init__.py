@@ -146,9 +146,7 @@ def eval(argv: list[str]) -> int:
 
         config = load_cfg(resolve_cfg(argv))
         run_dir = Path("runs") / "ablations"
-        result = Ablate(
-            config=config, run_dir=run_dir, items=args.items, users=args.users
-        ).run()
+        result = Ablate(config=config, run_dir=run_dir, items=args.items, users=args.users).run()
         for metric in sorted(result["metrics"]):
             for condition, value in result["metrics"][metric].items():
                 print(f"{metric} {condition}={value:.4f}")
