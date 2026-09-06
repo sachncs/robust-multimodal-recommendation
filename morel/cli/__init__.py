@@ -95,7 +95,10 @@ def run_train(argv: list[str]) -> int:
 
         config = load_config_or_default(config_path)
         run_dir = Path("runs") / "completion"
-        exp = Experiment(config=config, run_dir=run_dir, items=50, users=20, epochs=1)
+        # epochs deliberately left unset so config.completion.epochs applies;
+        # the run manifest records that config, so overriding it here would
+        # make the recorded hash describe a run that never happened.
+        exp = Experiment(config=config, run_dir=run_dir, items=50, users=20)
         result = exp.run()
         print(f"completion trained: {result}")
         return 0
@@ -104,7 +107,7 @@ def run_train(argv: list[str]) -> int:
 
         config = load_config_or_default(config_path)
         run_dir = Path("runs") / "recommendation"
-        exp = Experiment(config=config, run_dir=run_dir, items=50, users=20, epochs=1)
+        exp = Experiment(config=config, run_dir=run_dir, items=50, users=20)
         result = exp.run()
         print(f"recommendation trained: {result}")
         return 0

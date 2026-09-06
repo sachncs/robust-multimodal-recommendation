@@ -60,8 +60,21 @@ class Experiment:
     users: int = 20
     dim_visual: int = 8
     dim_text: int = 4
-    epochs: int = 1
+    epochs: int | None = None
     seed: int | None = None
+
+    def resolved_epochs(self) -> int:
+        """Return the epoch count to train for.
+
+        An explicit ``epochs`` on the experiment wins; otherwise the value
+        comes from ``config.completion.epochs``. Reading it from the config by
+        default matters because the config is what gets hashed into the run
+        manifest: a run that trained for a different number of epochs than its
+        recorded config would not be reproducible from that record.
+        """
+        if self.epochs is not None:
+            return self.epochs
+        return self.config.completion.epochs
 
     def run(self) -> dict[str, Any]:
         """Run a full experiment and write artifacts under ``run_dir``.
@@ -92,15 +105,23 @@ class Experiment:
             dataset["features"],
             dataset["mask"],
             dataset["item_adj"],
-            batch_size=8,
+            batch_size=self.config.completion.batch,
         )
         trainer = Completion(
             pipeline,
-            CompletionConfig(),
+            CompletionConfig(
+                lambda_usage=self.config.completion.usage,
+                lambda_balance=self.config.completion.balance,
+                grad_clip=self.config.completion.grad_clip,
+            ),
+            lr=self.config.completion.lr,
+            weight_decay=self.config.completion.weight_decay,
+            amp=self.config.completion.amp,
             monitor=None,
             checkpoint_dir=self.run_dir,
         )
-        history = trainer.fit(loader, None, epochs=self.epochs, patience=self.epochs + 1)
+        epochs = self.resolved_epochs()
+        history = trainer.fit(loader, None, epochs=epochs, patience=self.config.completion.patience)
 
         metrics_path = self.run_dir / "metrics.jsonl"
         with metrics_path.open("a", encoding="utf-8") as handle:
@@ -128,7 +149,7 @@ class Experiment:
             extras={
                 "items": self.items,
                 "users": self.users,
-                "epochs": self.epochs,
+                "epochs": epochs,
             },
         )
         manifest_path = self.run_dir / "manifest.json"
@@ -141,7 +162,7 @@ class Experiment:
             f"- config_hash: `{config_hash}`\n"
             f"- items: {self.items}\n"
             f"- users: {self.users}\n"
-            f"- epochs: {self.epochs}\n"
+            f"- epochs: {epochs}\n"
             f"- best_loss: {history.get('best', None)}\n",
             encoding="utf-8",
         )
