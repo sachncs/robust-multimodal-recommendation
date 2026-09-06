@@ -58,10 +58,11 @@ lock: ## Regenerate requirements.lock (hash-pinned, targets the CI platform)
 		--generate-hashes -o requirements.lock
 
 lock-check: ## Fail if requirements.lock is out of date with pyproject.toml
-	@uv pip compile pyproject.toml --extra serve \
+	@tmp=$$(mktemp) && trap 'rm -f "$$tmp"' EXIT && \
+	uv pip compile pyproject.toml --extra serve \
 		--python-platform linux --python-version 3.11 \
-		--generate-hashes -o - 2>/dev/null | grep -v '^#' > /tmp/morel-lock-check.txt
-	@grep -v '^#' requirements.lock | diff -u - /tmp/morel-lock-check.txt \
+		--generate-hashes 2>/dev/null | grep -v '^#' > "$$tmp" && \
+	grep -v '^#' requirements.lock | diff -u - "$$tmp" \
 		&& echo "requirements.lock is up to date"
 
 check: lint test ## Run lint and tests
