@@ -61,8 +61,16 @@ def test_reported_loss_is_a_real_number(tmp_path: Path) -> None:
     result = RecommendationExperiment(
         config=small_config(), run_dir=tmp_path, items=20, users=8
     ).run()
-    assert result["train_loss"] == pytest.approx(result["best"])
     assert 0.0 < float(result["best"]) < 100.0
+    assert 0.0 < float(result["train_loss"]) < 100.0
+
+
+def test_no_validation_split_falls_back_to_the_training_loss(tmp_path: Path) -> None:
+    """With val=0 there is no held-out set, so the train loss is what is tracked."""
+    result = RecommendationExperiment(
+        config=small_config(val=0.0), run_dir=tmp_path, items=20, users=8
+    ).run()
+    assert result["train_loss"] == pytest.approx(result["best"])
 
 
 def test_epochs_come_from_the_config(tmp_path: Path) -> None:

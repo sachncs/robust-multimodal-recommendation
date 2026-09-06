@@ -12,8 +12,8 @@ from typing import Any
 import numpy as np
 
 from morel.app.data import (
-    build_completion_loader,
-    build_recommendation_loader,
+    build_completion_loaders,
+    build_recommendation_loaders,
     numpy_to_tensor,
     synth_bipartite,
 )
@@ -103,11 +103,13 @@ class Experiment:
         )
         pipeline.attach_corpus(dataset["features"], dataset["mask"], dataset["item_adj"])
 
-        loader = build_completion_loader(
+        loader, val_loader = build_completion_loaders(
             dataset["features"],
             dataset["mask"],
             dataset["item_adj"],
             batch_size=self.config.completion.batch,
+            val_fraction=self.config.completion.val,
+            seed=seed_value,
         )
         trainer = Completion(
             pipeline,
@@ -123,7 +125,9 @@ class Experiment:
             checkpoint_dir=self.run_dir,
         )
         epochs = self.resolved_epochs()
-        history = trainer.fit(loader, None, epochs=epochs, patience=self.config.completion.patience)
+        history = trainer.fit(
+            loader, val_loader, epochs=epochs, patience=self.config.completion.patience
+        )
 
         metrics_path = self.run_dir / "metrics.jsonl"
         with metrics_path.open("a", encoding="utf-8") as handle:
@@ -235,9 +239,10 @@ class RecommendationExperiment:
         pipeline.attach_recommender(ui)
         assert pipeline.recommender is not None
 
-        loader = build_recommendation_loader(
+        loader, val_loader = build_recommendation_loaders(
             ui,
             batch_size=self.config.recommendation.batch,
+            val_fraction=self.config.recommendation.val,
             seed=seed_value,
         )
         trainer = Recommendation(
@@ -254,7 +259,7 @@ class RecommendationExperiment:
         )
         epochs = self.resolved_epochs()
         history = trainer.fit(
-            loader, None, epochs=epochs, patience=self.config.recommendation.patience
+            loader, val_loader, epochs=epochs, patience=self.config.recommendation.patience
         )
 
         metrics_path = self.run_dir / "metrics.jsonl"

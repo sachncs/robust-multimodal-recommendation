@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 import scipy.sparse as sp
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 
 from morel.core.errors import DataError
 from morel.recommend.bpr import ranks_to_items
@@ -65,6 +65,57 @@ def collate_completion(batch: list[dict[str, Any]]) -> dict[str, Any]:
         },
         "adjacency": batch[0]["adjacency"],
     }
+
+
+def split_dataset(
+    dataset: Dataset[dict[str, Any]], *, val_fraction: float, seed: int
+) -> tuple[Dataset[dict[str, Any]], Dataset[dict[str, Any]] | None]:
+    """Split ``dataset`` deterministically into train and validation parts.
+
+    Args:
+        dataset: A sized dataset.
+        val_fraction: Fraction held out for validation, in ``[0, 1)``.
+        seed: Seed for the permutation, so the split is reproducible.
+
+    Returns
+    -------
+        ``(train, val)``. ``val`` is ``None`` when the fraction rounds to no
+        samples or would consume the whole dataset, in which case training
+        proceeds without validation rather than on an empty split.
+
+    Raises
+    ------
+        DataError: If ``val_fraction`` is outside ``[0, 1)``.
+    """
+    if not 0.0 <= val_fraction < 1.0:
+        raise DataError(f"validation fraction must be in [0, 1), got {val_fraction}")
+    total = len(dataset)  # type: ignore[arg-type]  # Dataset has no Sized bound
+    held_out = round(total * val_fraction)
+    if held_out == 0 or held_out >= total:
+        return dataset, None
+    order = np.random.default_rng(seed).permutation(total)
+    val_indices = sorted(int(i) for i in order[:held_out])
+    train_indices = sorted(int(i) for i in order[held_out:])
+    return Subset(dataset, train_indices), Subset(dataset, val_indices)
+
+
+def build_completion_loaders(
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    adjacency: sp.csr_matrix,
+    *,
+    batch_size: int = 8,
+    val_fraction: float = 0.0,
+    seed: int = 0,
+) -> tuple[DataLoader[dict[str, Any]], DataLoader[dict[str, Any]] | None]:
+    """Build the completion train loader and, if requested, a validation loader."""
+    train, val = split_dataset(
+        CompletionDataset(features, mask, adjacency), val_fraction=val_fraction, seed=seed
+    )
+    train_loader = DataLoader(train, batch_size=batch_size, collate_fn=collate_completion)
+    if val is None:
+        return train_loader, None
+    return train_loader, DataLoader(val, batch_size=batch_size, collate_fn=collate_completion)
 
 
 def build_completion_loader(
@@ -164,6 +215,26 @@ def build_recommendation_loader(
     )
 
 
+def build_recommendation_loaders(
+    ui_graph: sp.csr_matrix,
+    *,
+    batch_size: int = 1024,
+    length: int | None = None,
+    val_fraction: float = 0.0,
+    seed: int = 0,
+) -> tuple[DataLoader[dict[str, Any]], DataLoader[dict[str, Any]] | None]:
+    """Build the BPR train loader and, if requested, a validation loader."""
+    if length is None:
+        length = max(int(ui_graph.nnz), 1)
+    train, val = split_dataset(
+        BPRDataset(ui_graph, length=length, seed=seed), val_fraction=val_fraction, seed=seed
+    )
+    train_loader = DataLoader(train, batch_size=batch_size)
+    if val is None:
+        return train_loader, None
+    return train_loader, DataLoader(val, batch_size=batch_size)
+
+
 def synth_bipartite(
     rng: np.random.Generator, items: int, users: int
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -181,8 +252,11 @@ __all__ = [
     "BPRDataset",
     "CompletionDataset",
     "build_completion_loader",
+    "build_completion_loaders",
     "build_recommendation_loader",
+    "build_recommendation_loaders",
     "collate_completion",
     "numpy_to_tensor",
+    "split_dataset",
     "synth_bipartite",
 ]

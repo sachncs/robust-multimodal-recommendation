@@ -80,13 +80,13 @@ def test_completion_batch_size_comes_from_the_config(
     captured: dict[str, Any] = {}
     import morel.app.experiment as module
 
-    real = module.build_completion_loader
+    real = module.build_completion_loaders
 
     def capture(*args: Any, **kwargs: Any) -> Any:
         captured.update(kwargs)
         return real(*args, **kwargs)
 
-    monkeypatch.setattr(module, "build_completion_loader", capture)
+    monkeypatch.setattr(module, "build_completion_loaders", capture)
 
     Experiment(config=small_config(batch=3), run_dir=tmp_path, items=10, users=4).run()
     assert captured["batch_size"] == 3
