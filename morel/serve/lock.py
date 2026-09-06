@@ -19,7 +19,7 @@ class RWLock:
     Multiple readers hold the lock concurrently; writers are exclusive.
 
     Once a writer is waiting, new readers queue behind it. Without that, a
-    stream of overlapping readers keeps ``active_readers`` above zero forever
+    stream of overlapping readers keeps ``readers`` above zero forever
     and a writer never runs: under sustained inference traffic the model
     updater would be starved indefinitely and updates would silently never be
     applied. Readers therefore wait at most for the duration of one update,
@@ -32,9 +32,9 @@ class RWLock:
     def __init__(self) -> None:
         """Create an unheld lock."""
         self.condition = threading.Condition()
-        self.active_readers = 0
+        self.readers = 0
         self.active_writer = False
-        self.waiting_writers = 0
+        self.writers = 0
 
     def read_acquire(self, timeout: float | None = None) -> bool:
         """Acquire a read lock, waiting for any active or pending writer.
@@ -48,14 +48,14 @@ class RWLock:
         """
         with self.condition:
             if timeout is None:
-                while self.active_writer or self.waiting_writers > 0:
+                while self.active_writer or self.writers > 0:
                     self.condition.wait()
             elif not self.condition.wait_for(
-                lambda: not self.active_writer and self.waiting_writers == 0,
+                lambda: not self.active_writer and self.writers == 0,
                 timeout=timeout,
             ):
                 return False
-            self.active_readers += 1
+            self.readers += 1
             return True
 
     def read_release(self) -> None:
@@ -68,10 +68,10 @@ class RWLock:
                 inside the critical section.
         """
         with self.condition:
-            if self.active_readers <= 0:
+            if self.readers <= 0:
                 raise RuntimeError("read_release called without holding a read lock")
-            self.active_readers -= 1
-            if self.active_readers == 0:
+            self.readers -= 1
+            if self.readers == 0:
                 self.condition.notify_all()
 
     def write_acquire(self, timeout: float | None = None) -> bool:
@@ -88,20 +88,20 @@ class RWLock:
             ``True`` if the lock was acquired, ``False`` on timeout.
         """
         with self.condition:
-            self.waiting_writers += 1
+            self.writers += 1
             try:
                 if timeout is None:
-                    while self.active_writer or self.active_readers > 0:
+                    while self.active_writer or self.readers > 0:
                         self.condition.wait()
                 elif not self.condition.wait_for(
-                    lambda: not self.active_writer and self.active_readers == 0,
+                    lambda: not self.active_writer and self.readers == 0,
                     timeout=timeout,
                 ):
                     return False
                 self.active_writer = True
                 return True
             finally:
-                self.waiting_writers -= 1
+                self.writers -= 1
                 if not self.active_writer:
                     # Gave up: wake the readers that were queued behind us,
                     # otherwise they wait for a writer that is no longer coming.

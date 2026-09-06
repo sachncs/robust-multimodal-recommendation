@@ -143,7 +143,7 @@ class Checker:
         for thread in threads:
             thread.join(timeout=TIMEOUT)
 
-        assert live.lock.active_readers == 0
-        assert live.lock.waiting_writers == 0
+        assert live.lock.readers == 0
+        assert live.lock.writers == 0
         assert live.lock.active_writer is False
         assert not live.buffer_lock.locked()

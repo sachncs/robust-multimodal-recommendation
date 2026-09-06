@@ -49,7 +49,7 @@ class Checker:
             thread.join(timeout=TIMEOUT)
 
         assert not failures, f"readers could not be inside together: {failures}"
-        assert lock.active_readers == 0
+        assert lock.readers == 0
 
     def readers(self) -> None:
         """Regression: the writer never acquired the lock under sustained reads."""
@@ -95,10 +95,10 @@ class Checker:
         assert writer_waiting.wait(timeout=TIMEOUT)
         # Give the writer time to register itself as waiting.
         for _ in range(100):
-            if lock.waiting_writers > 0:
+            if lock.writers > 0:
                 break
             time.sleep(0.01)
-        assert lock.waiting_writers == 1
+        assert lock.writers == 1
 
         assert not lock.read_acquire(timeout=0.2), "a new reader jumped ahead of a waiting writer"
 
@@ -197,8 +197,8 @@ class Checker:
             thread.join(timeout=TIMEOUT)
 
         assert not errors, errors
-        assert lock.active_readers == 0
-        assert lock.waiting_writers == 0
+        assert lock.readers == 0
+        assert lock.writers == 0
         assert lock.active_writer is False
 
     def out(self) -> None:
@@ -207,7 +207,7 @@ class Checker:
         lock.read_acquire()
 
         assert lock.write_acquire(timeout=0.05) is False
-        assert lock.waiting_writers == 0, "a timed-out writer must deregister itself"
+        assert lock.writers == 0, "a timed-out writer must deregister itself"
 
         lock.read_release()
         assert lock.read_acquire(timeout=TIMEOUT) is True
@@ -218,7 +218,7 @@ class Checker:
         lock.write_acquire()
         try:
             assert lock.read_acquire(timeout=0.05) is False
-            assert lock.active_readers == 0
+            assert lock.readers == 0
         finally:
             lock.write_release()
 
@@ -244,7 +244,7 @@ class Checker:
         lock = RWLock()
         with pytest.raises(ValueError, match="boom"), reader(lock):
             raise ValueError("boom")
-        assert lock.active_readers == 0
+        assert lock.readers == 0
 
         with pytest.raises(ValueError, match="boom"), writer(lock):
             raise ValueError("boom")

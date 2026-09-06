@@ -135,7 +135,7 @@ class Updater:
         self.loss_window: deque[float] = deque(maxlen=64)
         self.last_loss = float("nan")
         self.last_valid_loss: float | None = None
-        self.n_updates_applied = 0
+        self.updates = 0
 
     def accept(self, user: int, item: int, signal: Signal) -> None:
         """Append a feedback event to the feedback ring (thread-safe)."""
@@ -155,7 +155,7 @@ class Updater:
             return {
                 "events_buffered": events_buffered,
                 "replay_buffered": replay_buffered,
-                "updates_applied": self.n_updates_applied,
+                "updates_applied": self.updates,
                 "last_loss": self.last_loss,
                 "last_valid_loss": self.last_valid_loss
                 if self.last_valid_loss is not None
@@ -248,7 +248,7 @@ class Updater:
             self.loss_window.append(loss)
             self.last_loss = loss
             self.last_valid_loss = valid_loss
-            self.n_updates_applied += 1
+            self.updates += 1
             return True, self.version
 
 
