@@ -54,7 +54,7 @@ class Checker:
 
     def unknown(self) -> None:
         with pytest.raises(ConfigError, match="unknown feature extractor"):
-            EXTRACTORS.create("not-a-model", dim=8)
+            build_extractor("not-a-model", dim=8)
 
     def random(self) -> None:
         encoder = RandomEncoder(8, seed=1)

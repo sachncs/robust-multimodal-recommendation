@@ -38,7 +38,7 @@ class Checker:
     """Aggregated test methods for this module."""
 
     def registered(self) -> None:
-        assert set(ABLATIONS.available()) == {"no_retrieval", "no_pe", "no_codebook"}
+        assert set(ABLATIONS) == {"no_retrieval", "no_pe", "no_codebook"}
 
     def all(self) -> None:
         """A configured condition that is not registered would fail mid-sweep."""
@@ -65,7 +65,7 @@ class Checker:
     def the(self) -> None:
         config = small()
         before = replace(config)
-        for name in ABLATIONS.available():
+        for name in ABLATIONS:
             ablate(config, name)
         assert config == before
 

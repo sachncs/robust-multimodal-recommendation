@@ -157,22 +157,22 @@ class Checker:
 
     def registries(self) -> None:
         """docs/ARCHITECTURE.md must not drift from what is actually registered."""
-        from morel.codebook import CODEBOOKS
-        from morel.complete import COMPLETERS
+        from morel.codebook import KIND as CODEBOOK_KIND
+        from morel.complete import KIND as COMPLETE_KIND
         from morel.data import build_extractor, build_mask
-        from morel.encode import ENCODERS
-        from morel.recommend import RECOMMENDERS
+        from morel.encode import KIND as ENCODE_KIND
+        from morel.recommend import KIND as RECOMMEND_KIND
         from morel.retrieve import KIND as STRATEGIES
-        from morel.route import ROUTERS
+        from morel.route import KIND as ROUTE_KIND
 
         registries = {
             "MASKS": build_mask,
             "EXTRACTORS": build_extractor,
             "STRATEGIES": STRATEGIES,  # KIND dict from morel.retrieve
-            "ENCODERS": ENCODERS,
-            "ROUTERS": ROUTERS,
-            "CODEBOOKS": CODEBOOKS,
-            "COMPLETERS": COMPLETERS,
+            "ENCODERS": ENCODE_KIND,
+            "ROUTERS": ROUTE_KIND,
+            "CODEBOOKS": CODEBOOK_KIND,
+            "COMPLETERS": COMPLETE_KIND,
             "RECOMMENDERS": RECOMMENDERS,
         }
         documented = documented()
