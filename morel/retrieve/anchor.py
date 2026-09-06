@@ -48,8 +48,7 @@ def cosine_topk(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.nda
     sims[~valid] = -np.inf
     k_eff = min(k, sims.size)
     top = np.argpartition(-sims, k_eff - 1)[:k_eff]
-    top = top[np.argsort(-sims[top])]
-    return top
+    return top[np.argsort(-sims[top])]
 
 
 def query(
@@ -111,4 +110,4 @@ def batch(
     return [query(q, query_modality, features, mask, top=top) for q in queries]
 
 
-__all__ = ["query", "batch"]
+__all__ = ["batch", "query"]

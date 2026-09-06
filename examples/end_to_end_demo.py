@@ -14,13 +14,12 @@ This script:
 from __future__ import annotations
 
 import numpy as np
-import scipy.sparse as sp
 import torch
 
 from morel.core.config import Config
 from morel.data.build import bipartite, item_cooccurrence
 from morel.data.mask import bernoulli
-from morel.eval import recall_at_k, ndcg_at_k
+from morel.eval import ndcg_at_k, recall_at_k
 from morel.pipeline import Pipeline
 from morel.recommend import Light
 

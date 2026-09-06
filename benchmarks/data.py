@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import scipy.sparse as sp
 
 from morel.data.build import bipartite, item_cooccurrence
 from morel.data.mask import bernoulli

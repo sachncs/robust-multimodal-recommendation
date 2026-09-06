@@ -78,7 +78,7 @@ def expand(
         raise GraphError(f"iters must be positive, got {iters}")
     anchors_int = [int(a) for a in anchors]
     if query_item not in anchors_int:
-        anchors_int = sorted(set(anchors_int + [int(query_item)]))
+        anchors_int = sorted({*anchors_int, int(query_item)})
 
     subgraph_set = acs_compute(adj, anchors_int, fallback=fallback)
     if not subgraph_set:
@@ -157,4 +157,4 @@ def batch(
     ]
 
 
-__all__ = ["expand", "batch"]
+__all__ = ["batch", "expand"]

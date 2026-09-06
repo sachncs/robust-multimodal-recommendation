@@ -52,8 +52,7 @@ class Layer(nn.Module):
         hidden = hidden + attn_out
         normed = self.norm2(hidden)
         ffn_out = self.ffn(normed)
-        hidden = hidden + ffn_out
-        return hidden
+        return hidden + ffn_out
 
 
 __all__ = ["Layer"]

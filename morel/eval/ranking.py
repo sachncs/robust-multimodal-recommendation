@@ -75,7 +75,6 @@ def mrr(scores: np.ndarray, labels: np.ndarray) -> float:
     relevant item in expected O(N) instead of sorting the full row in
     O(N log N).
     """
-    n_items = scores.shape[1]
     has_relevant = labels.sum(axis=1) > 0
     if not has_relevant.any():
         return 0.0
@@ -102,4 +101,4 @@ def map_at_k(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     return float((average / relevant).mean())
 
 
-__all__ = ["recall_at_k", "ndcg_at_k", "precision_at_k", "mrr", "map_at_k"]
+__all__ = ["map_at_k", "mrr", "ndcg_at_k", "precision_at_k", "recall_at_k"]

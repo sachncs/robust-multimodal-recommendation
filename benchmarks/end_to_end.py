@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import scipy.sparse as sp
 
 from morel.core.config import Config
 from morel.data.build import bipartite as build_bipartite
@@ -13,7 +12,7 @@ from morel.train.completion import Completion, CompletionConfig
 
 
 class _Monitor:
-    def log(self, *args, **kwargs):  # noqa: ANN001, D401
+    def log(self, *args, **kwargs):
         return None
 
 
@@ -74,8 +73,7 @@ def _collate(batch):  # type: ignore[no-untyped-def]
         "index": torch.from_numpy(np.stack([np.asarray(b["index"]) for b in batch])),
         "mask": torch.from_numpy(np.stack([np.asarray(b["mask"]) for b in batch])),
         "features": {
-            k: torch.from_numpy(np.stack([b["features"][k] for b in batch]))
-            for k in features_keys
+            k: torch.from_numpy(np.stack([b["features"][k] for b in batch])) for k in features_keys
         },
         "adjacency": batch[0]["adjacency"],
     }

@@ -182,10 +182,7 @@ class Pipeline(nn.Module):
             )
         else:
             batch_size = mask.shape[0]
-            if index is not None:
-                pe_batch = pe_full[index]
-            else:
-                pe_batch = pe_full[:batch_size]
+            pe_batch = pe_full[index] if index is not None else pe_full[:batch_size]
             hidden = self.transformer(features, mask, pe_batch)
 
         quantized, routing = self.codebook(hidden, training=training)
@@ -231,7 +228,7 @@ class Pipeline(nn.Module):
                 node_mask[b, 0, :] = 1.0
                 continue
             node_ids_np = result.nodes[b, :size]
-            for k, name in enumerate(modalities):
+            for _, name in enumerate(modalities):
                 node_features[name][b, :size] = (
                     torch.from_numpy(self.retrieval_features[name][node_ids_np]).to(device).float()
                 )
@@ -241,14 +238,13 @@ class Pipeline(nn.Module):
             pe[b, :size] = pe_full[node_ids_np]
             attention[b, :size] = torch.from_numpy(result.mask[b, :size]).bool().to(device)
 
-        hidden = self.transformer(
+        return self.transformer(
             node_features,
             node_mask,
             pe,
             attention_mask=attention,
             sequence=True,
         )
-        return hidden
 
 
-__all__ = ["Pipeline", "Output"]
+__all__ = ["Output", "Pipeline"]

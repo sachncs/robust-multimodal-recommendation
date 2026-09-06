@@ -50,8 +50,7 @@ class Input(nn.Module):
         x = torch.cat(parts, dim=-1)
         x = self.project(x)
         x = self.dropout(x)
-        x = self.norm(x)
-        return x
+        return self.norm(x)
 
 
 __all__ = ["Input"]
