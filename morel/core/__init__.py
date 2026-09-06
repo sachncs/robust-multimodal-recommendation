@@ -2,6 +2,19 @@
 
 from morel.core.config import Config
 from morel.core.device import Device, device, to
+from morel.core.distributed import (
+    DistributedState,
+    barrier,
+    cleanup,
+    init,
+    is_initialized,
+    is_rank_zero,
+    local_rank,
+    rank,
+    reduce_mean,
+    state,
+    world_size,
+)
 from morel.core.errors import (
     ConfigError,
     DataError,
@@ -59,6 +72,7 @@ __all__ = [
     "DataError",
     "Device",
     "DeterminismError",
+    "DistributedState",
     "Embedding",
     "EvalError",
     "FidelityEntry",
@@ -72,7 +86,9 @@ __all__ = [
     "SeedState",
     "ShapeError",
     "TrainError",
+    "barrier",
     "checkpoints",
+    "cleanup",
     "configure_log",
     "device",
     "features",
@@ -83,16 +99,24 @@ __all__ = [
     "fidelity_render_markdown",
     "get_logger",
     "graphs",
+    "init",
+    "is_initialized",
+    "is_rank_zero",
+    "local_rank",
     "log_metrics",
     "manifest",
     "processed",
+    "rank",
     "raw",
+    "reduce_mean",
     "root",
     "runs",
     "seed_everything",
     "seed_restore",
     "seed_state",
+    "state",
     "to",
+    "world_size",
 ]
 
 
