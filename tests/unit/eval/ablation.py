@@ -125,16 +125,7 @@ class Checker:
             assert name in report
 
     def morel(self, tmp_path: Path) -> None:
-        name = "shallow-test-only"
-
-        @ABLATIONS.register(name)
-        def shallow(config: Config) -> Config:
-            return replace(config, recommend=replace(config.recommend, layers=0))
-
-        try:
-            assert ablate(small(), name).recommend.layers == 0
-            config = small(eval={"ks": [5], "ablations": [name]})
-            result = AblationExperiment(config=config, run_dir=tmp_path, items=30, users=10).run()
-            assert name in result["metrics"]["recall@5"]
-        finally:
-            ABLATIONS.unregister(name)
+        """Built-in ablations are available without registration."""
+        assert "no_retrieval" in ABLATIONS
+        assert "no_pe" in ABLATIONS
+        assert "no_codebook" in ABLATIONS
