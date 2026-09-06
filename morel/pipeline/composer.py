@@ -171,7 +171,7 @@ class Pipeline(nn.Module):
             feature_dim=feature_dim,
             seed=self.config.seed,
         )
-        prime = getattr(recommender, "normalized_adjacency", None)
+        prime = getattr(recommender, "norm_adj", None)
         if callable(prime):
             prime(ui_graph)
         fit = getattr(recommender, "fit", None)
