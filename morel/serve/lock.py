@@ -120,16 +120,16 @@ class RWLock:
             self.active_writer = False
             self.condition.notify_all()
 
-    def read(self) -> ReadGuard:
+    def read(self) -> Read:
         """Return a context manager that acquires/releases a read lock."""
-        return ReadGuard(self)
+        return Read(self)
 
-    def write(self) -> WriteGuard:
+    def write(self) -> Write:
         """Return a context manager that acquires/releases a write lock."""
-        return WriteGuard(self)
+        return Write(self)
 
 
-class ReadGuard:
+class Read:
     """Context manager returned by :meth:`RWLock.read`."""
 
     def __init__(self, lock: RWLock) -> None:
@@ -144,7 +144,7 @@ class ReadGuard:
         self.lock.release_read()
 
 
-class WriteGuard:
+class Write:
     """Context manager returned by :meth:`RWLock.write`."""
 
     def __init__(self, lock: RWLock) -> None:
@@ -179,4 +179,4 @@ def writer(lock: RWLock) -> Iterator[None]:
         lock.release_write()
 
 
-__all__ = ["RWLock", "ReadGuard", "WriteGuard", "reader", "writer"]
+__all__ = ["RWLock", "Read", "Write", "reader", "writer"]

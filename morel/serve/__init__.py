@@ -16,7 +16,7 @@ from morel.serve.auth import (
     token_for_scope,
 )
 from morel.serve.loader import Loader
-from morel.serve.lock import ReadGuard, RWLock, WriteGuard, reader, writer
+from morel.serve.lock import Read, RWLock, Write, reader, writer
 from morel.serve.schema import (
     CompleteRequest,
     CompleteResponse,
@@ -46,7 +46,7 @@ __all__ = [
     "Loader",
     "Outcome",
     "RWLock",
-    "ReadGuard",
+    "Read",
     "RecommendItem",
     "RecommendRequest",
     "RecommendResponse",
@@ -56,7 +56,7 @@ __all__ = [
     "StatsResponse",
     "Step",
     "Updater",
-    "WriteGuard",
+    "Write",
     "admin_enabled",
     "assert_configured",
     "create",
