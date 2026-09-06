@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 import torch
 
+from morel.core.errors import ConfigError
 from morel.route import Dense, Fixed, Gumbel, Top, Weights, build
 
 
@@ -49,7 +50,7 @@ class Checker:
         assert isinstance(r, Dense)
 
     def unknown(self) -> None:
-        with pytest.raises(ValueError, match="unknown router kind"):
+        with pytest.raises(ConfigError, match="unknown router"):
             build("nope", dim=8, k=10, p=3, tau=0.5)
 
     def shape(self) -> None:
