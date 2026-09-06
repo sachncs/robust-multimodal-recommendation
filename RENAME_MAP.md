@@ -406,3 +406,28 @@ Remaining 19 compound function names are documented as blocked:
 - `parse_json` (json is allowed)
 
 Total compound function names: 19 (down from 76)
+
+## Compound self attributes (149 remaining)
+
+These are blocked by:
+1. Semantic meaning (e.g., `user_emb`, `item_emb` for user/item embeddings)
+2. Framework parameter conflicts (e.g., `weight_decay` vs `torch.optim.Adam.decay`)
+3. Naming conflicts with existing single-word names
+
+Examples:
+- `user_emb`, `item_emb` — user/item embeddings (semantically meaningful)
+- `feature_dim`, `feature_proj` — feature dimensions/projections
+- `corpus_features`, `corpus_mask`, `corpus_adj` — corpus data
+- `grad_clip`, `loss_step`, `loss_window` — training metrics
+- `run_dir`, `cfg_hash`, `checkpoint_dir` — file paths
+- `ui_graph` — user-item graph
+- `negatives_count`, `negatives_matrix` — negative sampling
+- `feedback_ring`, `rollback_ring`, `replay_ring` — event rings
+- `completion_config`, `config_path` — configuration
+- `buffer_lock`, `cooldown_until`, `replay_ratio`, `val_ratio` — control flow
+- `adj_cache`, `normalize_adj` — adjacency cache
+- `best_metric`, `last_loss`, `valid_loss` — metrics
+- `mask_tokens`, `pe_dim`, `dim_text` — model dimensions
+- `register_buffer` — PyTorch buffer registration
+
+Total compound self attributes: 149 (unchanged from start)
