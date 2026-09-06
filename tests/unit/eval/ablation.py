@@ -15,7 +15,7 @@ from typing import Any
 
 import pytest
 
-from morel.app import AblationExperiment
+from morel.app import Ablate
 from morel.core.config import Config
 from morel.core.errors import ConfigError
 from morel.eval import ABLATIONS, BASELINE, ablate, conditions
@@ -83,7 +83,7 @@ class Checker:
 
     def cutoff(self, tmp_path: Path) -> None:
         config = small(eval={"ks": [5, 10], "ablations": ["no_pe", "no_codebook"]})
-        result = AblationExperiment(config=config, run_dir=tmp_path, items=30, users=10).run()
+        result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         assert set(result["metrics"]) == {"recall@5", "ndcg@5", "recall@10", "ndcg@10"}
         for values in result["metrics"].values():
@@ -98,7 +98,7 @@ class Checker:
         would have been reported as though it did.
         """
         config = small(eval={"ks": [5], "ablations": ["no_retrieval", "no_codebook"]})
-        result = AblationExperiment(config=config, run_dir=tmp_path, items=30, users=10).run()
+        result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         recall = result["metrics"]["recall@5"]
         assert len({round(v, 6) for v in recall.values()}) > 1, (
@@ -107,13 +107,13 @@ class Checker:
 
     def reproducible(self, tmp_path: Path) -> None:
         config = small()
-        first = AblationExperiment(config=config, run_dir=tmp_path / "a", items=30, users=10).run()
-        second = AblationExperiment(config=config, run_dir=tmp_path / "b", items=30, users=10).run()
+        first = Ablate(config=config, run_dir=tmp_path / "a", items=30, users=10).run()
+        second = Ablate(config=config, run_dir=tmp_path / "b", items=30, users=10).run()
         assert first["metrics"] == second["metrics"]
 
     def results(self, tmp_path: Path) -> None:
         config = small()
-        result = AblationExperiment(config=config, run_dir=tmp_path, items=30, users=10).run()
+        result = Ablate(config=config, run_dir=tmp_path, items=30, users=10).run()
 
         payload = json.loads((tmp_path / "ablations.json").read_text(encoding="utf-8"))
         assert payload["config_hash"] == result["config_hash"]

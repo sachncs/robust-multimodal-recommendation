@@ -356,7 +356,7 @@ class RecommendationExperiment:
 
 
 @dataclass
-class AblationExperiment:
+class Ablate:
     """Run every condition in ``config.eval.ablations`` and compare them.
 
     ``eval.ablations`` listed condition names that nothing could act on. This

@@ -142,11 +142,11 @@ def run_eval(argv: list[str]) -> int:
             print(f"recall@{k}={recall:.4f} ndcg@{k}={ndcg:.4f}")
         return 0
     if args.sub == "ablations":
-        from morel.app import AblationExperiment
+        from morel.app import Ablate
 
         config = load_config_or_default(resolve_config_path(argv))
         run_dir = Path("runs") / "ablations"
-        result = AblationExperiment(
+        result = Ablate(
             config=config, run_dir=run_dir, items=args.items, users=args.users
         ).run()
         for metric in sorted(result["metrics"]):

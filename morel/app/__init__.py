@@ -1,7 +1,7 @@
 """Public API for the morel.app package."""
 
 from morel.app.experiment import (
-    AblationExperiment,
+    Ablate,
     Benchmark,
     Experiment,
     RecommendationExperiment,
@@ -9,7 +9,7 @@ from morel.app.experiment import (
 )
 
 __all__ = [
-    "AblationExperiment",
+    "Ablate",
     "Benchmark",
     "Experiment",
     "RecommendationExperiment",
