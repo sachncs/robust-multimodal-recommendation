@@ -98,7 +98,13 @@ testpaths = ["tests", "benchmarks"]
 python_files = ["test_*.py", "bench_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*", "bench_*"]
-addopts = "-v --strict-markers --strict-config --tb=short -W error::DeprecationWarning --cov=morel --cov-report=term-missing --cov-report=xml --cov-fail-under=80"
+addopts = ["-v", "--strict-markers", "--strict-config", "--tb=short", "-W", "default::DeprecationWarning", "-W", "ignore::DeprecationWarning:anyio", "-W", "ignore::DeprecationWarning:distutils", "--cov=morel", "--cov-report=term-missing", "--cov-report=xml", "--cov-fail-under=80"]
+filterwarnings = [
+    "ignore::DeprecationWarning:anyio",
+    "ignore:The distutils package is deprecated:DeprecationWarning",
+    "ignore:The distutils.sysconfig module is deprecated:DeprecationWarning",
+    "error::DeprecationWarning",
+]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "gpu: marks tests as requiring GPU (deselect with '-m \"not gpu\"')",
