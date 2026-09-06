@@ -91,9 +91,9 @@ class Embedding:
         return self.tensor.device
 
     @property
-    def requires_grad(self) -> bool:
-        """Return whether the underlying tensor requires gradients."""
-        return self.tensor.requires_grad
+    def grad(self) -> bool:
+        """Return whether the underlying tensor has a gradient."""
+        return self.tensor.grad is not None
 
     def to(self, device: torch.device | str) -> Embedding:
         """Return a new Embedding on the given device."""
