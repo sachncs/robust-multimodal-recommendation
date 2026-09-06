@@ -123,10 +123,22 @@ class Light(nn.Module):
             d_inv_sqrt = np.where(rowsum > 0, np.power(rowsum, -0.5), 0.0)
         d_mat = sp.diags(d_inv_sqrt.astype(np.float32))
         normalized = (d_mat @ adj @ d_mat).tocoo()
+        # Drop explicit zeros (which can arise from rowsum==0 deg-zero
+        # nodes) before handing the array to torch; sparse_coo_tensor
+        # raises a warning on stored zeros because they violate
+        # invariants the constructor cannot satisfy.
+        normalized = normalized.tocsr()
+        normalized.eliminate_zeros()
+        normalized = normalized.tocoo()
         indices = torch.from_numpy(np.vstack((normalized.row, normalized.col))).long()
         values = torch.from_numpy(normalized.data).float()
         shape = torch.Size(normalized.shape)
-        tensor = torch.sparse_coo_tensor(indices, values, shape).coalesce()
+        # Opt into runtime invariant checks; this also prevents torch from
+        # emitting the "Sparse invariant checks are implicitly disabled"
+        # warning. We construct well-formed tensors, so the cost is
+        # negligible.
+        with torch.sparse.check_sparse_tensor_invariants():
+            tensor = torch.sparse_coo_tensor(indices, values, shape).coalesce()
         target_device = self.user_emb.weight.device
         if tensor.device != target_device:
             tensor = tensor.to(target_device)
