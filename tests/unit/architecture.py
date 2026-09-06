@@ -128,7 +128,7 @@ class Checker:
         assert not violations, "layering violations:\n  " + "\n  ".join(violations)
 
     def acyclic(self) -> None:
-        graph = graph()
+        g = graph()
         visiting: set[str] = set()
         done: set[str] = set()
         cycles: list[str] = []
@@ -141,12 +141,12 @@ class Checker:
                 cycles.append(" -> ".join([*trail[start:], node]))
                 return
             visiting.add(node)
-            for neighbour in sorted(graph.get(node, ())):
+            for neighbour in sorted(g.get(node, ())):
                 walk(neighbour, [*trail, node])
             visiting.discard(node)
             done.add(node)
 
-        for node in sorted(graph):
+        for node in sorted(g):
             walk(node, [])
 
         assert not cycles, "import cycles between packages:\n  " + "\n  ".join(cycles)
@@ -159,15 +159,15 @@ class Checker:
         """docs/ARCHITECTURE.md must not drift from what is actually registered."""
         from morel.codebook import KIND as CODEBOOK_KIND
         from morel.complete import KIND as COMPLETE_KIND
-        from morel.data import build_extractor, build_mask
+        from morel.data import EXTRACTORS, MASKS
         from morel.encode import KIND as ENCODE_KIND
         from morel.recommend import KIND as RECOMMEND_KIND
         from morel.retrieve import KIND as STRATEGIES
         from morel.route import KIND as ROUTE_KIND
 
         registries = {
-            "MASKS": build_mask,
-            "EXTRACTORS": build_extractor,
+            "MASKS": MASKS,
+            "EXTRACTORS": EXTRACTORS,
             "STRATEGIES": STRATEGIES,  # KIND dict from morel.retrieve
             "ENCODERS": ENCODE_KIND,
             "ROUTERS": ROUTE_KIND,
@@ -175,12 +175,12 @@ class Checker:
             "COMPLETERS": COMPLETE_KIND,
             "RECOMMENDERS": RECOMMEND_KIND,
         }
-        documented = documented()
-        assert set(documented) == set(registries), (
-            f"documented registries {sorted(documented)} != {sorted(registries)}"
+        doc = documented()
+        assert set(doc) == set(registries), (
+            f"doc registries {sorted(documented)} != {sorted(registries)}"
         )
         for name, registry in registries.items():
-            assert documented[name] == set(registry.available()), (
-                f"{name}: docs list {sorted(documented[name])}, "
-                f"code registers {sorted(registry.available())}"
+            assert doc[name] == set(registry), (
+                f"{name}: docs list {sorted(doc[name])}, "
+                f"code registers {sorted(set(registry))}"
             )

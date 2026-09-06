@@ -197,7 +197,7 @@ def register_all() -> None:
             equation="sign(U^T U) with no self-loops",
             status="EXACT",
             implementation="morel.data.build.item_cooccurrence",
-            test="tests/unit/data/build.py::cooccurrence",
+            test="tests/unit/data/build.py::Checker::cooccurrence",
             deviation=None,
         )
     )
@@ -284,7 +284,7 @@ def register_all() -> None:
             equation="KL(bar_p || uniform)",
             status="EXACT",
             implementation="morel.codebook.codebook.usage",
-            test="tests/unit/codebook/codebook.py::usage",
+            test="tests/unit/codebook/codebook.py::Checker::usage",
             deviation=None,
         )
     )
@@ -296,7 +296,7 @@ def register_all() -> None:
             equation="K * sum_e bar_g_e^2",
             status="EXACT",
             implementation="morel.codebook.codebook.balance",
-            test="tests/unit/codebook/codebook.py::balance",
+            test="tests/unit/codebook/codebook.py::Checker::balance",
             deviation=None,
         )
     )
