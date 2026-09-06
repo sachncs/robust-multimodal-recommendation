@@ -208,35 +208,49 @@ class Pipeline(nn.Module):
         *,
         device: torch.device,
     ) -> torch.Tensor:
-        """Encode each query item with its retrieved subgraph as one sequence."""
-        embeddings: list[torch.Tensor] = []
-        for b in range(result.batch):
+        """Encode each query item with its retrieved subgraph as one padded batch.
+
+        All per-query subgraphs are padded to ``result.max_size`` and processed
+        in a single transformer call with a batched attention mask, instead of
+        one Python loop iteration per query. Empty subgraphs are padded with a
+        single attention-masked token so the transformer still produces one
+        embedding per query.
+        """
+        max_size = max(int(result.max_size), 1)
+        batch = int(result.batch)
+        modalities = list(self.dims.keys())
+        node_features: dict[str, torch.Tensor] = {}
+        node_mask = torch.zeros(batch, max_size, len(modalities), device=device)
+        pe = torch.zeros(batch, max_size, pe_full.shape[-1], device=device)
+        attention = torch.zeros(batch, max_size, dtype=torch.bool, device=device)
+        for name in modalities:
+            node_features[name] = torch.zeros(batch, max_size, self.dims[name], device=device)
+
+        for b in range(batch):
             size = int(result.sizes[b])
             if size == 0:
-                node_ids = torch.zeros(1, dtype=torch.long, device=device)
-                attention = torch.ones(1, dtype=torch.bool, device=device)
-                node_features = {
-                    name: torch.zeros(1, d, device=device) for name, d in self.dims.items()
-                }
-                node_mask = torch.ones(1, len(self.dims), device=device)
-                pe = torch.zeros(1, pe_full.shape[-1], device=device)
-            else:
-                node_ids_np = result.nodes[b, :size]
-                node_ids = torch.from_numpy(node_ids_np).long().to(device)
-                attention = torch.from_numpy(result.mask[b, :size]).bool().to(device)
-                node_features = {
-                    name: torch.from_numpy(self._retrieval_features[name][node_ids_np])
-                    .to(device)
-                    .float()
-                    for name in self.dims
-                }
-                node_mask = torch.from_numpy(self._retrieval_mask[node_ids_np]).to(device).float()
-                pe = pe_full[node_ids]
-            token = self.transformer(
-                node_features, node_mask, pe, attention_mask=attention, sequence=True
-            )
-            embeddings.append(token)
-        return torch.cat(embeddings, dim=0)
+                attention[b, 0] = True
+                node_mask[b, 0] = 1.0  # type: ignore[index]
+                continue
+            node_ids_np = result.nodes[b, :size]
+            for k, name in enumerate(modalities):
+                node_features[name][b, :size] = torch.from_numpy(
+                    self._retrieval_features[name][node_ids_np]
+                ).to(device).float()
+            node_mask[b, :size] = torch.from_numpy(
+                self._retrieval_mask[node_ids_np]
+            ).to(device).float()
+            pe[b, :size] = pe_full[node_ids_np]
+            attention[b, :size] = torch.from_numpy(result.mask[b, :size]).bool().to(device)
+
+        hidden = self.transformer(
+            node_features,
+            node_mask,
+            pe,
+            attention_mask=attention,
+            sequence=True,
+        )
+        return hidden
 
 
 __all__ = ["Pipeline", "Output"]
