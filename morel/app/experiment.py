@@ -27,7 +27,7 @@ from morel.data import build_mask
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import cooccurrence
 from morel.data.manifest import Manifest
-from morel.eval import ablate, results, conditions, ndcg_at_k, recall_at_k
+from morel.eval import ablate, conditions, ndcg_at_k, recall_at_k, results
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, FitConfig
 from morel.train.recommendation import RankCfg, Recommendation

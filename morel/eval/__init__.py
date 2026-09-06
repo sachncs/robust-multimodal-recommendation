@@ -2,7 +2,7 @@
 
 from morel.eval.ablation import BASELINE, ablate, conditions
 from morel.eval.ablation import KIND as ABLATIONS
-from morel.eval.completion import variance, mse, per_modality
+from morel.eval.completion import mse, per_modality, variance
 from morel.eval.protocol import Robust, results, robustness_sweep
 from morel.eval.ranking import map_at_k, mrr, ndcg_at_k, precision_at_k, recall_at_k
 
@@ -11,9 +11,7 @@ __all__ = [
     "BASELINE",
     "Robust",
     "ablate",
-    "results",
     "conditions",
-    "variance",
     "map_at_k",
     "mrr",
     "mse",
@@ -21,5 +19,7 @@ __all__ = [
     "per_modality",
     "precision_at_k",
     "recall_at_k",
+    "results",
     "robustness_sweep",
+    "variance",
 ]

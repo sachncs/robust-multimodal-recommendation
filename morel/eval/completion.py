@@ -31,4 +31,4 @@ def variance(predictions: np.ndarray, targets: np.ndarray) -> float:
     return float(1.0 - ((targets - predictions).var() / var_y))
 
 
-__all__ = ["variance", "mse", "per_modality"]
+__all__ = ["mse", "per_modality", "variance"]
