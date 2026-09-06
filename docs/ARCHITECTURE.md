@@ -4,7 +4,9 @@ This document describes the package architecture and module layering.
 
 ## Layering
 
-Strict, one-way dependencies enforced by `import-linter`:
+The package follows a one-way dependency layout (documented in the
+dependency-graph diagram below). A former `import-linter` enforcement of these
+rules was removed; the diagram is now descriptive rather than machine-checked.
 
 ```
 cli/        (argparse dispatch; thin shim to app/)

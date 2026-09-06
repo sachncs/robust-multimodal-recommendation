@@ -50,7 +50,7 @@ refactor: rename _backtrack to backtrack
 
 ## Architecture
 
-Layering is strict and enforced by `import-linter`:
+The reference layering is:
 
 ```
 cli    → app

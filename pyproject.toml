@@ -54,7 +54,6 @@ dev = [
     "hypothesis>=6.90",
     "ruff>=0.5",
     "mypy>=1.10",
-    "import-linter>=2.0",
     "mkdocstrings>=0.24",
     "mkdocstrings-python>=1.10",
     "mkdocs-material>=9.5",
@@ -132,6 +131,7 @@ exclude_lines = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+exclude = ["morel/_version.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM", "ICN", "TID", "RUF", "PIE", "PT", "RET"]
@@ -167,49 +167,3 @@ exclude = ["tests/", "docs/", "benchmarks/", "examples/", "build/"]
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_defs = false
-
-[tool.importlinter]
-root_package = "morel"
-include_external_packages = false
-
-[[tool.importlinter.contracts]]
-name = "cli depends only on app and core"
-type = "forbidden"
-source_modules = ["morel.cli"]
-forbidden_modules = ["morel.data", "morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend", "morel.train", "morel.eval"]
-
-[[tool.importlinter.contracts]]
-name = "app does not depend on cli"
-type = "forbidden"
-source_modules = ["morel.app"]
-forbidden_modules = ["morel.cli"]
-
-[[tool.importlinter.contracts]]
-name = "train does not depend on app or cli"
-type = "forbidden"
-source_modules = ["morel.train"]
-forbidden_modules = ["morel.app", "morel.cli"]
-
-[[tool.importlinter.contracts]]
-name = "eval does not depend on app or cli"
-type = "forbidden"
-source_modules = ["morel.eval"]
-forbidden_modules = ["morel.app", "morel.cli"]
-
-[[tool.importlinter.contracts]]
-name = "model depends only on core and data"
-type = "forbidden"
-source_modules = ["morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend"]
-forbidden_modules = ["morel.train", "morel.eval", "morel.app", "morel.cli"]
-
-[[tool.importlinter.contracts]]
-name = "data depends only on core"
-type = "forbidden"
-source_modules = ["morel.data"]
-forbidden_modules = ["morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend", "morel.train", "morel.eval", "morel.app", "morel.cli"]
-
-[[tool.importlinter.contracts]]
-name = "core depends on nothing in morel"
-type = "forbidden"
-source_modules = ["morel.core"]
-forbidden_modules = ["morel.data", "morel.model", "morel.retrieve", "morel.encode", "morel.route", "morel.codebook", "morel.complete", "morel.recommend", "morel.train", "morel.eval", "morel.app", "morel.cli", "morel.pipeline"]

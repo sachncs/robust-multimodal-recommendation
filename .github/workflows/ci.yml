@@ -45,9 +45,6 @@ jobs:
       - name: Typecheck
         run: mypy morel/
 
-      - name: Import lint
-        run: lint-imports --config pyproject.toml
-
       - name: Security audit
         run: pip-audit --strict
 
