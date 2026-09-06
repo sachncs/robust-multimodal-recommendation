@@ -118,7 +118,7 @@ def build_loaders(
     return train_loader, DataLoader(val, batch_size=batch_size, collate_fn=collate)
 
 
-def build_loader(
+def build(
     features: dict[str, np.ndarray],
     mask: np.ndarray,
     adjacency: sp.csr_matrix,
@@ -235,7 +235,7 @@ def recommend_loaders(
     return train_loader, DataLoader(val, batch_size=batch_size)
 
 
-def synth_bipartite(
+def synth(
     rng: np.random.Generator, items: int, users: int
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generate one random (user_ids, item_ids) sample.
@@ -251,12 +251,12 @@ def synth_bipartite(
 __all__ = [
     "BPR",
     "Corpus",
-    "build_loader",
+    "build",
     "build_loaders",
     "collate",
     "recommend_loader",
     "recommend_loaders",
     "split",
-    "synth_bipartite",
+    "synth",
     "to_tensor",
 ]

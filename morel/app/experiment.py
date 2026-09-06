@@ -16,7 +16,7 @@ import torch
 from morel.app.data import (
     build_loaders,
     recommend_loaders,
-    synth_bipartite,
+    synth,
     to_tensor,
 )
 from morel.core.config import Config, Masking
@@ -59,7 +59,7 @@ def synthetic(
     """
     settings = masking if masking is not None else Masking()
     rng = np.random.default_rng(0)
-    user_ids, item_ids = synth_bipartite(rng, items=items, users=users)
+    user_ids, item_ids = synth(rng, items=items, users=users)
     ui = build_bipartite(user_ids, item_ids, users, items)
     adj = cooccurrence(ui)
     features = {

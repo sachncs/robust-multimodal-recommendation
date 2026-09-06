@@ -1,7 +1,7 @@
 """Shared test fixtures used across unit, integration, and research tests.
 
 Re-exports the application-layer helpers (``Corpus``,
-``build_loader``, ``make_completion_collate``, ...) from
+``build``, ``make_completion_collate``, ...) from
 ``morel.app.data`` so test code has a single canonical entry point.
 """
 
@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from morel.app.data import (
     Corpus,
-    build_loader,
+    build,
     collate,
     to_tensor,
 )
@@ -130,7 +130,7 @@ __all__ = [
     "Corpus",
     "SilentMonitor",
     "bpr_loader",
-    "build_loader",
+    "build",
     "build_path_graph",
     "collate",
     "make_completion_collate",
