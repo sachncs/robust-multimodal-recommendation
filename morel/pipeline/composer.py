@@ -160,11 +160,11 @@ class Pipeline(nn.Module):
         ------
             ConfigError: If ``config.recommend.kind`` is not registered.
         """
-        _ = ui_graph.shape[0]
+        users = ui_graph.shape[0]
         items = ui_graph.shape[1]
         recommender = build_recommend(
             self.config.recommend.kind,
-            users=items,
+            users=users,
             items=items,
             embed=self.config.recommend.embed,
             layers=self.config.recommend.layers,
