@@ -33,10 +33,10 @@ from morel.data.manifest import (
 from morel.data.mask import Mask, bernoulli, block, stack, structured
 from morel.data.store import load_graph, load_npz, save_graph, save_npz
 from morel.data.stream import (
-    exact_two_pass_interactions,
+    exact_interactions,
     review_stream,
-    streaming_interactions,
-    streaming_item_cooccurrence,
+    stream_cooc,
+    stream_interactions,
 )
 from morel.data.validate import features, graph
 from morel.data.validate import interactions as validate_interactions
@@ -137,7 +137,7 @@ __all__ = [
     "checksum",
     "cooccurrence",
     "download",
-    "exact_two_pass_interactions",
+    "exact_interactions",
     "features",
     "fetch",
     "fingerprint",
@@ -154,8 +154,8 @@ __all__ = [
     "save_manifest",
     "save_npz",
     "stack",
-    "streaming_interactions",
-    "streaming_item_cooccurrence",
+    "stream_cooc",
+    "stream_interactions",
     "structured",
     "text",
     "validate_interactions",

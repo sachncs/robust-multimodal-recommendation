@@ -53,7 +53,7 @@ def review_stream(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[li
             yield chunk
 
 
-def streaming_interactions(
+def stream_interactions(
     review_path: Path | str,
     *,
     min_edges: int = 5,
@@ -102,7 +102,7 @@ def streaming_interactions(
             yield users, items
 
 
-def exact_two_pass_interactions(
+def exact_interactions(
     review_path: Path | str,
     *,
     min_edges: int = 5,
@@ -175,7 +175,7 @@ def exact_two_pass_interactions(
     return ui, user2id, item2id
 
 
-def streaming_item_cooccurrence(
+def stream_cooc(
     ui_chunks: Iterator[tuple[np.ndarray, np.ndarray]],
     *,
     items: int,
@@ -218,8 +218,8 @@ def streaming_item_cooccurrence(
 
 
 __all__ = [
-    "exact_two_pass_interactions",
+    "exact_interactions",
     "review_stream",
-    "streaming_interactions",
-    "streaming_item_cooccurrence",
+    "stream_cooc",
+    "stream_interactions",
 ]

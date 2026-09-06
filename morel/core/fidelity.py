@@ -391,7 +391,7 @@ def register_all() -> None:
             paper="streaming adaptation of GRE-MC Section 4",
             equation="rolling-window online degree filter",
             status="APPROXIMATE",
-            implementation="morel.data.stream.streaming_interactions",
+            implementation="morel.data.stream.stream_interactions",
             test="tests/unit/data/stream.py",
             deviation="Online degree filter is offline-exact when two passes are available; "
             "single-pass streaming uses a rolling-window approximation. Offline k-core "
