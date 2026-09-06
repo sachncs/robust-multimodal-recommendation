@@ -94,9 +94,9 @@ morel = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "benchmarks"]
-python_files = ["test_*.py", "bench_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*", "bench_*"]
+python_files = ["*.py"]
+python_classes = ["Checker", "Spec"]
+python_functions = ["*"]
 addopts = ["-v", "--strict-markers", "--strict-config", "--tb=short", "--cov=morel", "--cov-report=term-missing", "--cov-report=xml", "--cov-fail-under=80"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

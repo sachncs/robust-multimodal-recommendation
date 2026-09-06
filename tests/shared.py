@@ -1,49 +1,49 @@
 """Shared test fixtures used across unit, integration, and research tests.
 
-Re-exports the application-layer helpers (``CompletionDataset``,
-``build_completion_loader``, ``make_completion_collate``, ...) from
-``morel.app.data`` so test code has a single canonical entry point.
+Each public name communicates its role; no ``_foo`` or ``__foo`` markers.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import Callable
 
 import numpy as np
 import scipy.sparse as sp
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from morel.app.data import (
-    CompletionDataset,
-    build_completion_loader,
-    collate_completion,
-    numpy_to_tensor,
-)
 
+def build_path_graph(n: int) -> sp.csr_matrix:
+    """Construct a path graph adjacency (no self-loops).
 
-class SilentMonitor:
-    """A monitor whose :meth:`log` is a no-op.
+    Args
+    ----
+    n : int
+        Number of nodes.
 
-    Used as the default monitor in trainer tests so that test runs do not
-    write metrics files.
+    Returns
+    -------
+    sp.csr_matrix
+        ``(n, n)`` adjacency with edges between consecutive nodes.
     """
+    rows: list[int] = []
+    cols: list[int] = []
+    for i in range(n - 1):
+        rows.extend([i, i + 1])
+        cols.extend([i + 1, i])
+    return sp.csr_matrix(
+        (np.ones(len(rows), dtype=np.float32), (rows, cols)),
+        shape=(n, n),
+    )
 
-    def log(self, step: int | None = None, **metrics: object) -> None:
-        """Discard the call. Accepts any keyword arguments."""
-        return
 
-
-def silent_monitor() -> SilentMonitor:
-    """Return a fresh :class:`SilentMonitor`."""
+def silent_monitor() -> "SilentMonitor":
+    """A monitor whose .log() is a no-op. Used in trainer tests."""
     return SilentMonitor()
 
 
 def make_completion_collate(features_keys: list[str]) -> Callable:
     """Build a DataLoader collate_fn for completion-stage batches.
-
-    This is a factory because the modality names are only known at
-    construction time, not per-batch.
 
     Args
     ----
@@ -70,17 +70,41 @@ def make_completion_collate(features_keys: list[str]) -> Callable:
     return collate
 
 
-def build_path_graph(n: int) -> sp.csr_matrix:
-    """Construct a path graph adjacency (no self-loops)."""
-    rows: list[int] = []
-    cols: list[int] = []
-    for i in range(n - 1):
-        rows.extend([i, i + 1])
-        cols.extend([i + 1, i])
-    return sp.csr_matrix(
-        (np.ones(len(rows), dtype=np.float32), (rows, cols)),
-        shape=(n, n),
-    )
+class SilentMonitor:
+    """A monitor whose .log() is a no-op."""
+
+    def log(self, *args, **kwargs):  # noqa: ANN001, D401
+        return None
+
+
+class CompletionDataset(Dataset):
+    """In-memory completion-stage dataset.
+
+    Each item returns ``{index, features, mask, adjacency}`` shaped
+    for the completion trainer's collate function.
+    """
+
+    def __init__(
+        self,
+        features: dict[str, np.ndarray],
+        mask: np.ndarray,
+        adjacency: sp.csr_matrix,
+    ) -> None:
+        self.features = features
+        self.mask = mask
+        self.adjacency = adjacency
+        self.n = mask.shape[0]
+
+    def __len__(self) -> int:
+        return self.n
+
+    def __getitem__(self, idx: int) -> dict:
+        return {
+            "index": idx,
+            "features": {k: v[idx] for k, v in self.features.items()},
+            "mask": self.mask[idx],
+            "adjacency": self.adjacency,
+        }
 
 
 class BPRDataset(Dataset):
@@ -104,11 +128,9 @@ class BPRDataset(Dataset):
         self.seed = seed
 
     def __len__(self) -> int:
-        """Return the number of batches in the dataset."""
         return self.n_batches
 
     def __getitem__(self, idx: int) -> dict:
-        """Return the generated BPR triple for index ``idx``."""
         rng = np.random.default_rng(idx + self.seed)
         return {
             "users": int(rng.integers(0, self.users)),
@@ -125,6 +147,20 @@ def build_bpr_loader(users: int, items: int, n: int, batch_size: int) -> DataLoa
     )
 
 
+def build_completion_loader(
+    features: dict[str, np.ndarray],
+    mask: np.ndarray,
+    adjacency: sp.csr_matrix,
+    batch_size: int = 4,
+) -> DataLoader:
+    """Build a default DataLoader for completion tests."""
+    return DataLoader(
+        CompletionDataset(features, mask, adjacency),
+        batch_size=batch_size,
+        collate_fn=make_completion_collate(list(features.keys())),
+    )
+
+
 __all__ = [
     "BPRDataset",
     "CompletionDataset",
@@ -132,8 +168,6 @@ __all__ = [
     "build_bpr_loader",
     "build_completion_loader",
     "build_path_graph",
-    "collate_completion",
     "make_completion_collate",
-    "numpy_to_tensor",
     "silent_monitor",
 ]
