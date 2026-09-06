@@ -102,14 +102,23 @@ class Trainer(ABC):
             start_epoch = state.epoch
             self.best_metric = state.metric
         no_improve = 0
+        train_loss = float("nan")
+        completed = 0
         for epoch in range(start_epoch, start_epoch + epochs):
             self.model.train()
             epoch_metrics = self.run_epoch(train_loader, epoch)
+            train_loss = float(epoch_metrics.get("loss", float("nan")))
+            completed = epoch - start_epoch + 1
             self.monitor.log(epoch=epoch, phase="train", **epoch_metrics)
-            val_metric = float("inf")
+            # Without a validation set, track the training loss instead of
+            # leaving the monitored metric at infinity. Otherwise nothing is
+            # ever an improvement: early stopping cannot trigger, no
+            # checkpoint is written, and the reported "best" is meaningless.
             if val_loader is not None:
                 val_metric = self.validate(val_loader)
                 self.monitor.log(epoch=epoch, phase="val", metric=val_metric)
+            else:
+                val_metric = train_loss
             if val_metric < self.best_metric:
                 self.best_metric = val_metric
                 no_improve = 0
@@ -121,7 +130,7 @@ class Trainer(ABC):
                     break
             if self.scheduler is not None:
                 self.scheduler.step()
-        return {"best": self.best_metric}
+        return {"best": self.best_metric, "train_loss": train_loss, "epochs": completed}
 
     def run_epoch(self, loader: DataLoader[Any], epoch: int) -> dict[str, Any]:
         """Run one training epoch and return the average loss."""
