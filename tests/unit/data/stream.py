@@ -10,7 +10,7 @@ import pytest
 
 from morel.data.stream import (
     exact_interactions,
-    review_stream,
+    review,
     stream_interactions,
     stream_cooc,
 )
@@ -35,7 +35,7 @@ class Checker:
             {"reviewerID": "u2", "asin": "i2"},
         ]
         path = write(tmp_path, records)
-        chunks = list(review_stream(path, chunk_size=2))
+        chunks = list(review(path, chunk_size=2))
         flat = [r for chunk in chunks for r in chunk]
         assert len(flat) == len(records)
 
@@ -43,7 +43,7 @@ class Checker:
         from morel.core.errors import DataError
 
         with pytest.raises(DataError):
-            list(review_stream(tmp_path / "nope.json"))
+            list(review(tmp_path / "nope.json"))
 
     def memory(self, tmp_path: Path) -> None:
         records = [

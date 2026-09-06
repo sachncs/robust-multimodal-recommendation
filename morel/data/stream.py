@@ -20,7 +20,7 @@ from morel.core.errors import DataError
 from morel.data.build import bipartite as build_bipartite
 
 
-def review_stream(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict[str, Any]]]:
+def review(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict[str, Any]]]:
     """Yield chunks of JSON-decoded records from an Amazon review file.
 
     Args
@@ -80,7 +80,7 @@ def stream_interactions(
     degree_counter: Counter[str] = Counter()
     seen_pairs: set[tuple[str, str]] = set()
 
-    for chunk in review_stream(review_path, chunk_size=chunk_size):
+    for chunk in review(review_path, chunk_size=chunk_size):
         for record in chunk:
             user = record.get("reviewerID")
             item = record.get("asin")
@@ -134,7 +134,7 @@ def exact_interactions(
 
     user_counts: Counter[str] = Counter()
     item_counts: Counter[str] = Counter()
-    for chunk in review_stream(review_path, chunk_size=chunk_size):
+    for chunk in review(review_path, chunk_size=chunk_size):
         for record in chunk:
             user = record.get("reviewerID")
             item = record.get("asin")
@@ -148,7 +148,7 @@ def exact_interactions(
 
     pairs: list[tuple[str, str]] = []
     seen: set[tuple[str, str]] = set()
-    for chunk in review_stream(review_path, chunk_size=chunk_size):
+    for chunk in review(review_path, chunk_size=chunk_size):
         for record in chunk:
             user = record.get("reviewerID")
             item = record.get("asin")
@@ -219,7 +219,7 @@ def stream_cooc(
 
 __all__ = [
     "exact_interactions",
-    "review_stream",
+    "review",
     "stream_cooc",
     "stream_interactions",
 ]

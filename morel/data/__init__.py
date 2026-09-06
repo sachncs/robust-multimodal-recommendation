@@ -34,7 +34,7 @@ from morel.data.mask import Mask, bernoulli, block, stack, structured
 from morel.data.store import load_graph, load_npz, save_graph, save_npz
 from morel.data.stream import (
     exact_interactions,
-    review_stream,
+    review,
     stream_cooc,
     stream_interactions,
 )
@@ -149,7 +149,7 @@ __all__ = [
     "load_npz",
     "manifest_path",
     "random",
-    "review_stream",
+    "review",
     "save_graph",
     "save_manifest",
     "save_npz",
