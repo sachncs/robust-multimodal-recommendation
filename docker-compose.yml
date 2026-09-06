@@ -1,0 +1,26 @@
+services:
+  morel-serve:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: morel:latest
+    container_name: morel-serve
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      MOREL_DATA_DIR: /data
+      MOREL_AUTH_TOKEN: ${MOREL_AUTH_TOKEN:-}
+    volumes:
+      - ./data:/data:ro
+      - ./checkpoints:/checkpoints:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3).read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 4G

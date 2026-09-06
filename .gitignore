@@ -131,3 +131,5 @@ data/features/
 checkpoints/
 results/
 logs/
+runs/
+*.manifest.json.tmp

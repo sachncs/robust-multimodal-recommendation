@@ -13,14 +13,14 @@ jobs:
     name: bench
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
       - run: pip install -e ".[bench,dev]"
       - run: pytest benchmarks/ --benchmark-only --benchmark-min-rounds=20 --benchmark-autosave
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bench
           path: .benchmarks/
