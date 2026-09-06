@@ -99,10 +99,10 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "build":
             run_build(args, config)
         elif args.cmd == "mask":
-            from morel.data import MASKS
+            from morel.data import build_mask
 
             seed_everything(config.seed)
-            mask = MASKS.create(
+            mask = build_mask(
                 args.kind,
                 items=args.items,
                 modalities=args.modalities,
@@ -134,7 +134,7 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     configured backbone is actually the one that runs. ``--synthetic`` forces
     the deterministic ``random`` encoder, which needs no model download.
     """
-    from morel.data import EXTRACTORS
+    from morel.data import build_extractor
     from morel.data.extract import text as encode_text
     from morel.data.manifest import Manifest
     from morel.data.store import save_npz
@@ -149,10 +149,10 @@ def run_extract(args: argparse.Namespace, config: Config) -> None:
     visual_kind = "random" if args.synthetic else config.encoder.visual
     log.info("extract.encoders", extra={"text": text_kind, "visual": visual_kind})
 
-    text_encoder = EXTRACTORS.create(
+    text_encoder = build_extractor(
         text_kind, dim=dim_text, batch=config.encoder.batch, seed=config.seed + 1
     )
-    visual_encoder = EXTRACTORS.create(
+    visual_encoder = build_extractor(
         visual_kind, dim=dim_visual, batch=config.encoder.batch, seed=config.seed
     )
     # Synthetic inputs are item ids; a real run would read them from data_dir.

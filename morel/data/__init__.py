@@ -5,7 +5,6 @@ Every stage produces artifacts with manifests.
 """
 
 from morel.core.errors import DataError
-from morel.core.registry import Registry
 from morel.data.acquire import download, fetch
 from morel.data.build import bipartite, interactions, item_cooccurrence, kcore
 from morel.data.extract import (
@@ -43,72 +42,87 @@ from morel.data.validate import features, graph
 from morel.data.validate import interactions as validate_interactions
 from morel.data.validate import mask as validate_mask
 
-#: Feature extractors, keyed by ``config.encoder.text`` / ``config.encoder.visual``.
-#:
-#: A factory takes ``dim``, ``batch`` and ``seed`` and returns something
-#: satisfying :class:`~morel.data.extract.FeatureEncoder`. Backbones that need
-#: an optional extra are constructed lazily, so importing morel never pulls in
-#: sentence-transformers or torchvision.
-EXTRACTORS: Registry[FeatureEncoder] = Registry("feature extractor")
 
+def build_extractor(
+    name: str, *, dim: int, batch: int = 64, seed: int = 0
+) -> FeatureEncoder:
+    """Build the feature encoder selected by ``config.encoder.{text,visual}``.
 
-@EXTRACTORS.register("random")
-def build_random_encoder(*, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
-    """Build the deterministic encoder used by the synthetic pipeline."""
-    del batch
-    return RandomEncoder(dim, seed=seed)
+    Args:
+        name: Encoder name. One of ``"random"``, a sentence-transformers model
+            name, or a torchvision model name.
+        dim: Output feature dimension.
+        batch: Inference batch size (used by NN backbones).
+        seed: RNG seed for the random encoder.
 
-
-@EXTRACTORS.register("sentence-transformers/all-MiniLM-L6-v2")
-def build_minilm(*, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
-    """Build the default text backbone; requires the ``text`` extra."""
-    del dim, seed
-    return SentenceTransformerEncoder("sentence-transformers/all-MiniLM-L6-v2", batch=batch)
-
-
-@EXTRACTORS.register("resnet50")
-def build_resnet50(*, dim: int, batch: int = 32, seed: int = 0) -> FeatureEncoder:
-    """Build the default visual backbone; requires the ``vision`` extra."""
-    del dim, seed
-    return TorchvisionEncoder("resnet50", batch=batch)
-
-
-#: Selectable masking strategies, keyed by ``config.masking.kind``.
-#:
-#: A strategy takes ``(items, modalities)`` plus ``ratio`` and ``seed`` and
-#: returns a :class:`~morel.data.mask.Mask`. It takes the full argument set
-#: even if it ignores part of it, so strategies stay interchangeable.
-MASKS: Registry[Mask] = Registry("masking strategy")
-
-
-@MASKS.register("bernoulli")
-def build_bernoulli_mask(*, items: int, modalities: int, ratio: float, seed: int) -> Mask:
-    """Mask each (item, modality) pair independently with probability ``ratio``."""
-    return bernoulli(items, modalities, ratio, seed=seed)
-
-
-@MASKS.register("block")
-def build_block_mask(*, items: int, modalities: int, ratio: float, seed: int) -> Mask:
-    """Mask a contiguous span of modalities per item.
-
-    ``ratio`` is the fraction of an item's modalities to drop, so the knob
-    means the same thing as it does for the Bernoulli strategy. The span is
-    capped at ``modalities - 1`` because a Mask must leave every item at least
-    one observed modality -- with nothing observed there is nothing to
-    complete from.
+    Returns
+    -------
+        A :class:`FeatureEncoder` instance.
 
     Raises
     ------
-        DataError: If there is only one modality, where block masking could
-            only produce fully-unobserved items.
+        DataError: If ``name`` is not a known encoder.
     """
-    if modalities < 2:
-        raise DataError(
-            f"block masking needs at least 2 modalities, got {modalities}; "
-            "every item must keep one observed modality"
-        )
-    span = min(max(1, round(modalities * ratio)), modalities - 1)
-    return block(items, modalities, span, seed=seed)
+    if name == "random":
+        return RandomEncoder(dim, seed=seed)
+    if name == "sentence-transformers/all-MiniLM-L6-v2":
+        return SentenceTransformerEncoder(name, batch=batch)
+    if name == "resnet50":
+        return TorchvisionEncoder(name, batch=batch)
+    raise DataError(
+        f"unknown feature encoder {name!r}; available: random, "
+        f"sentence-transformers/all-MiniLM-L6-v2, resnet50"
+    )
+
+
+#: Map from config name to encoder class for introspection.
+EXTRACTORS: dict[str, type[FeatureEncoder]] = {
+    "random": RandomEncoder,
+    "sentence-transformers/all-MiniLM-L6-v2": SentenceTransformerEncoder,
+    "resnet50": TorchvisionEncoder,
+}
+
+
+def build_mask(
+    kind: str, *, items: int, modalities: int, ratio: float, seed: int
+) -> Mask:
+    """Build the masking strategy selected by ``config.masking.kind``.
+
+    Args:
+        kind: Mask name. One of ``"bernoulli"``, ``"block"``.
+        items: Number of items to mask.
+        modalities: Number of modalities per item.
+        ratio: Fraction of modalities to drop.
+        seed: RNG seed for reproducibility.
+
+    Returns
+    -------
+        A :class:`Mask` instance.
+
+    Raises
+    ------
+        DataError: If ``kind`` is not a known mask name.
+    """
+    if kind == "bernoulli":
+        return bernoulli(items, modalities, ratio, seed=seed)
+    if kind == "block":
+        if modalities < 2:
+            raise DataError(
+                f"block masking needs at least 2 modalities, got {modalities}; "
+                "every item must keep one observed modality"
+            )
+        span = min(max(1, round(modalities * ratio)), modalities - 1)
+        return block(items, modalities, span, seed=seed)
+    raise DataError(
+        f"unknown masking kind {kind!r}; available: bernoulli, block"
+    )
+
+
+#: Map from config name to mask factory for introspection.
+MASKS: dict[str, object] = {
+    "bernoulli": bernoulli,
+    "block": block,
+}
 
 
 __all__ = [
@@ -123,11 +137,8 @@ __all__ = [
     "bernoulli",
     "bipartite",
     "block",
-    "build_bernoulli_mask",
-    "build_block_mask",
-    "build_minilm",
-    "build_random_encoder",
-    "build_resnet50",
+    "build_extractor",
+    "build_mask",
     "checksum",
     "download",
     "exact_two_pass_interactions",

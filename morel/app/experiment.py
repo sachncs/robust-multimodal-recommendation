@@ -23,7 +23,7 @@ from morel.core.config import Config, Masking
 from morel.core.fidelity import render_json, render_markdown
 from morel.core.log import get as get_logger
 from morel.core.seed import seed as seed_everything
-from morel.data import MASKS
+from morel.data import build_mask
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import item_cooccurrence
 from morel.data.manifest import Manifest
@@ -66,7 +66,7 @@ def synthetic_dataset(
         "visual": rng.normal(size=(items, dim_visual)).astype(np.float32),
         "text": rng.normal(size=(items, dim_text)).astype(np.float32),
     }
-    mask = MASKS.create(
+    mask = build_mask(
         settings.kind,
         items=items,
         modalities=2,

@@ -159,15 +159,15 @@ class Checker:
         """docs/ARCHITECTURE.md must not drift from what is actually registered."""
         from morel.codebook import CODEBOOKS
         from morel.complete import COMPLETERS
-        from morel.data import EXTRACTORS, MASKS
+        from morel.data import build_extractor, build_mask
         from morel.encode import ENCODERS
         from morel.recommend import RECOMMENDERS
         from morel.retrieve import KIND as STRATEGIES
         from morel.route import ROUTERS
 
         registries = {
-            "MASKS": MASKS,
-            "EXTRACTORS": EXTRACTORS,
+            "MASKS": build_mask,
+            "EXTRACTORS": build_extractor,
             "STRATEGIES": STRATEGIES,  # KIND dict from morel.retrieve
             "ENCODERS": ENCODERS,
             "ROUTERS": ROUTERS,
