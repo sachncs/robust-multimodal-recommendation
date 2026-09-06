@@ -27,7 +27,7 @@ from morel.serve.schema import (
     serialize,
 )
 from morel.serve.update import (
-    DefaultStp,
+    Default,
     Event,
     Outcome,
     Signal,
@@ -37,7 +37,7 @@ from morel.serve.update import (
 
 __all__ = [
     "Ask",
-    "DefaultStp",
+    "Default",
     "Done",
     "Event",
     "Fill",

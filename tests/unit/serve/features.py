@@ -203,11 +203,11 @@ class Checker:
         assert updater.version == 1
 
     def polymorphic(self) -> None:
-        """Step Protocol: DefaultStp and a custom callable both work."""
-        from morel.serve.update import DefaultStp
+        """Step Protocol: Default and a custom callable both work."""
+        from morel.serve.update import Default
 
         base = Updater(Tiny(), cooldown_seconds=0)
-        assert isinstance(base.loss_step, DefaultStp)
+        assert isinstance(base.loss_step, Default)
         custom = Updater(
             Tiny(),
             cooldown_seconds=0,
