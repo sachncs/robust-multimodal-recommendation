@@ -44,7 +44,7 @@ def robustness_sweep(
     return Robust(ratios=ratios, metrics=metric_lists)
 
 
-def ablation_results(
+def results(
     scores_by_condition: dict[str, np.ndarray],
     labels: np.ndarray,
     *,
@@ -64,4 +64,4 @@ def ablation_results(
     return {name: metric(scores, labels) for name, scores in scores_by_condition.items()}
 
 
-__all__ = ["Robust", "ablation_results", "robustness_sweep"]
+__all__ = ["Robust", "results", "robustness_sweep"]

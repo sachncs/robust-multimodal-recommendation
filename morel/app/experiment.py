@@ -27,7 +27,7 @@ from morel.data import build_mask
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import cooccurrence
 from morel.data.manifest import Manifest
-from morel.eval import ablate, ablation_results, conditions, ndcg_at_k, recall_at_k
+from morel.eval import ablate, results, conditions, ndcg_at_k, recall_at_k
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, FitConfig
 from morel.train.recommendation import RankCfg, Recommendation
@@ -428,10 +428,10 @@ class Ablate:
 
         metrics: dict[str, dict[str, float]] = {}
         for k in self.config.eval.ks:
-            metrics[f"recall@{k}"] = ablation_results(
+            metrics[f"recall@{k}"] = results(
                 scores_by_condition, labels, metric=partial(recall_at_k, k=k)
             )
-            metrics[f"ndcg@{k}"] = ablation_results(
+            metrics[f"ndcg@{k}"] = results(
                 scores_by_condition, labels, metric=partial(ndcg_at_k, k=k)
             )
 

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from morel.eval import (
-    ablation_results,
+    results,
     variance,
     map_at_k,
     mrr,
@@ -82,6 +82,6 @@ class Checker:
     def results(self) -> None:
         s = np.random.default_rng(0).random((3, 5))
         labels = np.eye(3, 5)
-        out = ablation_results({"a": s, "b": labels}, labels, metric=lambda x, y: 1.0)
+        out = results({"a": s, "b": labels}, labels, metric=lambda x, y: 1.0)
         assert set(out.keys()) == {"a", "b"}
         assert out["a"] == 1.0
