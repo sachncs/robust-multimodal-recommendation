@@ -17,7 +17,7 @@ import time
 
 import torch.nn as nn
 
-from morel.serve.update import PipelineUpdater
+from morel.serve.update import Updater
 
 TIMEOUT = 10.0
 
@@ -27,9 +27,9 @@ TIMEOUT = 10.0
 MIN_READS = 200
 
 
-def updater() -> PipelineUpdater:
+def updater() -> Updater:
     """Return an updater over a trivial model."""
-    return PipelineUpdater(nn.Linear(4, 4))
+    return Updater(nn.Linear(4, 4))
 
 
 class Checker:

@@ -1,7 +1,7 @@
 """Reader-writer lock for the live serve pipeline.
 
 The serve stack runs inference requests concurrently while the
-``PipelineUpdater`` runs periodic update steps. A reader-writer lock
+``Updater`` runs periodic update steps. A reader-writer lock
 ensures readers never see a half-applied update, and writers are
 serialised.
 """

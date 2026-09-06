@@ -1,4 +1,4 @@
-"""Tests for two-token auth, RWLock, and PipelineUpdater."""
+"""Tests for two-token auth, RWLock, and Updater."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from morel.serve.auth import (
     token_for_scope,
 )
 from morel.serve.lock import RWLock
-from morel.serve.update import PipelineUpdater
+from morel.serve.update import Updater
 
 
 class TinyModel(nn.Module):
@@ -42,7 +42,7 @@ class TinyModel(nn.Module):
 
 
 
-# ---- PipelineUpdater ----
+# ---- Updater ----
 
 
 class Checker:
@@ -158,19 +158,19 @@ class Checker:
         assert counter[0] == 0
 
     def buffer(self) -> None:
-        updater = PipelineUpdater(TinyModel())
+        updater = Updater(TinyModel())
         for i in range(8):
             updater.accept(user=i, item=i, signal="like")
         assert updater.stats()["events_buffered"] == 8
         assert updater.stats()["replay_buffered"] == 8
 
     def returns(self) -> None:
-        updater = PipelineUpdater(TinyModel())
+        updater = Updater(TinyModel())
         result = updater.tick()
         assert result.committed is False
 
     def commit(self) -> None:
-        updater = PipelineUpdater(
+        updater = Updater(
             TinyModel(),
             cooldown_seconds=0,
             loss_step=lambda batch: 0.5,
@@ -183,7 +183,7 @@ class Checker:
         assert updater.stats()["updates_applied"] == 1
 
     def loss(self) -> None:
-        updater = PipelineUpdater(
+        updater = Updater(
             TinyModel(),
             cooldown_seconds=30,
             loss_step=lambda batch: float("nan"),
@@ -195,7 +195,7 @@ class Checker:
         assert updater.cooldown_until > time.time()
 
     def version(self) -> None:
-        updater = PipelineUpdater(
+        updater = Updater(
             TinyModel(),
             cooldown_seconds=0,
             loss_step=lambda batch: 0.5,
@@ -210,12 +210,12 @@ class Checker:
         assert updater.version == 1
 
     def polymorphic(self) -> None:
-        """LossStep Protocol: DefaultStep and a custom callable both work."""
+        """Step Protocol: DefaultStep and a custom callable both work."""
         from morel.serve.update import DefaultStep
 
-        base = PipelineUpdater(TinyModel(), cooldown_seconds=0)
+        base = Updater(TinyModel(), cooldown_seconds=0)
         assert isinstance(base.loss_step, DefaultStep)
-        custom = PipelineUpdater(
+        custom = Updater(
             TinyModel(),
             cooldown_seconds=0,
             loss_step=lambda batch: 0.42,

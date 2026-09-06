@@ -29,9 +29,9 @@ from morel.serve.schema import (
 from morel.serve.update import (
     DefaultStep,
     Event,
-    LossStep,
-    PipelineUpdater,
     Signal,
+    Step,
+    Updater,
     UpdateResult,
 )
 
@@ -44,8 +44,6 @@ __all__ = [
     "FeedbackResponse",
     "HealthResponse",
     "Loader",
-    "LossStep",
-    "PipelineUpdater",
     "RWLock",
     "ReadGuard",
     "RecommendItem",
@@ -55,7 +53,9 @@ __all__ = [
     "Scope",
     "Signal",
     "StatsResponse",
+    "Step",
     "UpdateResult",
+    "Updater",
     "WriteGuard",
     "admin_enabled",
     "assert_configured",

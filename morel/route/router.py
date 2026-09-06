@@ -32,9 +32,7 @@ class Router(nn.Module, ABC):
         super().__init__()
 
     @abstractmethod
-    def forward(
-        self, hidden: torch.Tensor, *, training: bool = True
-    ) -> Weights:
+    def forward(self, hidden: torch.Tensor, *, training: bool = True) -> Weights:
         """Route hidden states to a routing distribution.
 
         Args:
@@ -133,9 +131,7 @@ class Fixed(Router):
         """
         batch = int(hidden.shape[0])
         logits = torch.zeros(batch, self.k, device=hidden.device, dtype=hidden.dtype)
-        probs = torch.full(
-            (batch, self.k), 1.0 / self.k, device=hidden.device, dtype=hidden.dtype
-        )
+        probs = torch.full((batch, self.k), 1.0 / self.k, device=hidden.device, dtype=hidden.dtype)
         return Weights(probs=probs, logits=logits)
 
 

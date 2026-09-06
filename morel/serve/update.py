@@ -1,6 +1,6 @@
 """Online full-pipeline update: replay buffer + divergence guard.
 
-The serve stack optionally runs a background ``PipelineUpdater`` that
+The serve stack optionally runs a background ``Updater`` that
 applies periodic updates to both the completion and the recommendation
 stages using:
 
@@ -52,7 +52,7 @@ class UpdateResult:
     n_replay_used: int
 
 
-class LossStep(Protocol):
+class Step(Protocol):
     """Compute the loss for one update step given a batch of feedback.
 
     Implementations may be the production trainer step, a small
@@ -78,7 +78,7 @@ class DefaultStep:
         return float(_time.time()) * 0.001 + 0.1 * math.log1p(len(batch))
 
 
-class PipelineUpdater:
+class Updater:
     """Background updater that calls :meth:`tick` periodically.
 
     Args
@@ -109,7 +109,7 @@ class PipelineUpdater:
         cooldown_seconds: float = 60.0,
         replay_ratio: float = 0.3,
         val_ratio: float = 0.1,
-        loss_step: LossStep | None = None,
+        loss_step: Step | None = None,
     ) -> None:
         self.pipeline = pipeline
         # Two locks for two concerns. ``lock`` guards model state -- weights,
@@ -130,7 +130,7 @@ class PipelineUpdater:
         self.cooldown_until: float = 0.0
         self.replay_ratio = float(replay_ratio)
         self.val_ratio = float(val_ratio)
-        self.loss_step: LossStep = loss_step or DefaultStep()
+        self.loss_step: Step = loss_step or DefaultStep()
         self.version = 0
         self.loss_window: deque[float] = deque(maxlen=64)
         self.last_loss = float("nan")
@@ -255,8 +255,8 @@ class PipelineUpdater:
 __all__ = [
     "DefaultStep",
     "Event",
-    "LossStep",
-    "PipelineUpdater",
     "Signal",
+    "Step",
     "UpdateResult",
+    "Updater",
 ]

@@ -406,7 +406,7 @@ def register_all() -> None:
             paper="production extension of GRE-MC Section 5",
             equation="replay buffer + divergence guard",
             status="APPROXIMATE",
-            implementation="morel.serve.update.PipelineUpdater",
+            implementation="morel.serve.update.Updater",
             test="tests/unit/serve/features.py",
             deviation="Not a closed-form online-learning algorithm. Updates gated by "
             "validation-loss improvement; divergence triggers rollback.",
