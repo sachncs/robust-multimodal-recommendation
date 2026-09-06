@@ -50,7 +50,7 @@ def main() -> None:
     print(f"Reconstructed visual shape: {tuple(output.completed['visual'].shape)}")
     print(f"Routing weights shape: {tuple(output.routing.shape)}")
 
-    recommender = Light(users=users, items=items, embed=32, layers=2)
+    recommender = Light(users=users, items=items, embed=32, layers=2, seed=config.seed)
     scores = recommender(torch.arange(users), torch.arange(items), ui)
     print(f"Score matrix shape: {tuple(scores.shape)}")
 
