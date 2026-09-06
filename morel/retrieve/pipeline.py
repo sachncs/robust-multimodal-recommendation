@@ -189,8 +189,13 @@ def retrieve(
     if not observed and kind != "bfs":
         return {int(query)}
     subgraph = strategy(  # type: ignore[operator]
-        query, features, mask, adj,
-        anchors=anchors, iters=iters, fallback=fallback,
+        query,
+        features,
+        mask,
+        adj,
+        anchors=anchors,
+        iters=iters,
+        fallback=fallback,
     )
     subgraph = set(subgraph)
     subgraph.add(int(query))

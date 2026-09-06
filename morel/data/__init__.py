@@ -43,9 +43,7 @@ from morel.data.validate import interactions as validate_interactions
 from morel.data.validate import mask as validate_mask
 
 
-def build_extractor(
-    name: str, *, dim: int, batch: int = 64, seed: int = 0
-) -> FeatureEncoder:
+def build_extractor(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
     """Build the feature encoder selected by ``config.encoder.{text,visual}``.
 
     Args:
@@ -83,9 +81,7 @@ EXTRACTORS: dict[str, type[FeatureEncoder]] = {
 }
 
 
-def build_mask(
-    kind: str, *, items: int, modalities: int, ratio: float, seed: int
-) -> Mask:
+def build_mask(kind: str, *, items: int, modalities: int, ratio: float, seed: int) -> Mask:
     """Build the masking strategy selected by ``config.masking.kind``.
 
     Args:
@@ -113,9 +109,7 @@ def build_mask(
             )
         span = min(max(1, round(modalities * ratio)), modalities - 1)
         return block(items, modalities, span, seed=seed)
-    raise DataError(
-        f"unknown masking kind {kind!r}; available: bernoulli, block"
-    )
+    raise DataError(f"unknown masking kind {kind!r}; available: bernoulli, block")
 
 
 #: Map from config name to mask factory for introspection.
