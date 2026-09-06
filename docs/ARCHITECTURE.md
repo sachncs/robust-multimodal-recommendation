@@ -75,9 +75,53 @@ raw text + images
 
 A single `Config` dataclass tree at `morel.core.config.Config` is the source of truth. Precedence is `CLI > env > YAML > default`. Every experiment produces a `Manifest` sidecar carrying dataset, version, code hash, seed, extractor, and config hash. Resuming a run requires the config hash to match.
 
+## Extension points
+
+Each pipeline stage is selected by a `kind` in the config and built through a
+registry. The registries are `morel.encode.ENCODERS`, `morel.route.ROUTERS`,
+`morel.codebook.CODEBOOKS`, `morel.complete.COMPLETERS` and
+`morel.recommend.RECOMMENDERS`; each is a `morel.core.registry.Registry`.
+
+| Config field | Registry | Shipped kinds |
+|---|---|---|
+| `encode.kind` | `ENCODERS` | `transformer`, `identity` |
+| `route.kind` | `ROUTERS` | `top`, `dense`, `gumbel`, `fixed` |
+| `codebook.kind` | `CODEBOOKS` | `gumbel`, `vq`, `identity` |
+| `complete.kind` | `COMPLETERS` | `mlp` |
+| `recommend.kind` | `RECOMMENDERS` | `light`, `mf`, `pop` |
+
+Adding an implementation does not require editing morel. Register a factory
+under a new name and select it from config:
+
+```python
+from morel.codebook import CODEBOOKS
+
+
+@CODEBOOKS.register("my-codebook")
+def build_mine(*, dim, size, router, seed=None):
+    return MyCodebook(dim, size)
+```
+
+```yaml
+codebook:
+  kind: my-codebook
+```
+
+A factory takes keyword arguments only, and takes the full set its stage
+supplies even if it ignores some of them, so that all implementations of a
+stage are interchangeable. An unregistered `kind` raises `ConfigError` listing
+the names that are available; registering an existing name raises unless
+`replace=True`.
+
+`tests/unit/pipeline/test_component_selection.py` checks that every shipped
+combination runs end to end and that a component defined outside the package
+is selectable.
+
 ## Determinism
 
-`morel.core.seed.seed(value)` is the single entry point that sets `torch`, `torch.cuda`, `numpy`, `random`, `PYTHONHASHSEED`, `cudnn.deterministic`, and `cudnn.benchmark`. Every CLI calls it at startup. `state()` and `restore()` snapshot RNG state for resume.
+`morel.core.seed.seed(value)` sets `torch`, `torch.cuda`, `numpy`, `random`, `PYTHONHASHSEED`, `cudnn.deterministic`, and `cudnn.benchmark` process-wide. `morel.core.seed.deterministic(value)` is the scoped form: it seeds for the duration of a block and restores the caller's RNG state on exit, which is how model constructors are made reproducible without perturbing the surrounding program. `state()` and `restore()` snapshot RNG state for resume.
+
+Component construction is seeded from `config.seed`, so two pipelines built from one config hold identical weights regardless of ambient RNG state. `Pipeline.forward(training=False)` switches the module into eval mode for the call, so an inference pass applies no dropout. `morel.graph.laplacian.pe` pins ARPACK's start vector, sorts eigenvalues, and canonicalises eigenvector signs and the basis of degenerate eigenspaces; graphs up to `DENSE_MAX_NODES` use the direct dense solver, which is bitwise reproducible.
 
 ## Observability
 

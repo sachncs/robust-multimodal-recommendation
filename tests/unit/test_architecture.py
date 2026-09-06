@@ -131,3 +131,45 @@ def test_package_imports_are_acyclic() -> None:
 def test_core_depends_on_nothing_else_in_morel() -> None:
     """The foundation layer must stay free of upward dependencies."""
     assert import_graph().get("core", set()) == set()
+
+
+def documented_kinds() -> dict[str, set[str]]:
+    """Parse the extension-point table out of docs/ARCHITECTURE.md."""
+    doc = (SOURCE.parent / "docs" / "ARCHITECTURE.md").read_text(encoding="utf-8")
+    found: dict[str, set[str]] = {}
+    for line in doc.splitlines():
+        if not line.startswith("| `") or ".kind`" not in line:
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) != 3:
+            continue
+        registry = cells[1].strip("`")
+        kinds = {k.strip().strip("`") for k in cells[2].split(",")}
+        found[registry] = kinds
+    return found
+
+
+def test_documented_extension_points_match_the_registries() -> None:
+    """docs/ARCHITECTURE.md must not drift from what is actually registered."""
+    from morel.codebook import CODEBOOKS
+    from morel.complete import COMPLETERS
+    from morel.encode import ENCODERS
+    from morel.recommend import RECOMMENDERS
+    from morel.route import ROUTERS
+
+    registries = {
+        "ENCODERS": ENCODERS,
+        "ROUTERS": ROUTERS,
+        "CODEBOOKS": CODEBOOKS,
+        "COMPLETERS": COMPLETERS,
+        "RECOMMENDERS": RECOMMENDERS,
+    }
+    documented = documented_kinds()
+    assert set(documented) == set(registries), (
+        f"documented registries {sorted(documented)} != {sorted(registries)}"
+    )
+    for name, registry in registries.items():
+        assert documented[name] == set(registry.available()), (
+            f"{name}: docs list {sorted(documented[name])}, "
+            f"code registers {sorted(registry.available())}"
+        )
