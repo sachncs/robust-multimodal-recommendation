@@ -21,14 +21,14 @@ from morel.core.errors import MorelError
 
 
 @dataclass
-class DistributedState:
+class Cluster:
     """Module-level distributed runtime state."""
 
     backend: str | None = None
     initialized: bool = False
 
 
-state = DistributedState()
+state = Cluster()
 
 
 def init(backend: str | None = None) -> dict[str, Any]:
@@ -167,7 +167,7 @@ def cleanup() -> None:
 
 
 __all__ = [
-    "DistributedState",
+    "Cluster",
     "barrier",
     "cleanup",
     "init",

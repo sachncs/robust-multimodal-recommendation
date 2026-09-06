@@ -3,7 +3,7 @@
 from morel.core.config import Config
 from morel.core.device import Device, device, to
 from morel.core.distributed import (
-    DistributedState,
+    Cluster,
     barrier,
     cleanup,
     init,
@@ -68,12 +68,12 @@ from morel.core.seed import state as seed_state
 from morel.core.types import Embedding, Graph, Mask, Modality
 
 __all__ = [
+    "Cluster",
     "Config",
     "ConfigError",
     "DataError",
     "DeterminismError",
     "Device",
-    "DistributedState",
     "Embedding",
     "EvalError",
     "FidelityEntry",
