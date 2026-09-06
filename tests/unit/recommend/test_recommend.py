@@ -23,12 +23,12 @@ def test_light_l0_equals_dot() -> None:
 
 
 def test_light_invalid_dims() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="users and items must be positive"):
         Light(users=0, items=5)
 
 
 def test_light_invalid_layers() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="layers must be non-negative"):
         Light(users=5, items=5, layers=-1)
 
 

@@ -10,7 +10,7 @@ from morel.core.seed import restore, seed, state
 
 
 def test_seed_negative_raises() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="seed must be non-negative"):
         seed(-1)
 
 

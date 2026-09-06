@@ -76,7 +76,7 @@ def test_transformer_pool_token() -> None:
 def test_transformer_rejects_invalid_pool() -> None:
     import pytest
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="unknown pool"):
         Transformer(dims={"v": 4}, pe_dim=2, hidden=8, layers=1, heads=2, pool="bogus")
 
 
@@ -105,7 +105,7 @@ def test_baseline_unknown_kind() -> None:
 
     from morel.encode import GraphEncoderBaseline
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="unknown baseline kind"):
         GraphEncoderBaseline("nope", dims={"v": 4}, pe_dim=2, hidden=8)
 
 

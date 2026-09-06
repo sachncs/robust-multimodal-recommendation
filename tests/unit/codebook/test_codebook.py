@@ -27,7 +27,7 @@ def test_vq_quantizes_to_nearest() -> None:
 def test_vq_invalid_size() -> None:
     import pytest
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="size must be positive"):
         VQ(dim=4, size=0)
 
 
@@ -58,7 +58,7 @@ def test_identity_codebook_passthrough() -> None:
 def test_identity_codebook_rejects_invalid_size() -> None:
     import pytest
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="size must be positive"):
         IdentityCodebook(dim=4, size=0)
 
 

@@ -26,7 +26,7 @@ def test_recall_perfect() -> None:
 
 
 def test_recall_invalid_k() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="k must be positive"):
         recall_at_k(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
 
 
@@ -37,7 +37,7 @@ def test_ndcg_perfect() -> None:
 
 
 def test_ndcg_invalid_k() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="k must be positive"):
         ndcg_at_k(np.zeros((2, 5)), np.zeros((2, 5)), k=0)
 
 
@@ -81,7 +81,7 @@ def test_robustness_sweep() -> None:
     sweep = robustness_sweep(
         {0.1: scores, 0.5: scores, 0.9: scores},
         labels,
-        metrics={"recall": lambda s, l: recall_at_k(s, l, k=3)},
+        metrics={"recall": lambda s, labels: recall_at_k(s, labels, k=3)},
     )
     assert sweep.ratios == [0.1, 0.5, 0.9]
     assert len(sweep.metrics["recall"]) == 3
@@ -89,7 +89,7 @@ def test_robustness_sweep() -> None:
 
 def test_ablation_results() -> None:
     s = np.random.default_rng(0).random((3, 5))
-    l = np.eye(3, 5)
-    out = ablation_results({"a": s, "b": l}, l, metric=lambda x, y: 1.0)
+    labels = np.eye(3, 5)
+    out = ablation_results({"a": s, "b": labels}, labels, metric=lambda x, y: 1.0)
     assert set(out.keys()) == {"a", "b"}
     assert out["a"] == 1.0

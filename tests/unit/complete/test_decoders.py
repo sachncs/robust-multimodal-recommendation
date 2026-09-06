@@ -32,10 +32,10 @@ def test_decoders_custom_hidden() -> None:
 
 
 def test_decoders_invalid_latent() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="latent_dim must be positive"):
         Decoders(latent_dim=0, dims={"v": 4})
 
 
 def test_decoders_invalid_dims() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="dims must not be empty"):
         Decoders(latent_dim=8, dims={})

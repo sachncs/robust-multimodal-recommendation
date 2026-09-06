@@ -30,12 +30,12 @@ def test_top_routing_is_sparse() -> None:
 
 
 def test_top_p_greater_than_k_raises() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="must be <= k"):
         Top(dim=8, k=5, p=10)
 
 
 def test_top_invalid_tau() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="tau must be positive"):
         Top(dim=8, k=5, p=2, tau=0.0)
 
 
@@ -53,7 +53,7 @@ def test_build_factory() -> None:
 
 
 def test_build_unknown() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="unknown router kind"):
         build("nope", dim=8, k=10, p=3, tau=0.5)
 
 

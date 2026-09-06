@@ -32,7 +32,7 @@ def make_client(app) -> httpx.AsyncClient:
 
 
 def test_loader_capacity() -> None:
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="capacity must be positive"):
         Loader(capacity=0)
 
 
@@ -55,12 +55,12 @@ def test_loader_evicts() -> None:
     loader.get("a", lambda: object())
     loader.get("b", lambda: object())
     loader.get("c", lambda: object())
-    assert "a" not in loader.keys()
+    assert "a" not in loader.cache
 
 
 def test_loader_empty_key() -> None:
     loader = Loader()
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="key must be a non-empty string"):
         loader.get("", lambda: object())
 
 

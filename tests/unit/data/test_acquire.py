@@ -22,6 +22,8 @@ def test_fetch_writes_file(tmp_path: Path) -> None:
 
 def test_fetch_retries_then_raises(tmp_path: Path) -> None:
     target = tmp_path / "x.bin"
-    with patch("morel.data.acquire.urllib.request.urlopen", side_effect=OSError("boom")):
-        with pytest.raises(DataError):
-            fetch("https://example.invalid/x.bin", target, timeout=1, retries=2, backoff=1.0)
+    with (
+        patch("morel.data.acquire.urllib.request.urlopen", side_effect=OSError("boom")),
+        pytest.raises(DataError),
+    ):
+        fetch("https://example.invalid/x.bin", target, timeout=1, retries=2, backoff=1.0)

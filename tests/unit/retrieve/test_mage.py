@@ -53,5 +53,5 @@ def test_mage_invalid_iters(setup) -> None:
 def test_mage_self_loops_raise(setup) -> None:
     features, mask, _ = setup
     g_loopy = sp.csr_matrix(np.eye(3, dtype=np.float32))
-    with pytest.raises(Exception):
+    with pytest.raises(GraphError, match="graph has self-loops"):
         expand(g_loopy, [0, 2], 0, features, mask[:3], iters=3)
