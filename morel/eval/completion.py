@@ -10,7 +10,7 @@ def mse(predictions: np.ndarray, targets: np.ndarray) -> float:
     return float(((predictions - targets) ** 2).mean())
 
 
-def per_modality_mse(
+def per_modality(
     predictions: dict[str, np.ndarray], targets: dict[str, np.ndarray]
 ) -> dict[str, float]:
     """Per-modality mean squared error."""
@@ -31,4 +31,4 @@ def explained_variance(predictions: np.ndarray, targets: np.ndarray) -> float:
     return float(1.0 - ((targets - predictions).var() / var_y))
 
 
-__all__ = ["explained_variance", "mse", "per_modality_mse"]
+__all__ = ["explained_variance", "mse", "per_modality"]

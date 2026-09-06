@@ -12,7 +12,7 @@ from morel.eval import (
     mrr,
     mse,
     ndcg_at_k,
-    per_modality_mse,
+    per_modality,
     precision_at_k,
     recall_at_k,
     robustness_sweep,
@@ -61,7 +61,7 @@ class Checker:
     def mse(self) -> None:
         a = np.array([[1.0, 2.0]])
         b = np.array([[0.0, 0.0]])
-        out = per_modality_mse({"v": a}, {"v": b})
+        out = per_modality({"v": a}, {"v": b})
         assert out["v"] == mse(a, b)
 
     def one(self) -> None:
