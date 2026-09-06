@@ -8,6 +8,7 @@ drift.
 
 ```python
 import morel
+
 morel.__version__
 from morel import Config, Pipeline, Output, seed_everything
 ```
@@ -20,16 +21,44 @@ from morel import Config, Pipeline, Output, seed_everything
 ```python
 from morel.core import (
     Config,
-    Device, device, to,
-    Modality, Mask, Graph, Embedding,
-    MorelError, DataError, ConfigError, ModelError, GraphError,
-    TrainError, EvalError, ShapeError, DeterminismError,
-    SeedState, seed_everything, seed_state, seed_restore,
-    configure_log, get_logger, log_metrics,
-    root, raw, processed, features, graphs, checkpoints, runs, manifest,
-    FidelityEntry, FidelityStatus,
-    fidelity_register, fidelity_all, fidelity_clear,
-    fidelity_render_markdown, fidelity_render_json,
+    Device,
+    device,
+    to,
+    Modality,
+    Mask,
+    Graph,
+    Embedding,
+    MorelError,
+    DataError,
+    ConfigError,
+    ModelError,
+    GraphError,
+    TrainError,
+    EvalError,
+    ShapeError,
+    DeterminismError,
+    SeedState,
+    seed_everything,
+    seed_state,
+    seed_restore,
+    configure_log,
+    get_logger,
+    log_metrics,
+    root,
+    raw,
+    processed,
+    features,
+    graphs,
+    checkpoints,
+    runs,
+    manifest,
+    FidelityEntry,
+    FidelityStatus,
+    fidelity_register,
+    fidelity_all,
+    fidelity_clear,
+    fidelity_render_markdown,
+    fidelity_render_json,
 )
 ```
 
@@ -37,13 +66,36 @@ from morel.core import (
 
 ```python
 from morel.data import (
-    Manifest, save_manifest, load_manifest, manifest_path, checksum,
-    download, fetch, download_legacy,
-    Encoder, fingerprint, random, text, visual,
-    bipartite, item_cooccurrence, kcore, interactions,
-    Mask, bernoulli, block, structured, stack,
-    save_npz, load_npz, save_graph, load_graph,
-    features, graph, validate_interactions, validate_mask,
+    Manifest,
+    save_manifest,
+    load_manifest,
+    manifest_path,
+    checksum,
+    download,
+    fetch,
+    download_legacy,
+    Encoder,
+    fingerprint,
+    random,
+    text,
+    visual,
+    bipartite,
+    item_cooccurrence,
+    kcore,
+    interactions,
+    Mask,
+    bernoulli,
+    block,
+    structured,
+    stack,
+    save_npz,
+    load_npz,
+    save_graph,
+    load_graph,
+    features,
+    graph,
+    validate_interactions,
+    validate_mask,
 )
 ```
 
@@ -58,12 +110,21 @@ from morel.graph import Bipartite, Item, Subgraph, Laplace, laplacian, pe, conne
 ```python
 from morel.retrieve import (
     Result,
-    acs, acs_batch,
-    anchor, anchor_batch,
-    mage, mage_batch,
-    relevance, mean_relevance,
-    bfs, path, neighbor_iter, neighbor_array,
-    retrieve, retrieve_batch, as_tensor,
+    acs,
+    acs_batch,
+    anchor,
+    anchor_batch,
+    mage,
+    mage_batch,
+    relevance,
+    mean_relevance,
+    bfs,
+    path,
+    neighbor_iter,
+    neighbor_array,
+    retrieve,
+    retrieve_batch,
+    as_tensor,
 )
 ```
 
@@ -71,9 +132,17 @@ from morel.retrieve import (
 
 ```python
 from morel.encode import (
-    Encoder, Baseline, Identity, Sum,
-    Input, Layer, Transformer,
-    Attention, Mean, Token, CLS,
+    Encoder,
+    Baseline,
+    Identity,
+    Sum,
+    Input,
+    Layer,
+    Transformer,
+    Attention,
+    Mean,
+    Token,
+    CLS,
 )
 ```
 
@@ -111,10 +180,21 @@ from morel.pipeline import Pipeline, Output
 
 ```python
 from morel.train import (
-    Trainer, Completion, CompletionConfig,
-    Recommendation, RecommendationConfig,
-    State, hash_config, safe_load, unsafe_load, Monitor,
-    Loss, Reconstruction, BPR, Composite, ce,
+    Trainer,
+    Completion,
+    CompletionConfig,
+    Recommendation,
+    RecommendationConfig,
+    State,
+    hash_config,
+    safe_load,
+    unsafe_load,
+    Monitor,
+    Loss,
+    Reconstruction,
+    BPR,
+    Composite,
+    ce,
 )
 ```
 
@@ -122,9 +202,17 @@ from morel.train import (
 
 ```python
 from morel.eval import (
-    recall_at_k, ndcg_at_k, precision_at_k, map_at_k, mrr,
-    mse, per_modality_mse, explained_variance,
-    RobustnessResult, robustness_sweep, ablation_results,
+    recall_at_k,
+    ndcg_at_k,
+    precision_at_k,
+    map_at_k,
+    mrr,
+    mse,
+    per_modality_mse,
+    explained_variance,
+    RobustnessResult,
+    robustness_sweep,
+    ablation_results,
 )
 ```
 
@@ -138,11 +226,17 @@ from morel.app import Experiment, Benchmark, Reproduce
 
 ```python
 from morel.serve import (
-    create, Loader,
-    CompleteRequest, CompleteResponse,
-    RecommendRequest, RecommendResponse, RecommendItem,
-    HealthResponse, serialize_completed,
-    auth_enabled, auth_assert_configured,
+    create,
+    Loader,
+    CompleteRequest,
+    CompleteResponse,
+    RecommendRequest,
+    RecommendResponse,
+    RecommendItem,
+    HealthResponse,
+    serialize_completed,
+    auth_enabled,
+    auth_assert_configured,
 )
 ```
 
