@@ -30,7 +30,7 @@ class Checker:
     def shape(self) -> None:
         pos = torch.tensor([0.5, 0.3])
         neg = torch.tensor([0.1, 0.2])
-        b = BPR(pos=pos, neg_score=neg)
+        b = BPR(pos=pos, neg=neg)
         loss = b.forward({}, {}, torch.zeros(1))
         assert loss.dim() == 0
 
