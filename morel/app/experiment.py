@@ -38,7 +38,7 @@ log = logger("app.experiment")
 def synthetic(
     items: int,
     dim_visual: int,
-    dim_text: int,
+    text_dim: int,
     users: int,
     masking: Masking | None = None,
 ) -> dict[str, Any]:
@@ -47,7 +47,7 @@ def synthetic(
     Args:
         items: Number of items.
         dim_visual: Visual feature width.
-        dim_text: Text feature width.
+        text_dim: Text feature width.
         users: Number of users.
         masking: Masking settings; defaults to the shipped configuration. The
             missing-modality pattern is the experimental condition, so leaving
@@ -64,7 +64,7 @@ def synthetic(
     adj = cooccurrence(ui)
     features = {
         "visual": rng.normal(size=(items, dim_visual)).astype(np.float32),
-        "text": rng.normal(size=(items, dim_text)).astype(np.float32),
+        "text": rng.normal(size=(items, text_dim)).astype(np.float32),
     }
     mask = build_mask(
         settings.kind,
@@ -91,7 +91,7 @@ class Experiment:
     items: int = 50
     users: int = 20
     dim_visual: int = 8
-    dim_text: int = 4
+    text_dim: int = 4
     epochs: int | None = None
     seed: int | None = None
 
@@ -127,11 +127,11 @@ class Experiment:
         start = time.time()
 
         dataset = synthetic(
-            self.items, self.dim_visual, self.dim_text, self.users, self.config.masking
+            self.items, self.dim_visual, self.text_dim, self.users, self.config.masking
         )
         pipeline = Pipeline(
             self.config,
-            dims={"visual": self.dim_visual, "text": self.dim_text},
+            dims={"visual": self.dim_visual, "text": self.text_dim},
         )
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
 
@@ -370,7 +370,7 @@ class Ablate:
     items: int = 50
     users: int = 20
     dim_visual: int = 8
-    dim_text: int = 4
+    text_dim: int = 4
     seed: int | None = None
 
     def score(self, config: Config, dataset: dict[str, Any]) -> np.ndarray:
@@ -380,8 +380,8 @@ class Ablate:
         depends only on the interaction graph, every completion-stage ablation
         scores identically, and the sweep measures nothing.
         """
-        feature_dim = self.dim_visual + self.dim_text
-        pipeline = Pipeline(config, dims={"visual": self.dim_visual, "text": self.dim_text})
+        feature_dim = self.dim_visual + self.text_dim
+        pipeline = Pipeline(config, dims={"visual": self.dim_visual, "text": self.text_dim})
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
         pipeline.wire(dataset["ui"], feature_dim=feature_dim)
         assert pipeline.recommender is not None
@@ -414,7 +414,7 @@ class Ablate:
         log.info("ablation.start", extra={"conditions": list(conditions(self.config))})
 
         dataset = synthetic(
-            self.items, self.dim_visual, self.dim_text, self.users, self.config.masking
+            self.items, self.dim_visual, self.text_dim, self.users, self.config.masking
         )
         labels = dataset["ui"].sign().toarray()
 
