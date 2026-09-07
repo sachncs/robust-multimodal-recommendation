@@ -136,7 +136,7 @@ class Checker:
         assert pipeline.recommender is not None
         assert pipeline.recommender.users == 2
         assert pipeline.recommender.items == 3
-        assert pipeline.recommender.adj_cache is not None
+        assert pipeline.recommender.cache is not None
         scores = pipeline.recommender(torch.arange(2), torch.arange(3))
         assert scores.shape == (2, 3)
 

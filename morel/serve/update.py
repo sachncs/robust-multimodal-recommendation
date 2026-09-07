@@ -125,9 +125,9 @@ class Updater:
         self.lock = RWLock()
         self.sync = threading.Lock()
         self.ring: deque[Event] = deque(maxlen=feedback_capacity)
-        self.replay_ring: deque[Event] = deque(maxlen=replay_capacity)
+        self.replay: deque[Event] = deque(maxlen=replay_capacity)
         self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
-        self.cooldown_until: float = 0.0
+        self.cooldown: float = 0.0
         self.replay_ratio = float(replay_ratio)
         self.val = float(val_ratio)
         self.loss_step: Step = loss_step or Default()
@@ -142,7 +142,7 @@ class Updater:
         event = Event(user=user, item=item, signal=signal, timestamp=time.time())
         with self.sync:
             self.ring.append(event)
-            self.replay_ring.append(event)
+            self.replay.append(event)
 
     def stats(self) -> dict[str, Any]:
         """Return a snapshot of the updater state."""
@@ -150,7 +150,7 @@ class Updater:
         # the two are always acquired in the same order and cannot deadlock.
         with self.sync:
             events_buffered = len(self.ring)
-            replay_buffered = len(self.replay_ring)
+            replay_buffered = len(self.replay)
         with self.lock.read():
             return {
                 "events_buffered": events_buffered,
@@ -159,7 +159,7 @@ class Updater:
                 "last_loss": self.last,
                 "valid_loss": self.valid if self.valid is not None else float("nan"),
                 "current_version": self.version,
-                "cooldown_until": self.cooldown_until,
+                "cooldown_until": self.cooldown,
             }
 
     def rollback(self, steps: int = 1) -> int:
@@ -193,7 +193,7 @@ class Updater:
         """Run one update step."""
         with self.lock.read():
             now = time.time()
-            if now < self.cooldown_until:
+            if now < self.cooldown:
                 return Outcome(
                     committed=False,
                     loss=float("nan"),
@@ -204,7 +204,7 @@ class Updater:
                 )
         with self.sync:
             events = list(self.ring)
-            replay = list(self.replay_ring)
+            replay = list(self.replay)
         if not events:
             return Outcome(False, float("nan"), None, self.version, 0, 0)
         val_count = max(1, int(len(events) * self.val))
@@ -229,14 +229,14 @@ class Updater:
         """Apply the update guarding against divergence."""
         with self.lock.write():
             if not math.isfinite(loss):
-                self.cooldown_until = time.time() + 60.0
+                self.cooldown = time.time() + 60.0
                 log.warning("divergence: non-finite loss; rolling back and cooling down")
                 return False, self.version
             if valid_loss is not None and not math.isfinite(valid_loss):
-                self.cooldown_until = time.time() + 60.0
+                self.cooldown = time.time() + 60.0
                 return False, self.version
             if self.window and loss > 3 * (sum(self.window) / len(self.window)):
-                self.cooldown_until = time.time() + 60.0
+                self.cooldown = time.time() + 60.0
                 log.warning("divergence: loss explosion; rolling back and cooling down")
                 return False, self.version
             snapshot = self.snapshot()

@@ -185,7 +185,7 @@ class Checker:
             updater.accept(user=i, item=i, signal="like")
         result = updater.tick()
         assert result.committed is False
-        assert updater.cooldown_until > time.time()
+        assert updater.cooldown > time.time()
 
     def version(self) -> None:
         updater = Updater(

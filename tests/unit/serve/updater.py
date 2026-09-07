@@ -75,7 +75,7 @@ class Checker:
             thread.join(timeout=TIMEOUT)
 
         assert len(live.ring) == per_thread * 6
-        assert len(live.replay_ring) == per_thread * 6
+        assert len(live.replay) == per_thread * 6
 
     def arrives(self) -> None:
         """The other direction: the updater must not be starved either."""
