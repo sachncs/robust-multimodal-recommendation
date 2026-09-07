@@ -87,7 +87,7 @@ class Checker:
         path = write(
             tmp_path,
             data={"processed": "out"},
-            encoder={"text_dim": 12, "visual_dim": 20},
+            encoder={"td": 12, "visual_dim": 20},
         )
         assert main(["extract", "--synthetic", "--config", str(path)]) == 0
 

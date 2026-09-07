@@ -34,7 +34,7 @@ class Encoder:
 
     text: str = "sentence-transformers/all-MiniLM-L6-v2"
     visual: str = "resnet50"
-    text_dim: int = 384
+    td: int = 384
     visual_dim: int = 2048
     batch: int = 64
 
