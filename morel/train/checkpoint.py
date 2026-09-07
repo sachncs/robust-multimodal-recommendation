@@ -114,7 +114,7 @@ class State:
 
 def hash_config(config: object) -> str:
     """Stable SHA256 cfg_hash of a configuration object's public attributes."""
-    if hasattr(config, "cfg_hash") and callable(config.cfg_hash):
+    if hasattr(config, "hash") and callable(config.hash):
         digest: str = config.hash()
         return digest
     raw = json.dumps(config, sort_keys=True, default=str, ensure_ascii=False)
