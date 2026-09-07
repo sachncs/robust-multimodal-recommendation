@@ -28,7 +28,7 @@ class Checker:
         config_path = tmp_path / "config.yaml"
         Config().save(config_path)
         run_dir = tmp_path / "run"
-        rep = Reproduce(config_path=config_path, run_dir=run_dir, items=10, users=4, epochs=1)
+        rep = Reproduce(path=config_path, run_dir=run_dir, items=10, users=4, epochs=1)
         result = rep.run()
         assert "duration" in result
         assert "cfg_hash" in result

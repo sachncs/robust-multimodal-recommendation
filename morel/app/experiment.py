@@ -496,7 +496,7 @@ class Benchmark:
 class Reproduce:
     """Reproduce a run from a saved config and manifest."""
 
-    config_path: Path
+    path: Path
     run_dir: Path
     items: int = 50
     users: int = 20
@@ -504,7 +504,7 @@ class Reproduce:
 
     def run(self) -> dict[str, Any]:
         """Re-run a saved experiment deterministically."""
-        config = Config.load(self.config_path)
+        config = Config.load(self.path)
         seed_everything(config.seed)
         experiment = Experiment(
             config=config,
