@@ -129,12 +129,12 @@ class Updater:
         self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
         self.cooldown_until: float = 0.0
         self.replay_ratio = float(replay_ratio)
-        self.val_ratio = float(val_ratio)
+        self.val = float(val_ratio)
         self.loss_step: Step = loss_step or Default()
         self.version = 0
-        self.loss_window: deque[float] = deque(maxlen=64)
-        self.last_loss = float("nan")
-        self.valid_loss: float | None = None
+        self.window: deque[float] = deque(maxlen=64)
+        self.last = float("nan")
+        self.valid: float | None = None
         self.updates = 0
 
     def accept(self, user: int, item: int, signal: Signal) -> None:
@@ -156,8 +156,8 @@ class Updater:
                 "events_buffered": events_buffered,
                 "replay_buffered": replay_buffered,
                 "updates_applied": self.updates,
-                "last_loss": self.last_loss,
-                "valid_loss": self.valid_loss if self.valid_loss is not None else float("nan"),
+                "last_loss": self.last,
+                "valid_loss": self.valid if self.valid is not None else float("nan"),
                 "current_version": self.version,
                 "cooldown_until": self.cooldown_until,
             }
@@ -207,7 +207,7 @@ class Updater:
             replay = list(self.replay_ring)
         if not events:
             return Outcome(False, float("nan"), None, self.version, 0, 0)
-        val_count = max(1, int(len(events) * self.val_ratio))
+        val_count = max(1, int(len(events) * self.val))
         val_batch = events[:val_count]
         train_batch = events[val_count:]
         n_replay = int(len(train_batch) * self.replay_ratio)
@@ -235,7 +235,7 @@ class Updater:
             if valid_loss is not None and not math.isfinite(valid_loss):
                 self.cooldown_until = time.time() + 60.0
                 return False, self.version
-            if self.loss_window and loss > 3 * (sum(self.loss_window) / len(self.loss_window)):
+            if self.window and loss > 3 * (sum(self.window) / len(self.window)):
                 self.cooldown_until = time.time() + 60.0
                 log.warning("divergence: loss explosion; rolling back and cooling down")
                 return False, self.version
@@ -243,9 +243,9 @@ class Updater:
             self.rollback_ring.append(snapshot)
             self.pipeline.load_state_dict(snapshot)
             self.version += 1
-            self.loss_window.append(loss)
-            self.last_loss = loss
-            self.valid_loss = valid_loss
+            self.window.append(loss)
+            self.last = loss
+            self.valid = valid_loss
             self.updates += 1
             return True, self.version
 

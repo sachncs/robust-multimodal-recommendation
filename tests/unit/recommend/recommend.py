@@ -196,7 +196,7 @@ class Checker:
     def configured(self) -> None:
         """Backwards compatible: no feature_dim means ID embeddings only."""
         light = Light(users=3, items=4, embed=8, layers=1, seed=0)
-        assert light.feature_proj is None
+        assert light.fproj is None
         ui = sp.csr_matrix(np.array([[1, 1, 0, 0], [0, 1, 1, 0], [0, 0, 1, 1]], dtype=np.float32))
         assert light(torch.arange(3), torch.arange(4), ui).shape == (3, 4)
 

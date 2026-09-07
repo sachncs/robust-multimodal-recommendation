@@ -40,7 +40,7 @@ class Decoders(nn.Module):
                 nn.ReLU(),
                 nn.Linear(hidden, dim),
             )
-        self.mask_tokens = nn.ParameterDict(
+        self.tokens = nn.ParameterDict(
             {name: nn.Parameter(torch.zeros(latent_dim)) for name in dims}
         )
 
@@ -66,7 +66,7 @@ class Decoders(nn.Module):
             if mask is not None:
                 present = mask[:, idx : idx + 1]
                 missing = 1.0 - present
-                token = self.mask_tokens[name].unsqueeze(0).expand_as(latent)
+                token = self.tokens[name].unsqueeze(0).expand_as(latent)
                 effective = effective * present + token * missing
             outputs[name] = self.heads[name](effective)
         return outputs

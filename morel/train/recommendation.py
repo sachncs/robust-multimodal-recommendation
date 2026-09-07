@@ -54,12 +54,12 @@ class Recommendation(Trainer):
             device=device,
             amp=amp,
         )
-        self.ui_graph = ui_graph
+        self.ui = ui_graph
         self.users = ui_graph.shape[0]
         self.items = ui_graph.shape[1]
         self.negatives_count = negatives_count
         self.seed = seed
-        self.negatives_matrix: np.ndarray | None = None
+        self.negmat: np.ndarray | None = None
 
     def step(self, batch: dict[str, Any]) -> dict[str, Any]:
         """One BPR step on a user batch."""
@@ -67,7 +67,7 @@ class Recommendation(Trainer):
         pos = batch["positive"].to(self.device)
         neg = batch["negative"].to(self.device)
         self.optimizer.zero_grad()
-        scores = self.model(users, torch.arange(self.items, device=self.device), self.ui_graph)
+        scores = self.model(users, torch.arange(self.items, device=self.device), self.ui)
         pos_scores = scores[torch.arange(users.shape[0], device=self.device), pos]
         neg_scores = scores[torch.arange(users.shape[0], device=self.device), neg]
         loss = bpr_loss(pos_scores, neg_scores)
@@ -87,7 +87,7 @@ class Recommendation(Trainer):
                 pos = batch["positive"].to(self.device)
                 neg = batch["negative"].to(self.device)
                 scores = self.model(
-                    users, torch.arange(self.items, device=self.device), self.ui_graph
+                    users, torch.arange(self.items, device=self.device), self.ui
                 )
                 pos_scores = scores[torch.arange(users.shape[0], device=self.device), pos]
                 neg_scores = scores[torch.arange(users.shape[0], device=self.device), neg]

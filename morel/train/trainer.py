@@ -44,7 +44,7 @@ class Trainer(ABC):
         self.device = resolve_device(device)
         self.model.to(self.device)
         self.monitor = monitor or Monitor(Path("runs") / "default")
-        self.checkpoint_dir: Path | None = (
+        self.ckpt: Path | None = (
             Path(checkpoint_dir).resolve() if checkpoint_dir is not None else None
         )
         self.best_metric: float = float("inf")
@@ -122,7 +122,7 @@ class Trainer(ABC):
             if val_metric < self.best_metric:
                 self.best_metric = val_metric
                 no_improve = 0
-                if self.checkpoint_dir is not None:
+                if self.ckpt is not None:
                     self.save(epoch, val_metric)
             else:
                 no_improve += 1
@@ -145,7 +145,7 @@ class Trainer(ABC):
 
     def save(self, epoch: int, metric: float) -> None:
         """Persist the current model state to the best checkpoint."""
-        if self.checkpoint_dir is None:
+        if self.ckpt is None:
             return
         state = State(
             model=self.model.state_dict(),
@@ -155,7 +155,7 @@ class Trainer(ABC):
             rng=None,
             cfg_hash=self.cfg_hash,
         )
-        state.save(self.checkpoint_dir / "best.pt")
+        state.save(self.ckpt / "best.pt")
 
     def clip(self, params: list[torch.nn.Parameter]) -> None:
         """Apply gradient clipping if configured."""

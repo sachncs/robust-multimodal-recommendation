@@ -75,12 +75,12 @@ class Light(nn.Module):
             self.item_emb = nn.Embedding(items, embed)
             nn.init.xavier_uniform_(self.user_emb.weight)
             nn.init.xavier_uniform_(self.item_emb.weight)
-            self.feature_proj: nn.Linear | None = None
+            self.fproj: nn.Linear | None = None
             if feature_dim is not None:
                 if feature_dim <= 0:
                     raise ValueError(f"feature_dim must be positive, got {feature_dim}")
-                self.feature_proj = nn.Linear(feature_dim, embed)
-        self.feature_dim = feature_dim
+                self.fproj = nn.Linear(feature_dim, embed)
+        self.fdim = feature_dim
         self.adj_cache: tuple[str, torch.Tensor] | None = None
 
     def forward(
@@ -120,7 +120,7 @@ class Light(nn.Module):
         adj_norm = self.normalize_adj(ui_graph)
         item_emb = self.item_emb.weight
         if item_features is not None:
-            if self.feature_proj is None:
+            if self.fproj is None:
                 raise Model(
                     "item_features was passed but Light was built without "
                     "feature_dim; construct it with feature_dim set to the "
@@ -130,7 +130,7 @@ class Light(nn.Module):
                 raise Model(
                     f"item_features has {item_features.shape[0]} rows, expected {self.items}"
                 )
-            item_emb = item_emb + self.feature_proj(item_features.to(item_emb.dtype))
+            item_emb = item_emb + self.fproj(item_features.to(item_emb.dtype))
         all_emb = torch.cat([self.user_emb.weight, item_emb], dim=0)
         stack = [all_emb]
         for _ in range(self.layers):
