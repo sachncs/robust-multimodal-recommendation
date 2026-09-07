@@ -404,7 +404,7 @@ class Ablate:
 
         Returns
         -------
-            Dict with the config hash and a metric-per-condition mapping.
+            Dict with the config cfg_hash and a metric-per-condition mapping.
         """
         self.dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed

@@ -1,4 +1,4 @@
-"""Checkpoint save/load with config hash binding."""
+"""Checkpoint save/load with config cfg_hash binding."""
 
 from __future__ import annotations
 
@@ -94,11 +94,11 @@ class State:
 
     @classmethod
     def load(cls, target: Path | str, *, expected_config_hash: str | None = None) -> State:
-        """Load a checkpoint, optionally verifying the config hash."""
+        """Load a checkpoint, optionally verifying the config cfg_hash."""
         payload = load(target)
         if expected_config_hash is not None and payload.get("cfg_hash") != expected_config_hash:
             raise Cfg(
-                f"checkpoint config hash mismatch: "
+                f"checkpoint config cfg_hash mismatch: "
                 f"got {payload.get('cfg_hash')}, expected {expected_config_hash}"
             )
         return cls(
@@ -113,8 +113,8 @@ class State:
 
 
 def hash_config(config: object) -> str:
-    """Stable SHA256 hash of a configuration object's public attributes."""
-    if hasattr(config, "hash") and callable(config.hash):
+    """Stable SHA256 cfg_hash of a configuration object's public attributes."""
+    if hasattr(config, "cfg_hash") and callable(config.cfg_hash):
         digest: str = config.hash()
         return digest
     raw = json.dumps(config, sort_keys=True, default=str, ensure_ascii=False)

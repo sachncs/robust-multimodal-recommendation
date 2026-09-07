@@ -97,7 +97,7 @@ def train(argv: list[str]) -> int:
         dir = Path("runs") / "completion"
         # epochs deliberately left unset so config.completion.epochs applies;
         # the run manifest records that config, so overriding it here would
-        # make the recorded hash describe a run that never happened.
+        # make the recorded cfg_hash describe a run that never happened.
         exp = Experiment(config=config, dir=dir, items=50, users=20)
         result = exp.run()
         print(f"completion trained: {result}")

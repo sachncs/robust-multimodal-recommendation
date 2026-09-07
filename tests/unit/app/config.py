@@ -96,7 +96,7 @@ class Checker:
         assert "- epochs: 3" in (tmp_path / "report.md").read_text(encoding="utf-8")
 
     def written(self, tmp_path: Path) -> None:
-        """The config written beside a run must be the one its hash was taken from."""
+        """The config written beside a run must be the one its cfg_hash was taken from."""
         config = small(lr=7e-4, epochs=2)
         result = Experiment(config=config, dir=tmp_path, items=10, users=4).run()
 
