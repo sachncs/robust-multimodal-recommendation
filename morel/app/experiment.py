@@ -87,7 +87,7 @@ class Experiment:
     """Top-level experiment orchestration."""
 
     config: Config
-    run_dir: Path
+    dir: Path
     items: int = 50
     users: int = 20
     dim_visual: int = 8
@@ -109,21 +109,21 @@ class Experiment:
         return self.config.completion.epochs
 
     def run(self) -> dict[str, Any]:
-        """Run a full experiment and write artifacts under ``run_dir``.
+        """Run a full experiment and write artifacts under ``dir``.
 
         Returns
         -------
             Dict with status, duration, metrics, and cfg_hash.
         """
-        self.run_dir.mkdir(parents=True, exist_ok=True)
+        self.dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed
         seed_everything(seed_value)
         cfg_hash = self.config.hash()
         log.info(
             "experiment.start",
-            extra={"run_dir": str(self.run_dir), "cfg_hash": cfg_hash},
+            extra={"dir": str(self.dir), "cfg_hash": cfg_hash},
         )
-        self.config.save(self.run_dir / "config.yaml")
+        self.config.save(self.dir / "config.yaml")
         start = time.time()
 
         dataset = synthetic(
@@ -155,14 +155,14 @@ class Experiment:
             amp=self.config.completion.amp,
             device=self.config.device,
             monitor=None,
-            checkpoint_dir=self.run_dir,
+            checkpoint_dir=self.dir,
         )
         epochs = self.resolved()
         history = trainer.fit(
             loader, val_loader, epochs=epochs, patience=self.config.completion.patience
         )
 
-        metrics_path = self.run_dir / "metrics.jsonl"
+        metrics_path = self.dir / "metrics.jsonl"
         with metrics_path.open("a", encoding="utf-8") as handle:
             handle.write(
                 json.dumps(
@@ -192,13 +192,13 @@ class Experiment:
                 "epochs": epochs,
             },
         )
-        manifest_path = self.run_dir / "manifest.json"
+        manifest_path = self.dir / "manifest.json"
         manifest_path.write_text(manifest.json(), encoding="utf-8")
 
-        report = self.run_dir / "report.md"
+        report = self.dir / "report.md"
         report.write_text(
             "# morel — Experiment Report\n\n"
-            f"- run_dir: `{self.run_dir}`\n"
+            f"- dir: `{self.dir}`\n"
             f"- cfg_hash: `{cfg_hash}`\n"
             f"- items: {self.items}\n"
             f"- users: {self.users}\n"
@@ -208,8 +208,8 @@ class Experiment:
             encoding="utf-8",
         )
 
-        render(self.run_dir / "FIDELITY.md")
-        render(self.run_dir / "FIDELITY.json")
+        render(self.dir / "FIDELITY.md")
+        render(self.dir / "FIDELITY.json")
 
         duration = time.time() - start
         log.info(
@@ -218,7 +218,7 @@ class Experiment:
         )
         return {
             "duration": duration,
-            "run_dir": str(self.run_dir),
+            "dir": str(self.dir),
             "cfg_hash": cfg_hash,
             "best": history.get("best", None),
             "train_loss": history.get("train_loss", None),
@@ -236,7 +236,7 @@ class Rank:
     """
 
     config: Config
-    run_dir: Path
+    dir: Path
     items: int = 50
     users: int = 20
     epochs: int | None = None
@@ -253,17 +253,17 @@ class Rank:
 
         Returns
         -------
-            Dict with duration, run_dir, cfg_hash and best validation loss.
+            Dict with duration, dir, cfg_hash and best validation loss.
         """
-        self.run_dir.mkdir(parents=True, exist_ok=True)
+        self.dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed
         seed_everything(seed_value)
         cfg_hash = self.config.hash()
         log.info(
             "recommendation.start",
-            extra={"run_dir": str(self.run_dir), "cfg_hash": cfg_hash},
+            extra={"dir": str(self.dir), "cfg_hash": cfg_hash},
         )
-        self.config.save(self.run_dir / "config.yaml")
+        self.config.save(self.dir / "config.yaml")
         start = time.time()
 
         dataset = synthetic(self.items, 8, 4, self.users, self.config.masking)
@@ -289,14 +289,14 @@ class Rank:
             amp=self.config.recommendation.amp,
             device=self.config.device,
             monitor=None,
-            checkpoint_dir=self.run_dir,
+            checkpoint_dir=self.dir,
         )
         epochs = self.resolved()
         history = trainer.fit(
             loader, val_loader, epochs=epochs, patience=self.config.recommendation.patience
         )
 
-        metrics_path = self.run_dir / "metrics.jsonl"
+        metrics_path = self.dir / "metrics.jsonl"
         with metrics_path.open("a", encoding="utf-8") as handle:
             handle.write(
                 json.dumps(
@@ -327,10 +327,10 @@ class Rank:
                 "recommender": self.config.recommend.kind,
             },
         )
-        (self.run_dir / "manifest.json").write_text(manifest.json(), encoding="utf-8")
-        (self.run_dir / "report.md").write_text(
+        (self.dir / "manifest.json").write_text(manifest.json(), encoding="utf-8")
+        (self.dir / "report.md").write_text(
             "# morel — Recommendation Report\n\n"
-            f"- run_dir: `{self.run_dir}`\n"
+            f"- dir: `{self.dir}`\n"
             f"- cfg_hash: `{cfg_hash}`\n"
             f"- recommender: {self.config.recommend.kind}\n"
             f"- items: {self.items}\n"
@@ -348,7 +348,7 @@ class Rank:
         )
         return {
             "duration": duration,
-            "run_dir": str(self.run_dir),
+            "dir": str(self.dir),
             "cfg_hash": cfg_hash,
             "best": history.get("best", None),
             "train_loss": history.get("train_loss", None),
@@ -366,7 +366,7 @@ class Ablate:
     """
 
     config: Config
-    run_dir: Path
+    dir: Path
     items: int = 50
     users: int = 20
     dim_visual: int = 8
@@ -400,16 +400,16 @@ class Ablate:
         return np.asarray(scores.detach().cpu().numpy())
 
     def run(self) -> dict[str, Any]:
-        """Run the sweep and write artifacts under ``run_dir``.
+        """Run the sweep and write artifacts under ``dir``.
 
         Returns
         -------
             Dict with the config hash and a metric-per-condition mapping.
         """
-        self.run_dir.mkdir(parents=True, exist_ok=True)
+        self.dir.mkdir(parents=True, exist_ok=True)
         seed_value = self.seed if self.seed is not None else self.config.seed
         cfg_hash = self.config.hash()
-        self.config.save(self.run_dir / "config.yaml")
+        self.config.save(self.dir / "config.yaml")
         start = time.time()
         log.info("ablation.start", extra={"conditions": list(conditions(self.config))})
 
@@ -433,7 +433,7 @@ class Ablate:
             )
             metrics[f"ndcg@{k}"] = results(scores_by_condition, labels, metric=partial(ndcg, k=k))
 
-        (self.run_dir / "ablations.json").write_text(
+        (self.dir / "ablations.json").write_text(
             json.dumps({"cfg_hash": cfg_hash, "metrics": metrics}, indent=2, sort_keys=True),
             encoding="utf-8",
         )
@@ -443,7 +443,7 @@ class Ablate:
         )
         header = " | ".join(sorted(metrics))
         divider = " | ".join("---" for _ in sorted(metrics))
-        (self.run_dir / "report.md").write_text(
+        (self.dir / "report.md").write_text(
             "# morel — Ablation Report\n\n"
             f"- cfg_hash: `{cfg_hash}`\n"
             f"- seed: {seed_value}\n\n"
@@ -455,7 +455,7 @@ class Ablate:
         log.info("ablation.end", extra={"duration": duration})
         return {
             "duration": duration,
-            "run_dir": str(self.run_dir),
+            "dir": str(self.dir),
             "cfg_hash": cfg_hash,
             "metrics": metrics,
         }
@@ -466,13 +466,13 @@ class Benchmark:
     """Run a benchmark sweep and return timings."""
 
     config: Config
-    run_dir: Path
+    dir: Path
     sizes: list[int] = field(default_factory=lambda: [16, 32])
     epochs: int = 1
 
     def run(self) -> dict[str, Any]:
         """Run benchmarks at the requested sizes."""
-        self.run_dir.mkdir(parents=True, exist_ok=True)
+        self.dir.mkdir(parents=True, exist_ok=True)
         results: dict[str, list[float]] = {}
         for size in self.sizes:
             dataset = synthetic(size, 4, 2, max(2, size // 4))
@@ -489,7 +489,7 @@ class Benchmark:
                 pipeline(features, mask, dataset["item_adj"], index=index_t, training=True)
             elapsed = time.time() - start
             results.setdefault("forward_s", []).append(elapsed)
-        return {"results": results, "sizes": list(self.sizes), "run_dir": str(self.run_dir)}
+        return {"results": results, "sizes": list(self.sizes), "dir": str(self.dir)}
 
 
 @dataclass
@@ -497,7 +497,7 @@ class Reproduce:
     """Reproduce a run from a saved config and manifest."""
 
     path: Path
-    run_dir: Path
+    dir: Path
     items: int = 50
     users: int = 20
     epochs: int = 1
@@ -508,7 +508,7 @@ class Reproduce:
         seed_everything(config.seed)
         experiment = Experiment(
             config=config,
-            run_dir=self.run_dir,
+            dir=self.dir,
             items=self.items,
             users=self.users,
             epochs=self.epochs,

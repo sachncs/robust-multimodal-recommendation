@@ -35,12 +35,12 @@ class Checker:
 
     def resolved(self) -> None:
         config = small(epochs=7)
-        experiment = Experiment(config=config, run_dir=Path("unused"))
+        experiment = Experiment(config=config, dir=Path("unused"))
         assert experiment.resolved() == 7
 
     def explicit(self) -> None:
         config = small(epochs=7)
-        experiment = Experiment(config=config, run_dir=Path("unused"), epochs=1)
+        experiment = Experiment(config=config, dir=Path("unused"), epochs=1)
         assert experiment.resolved() == 1
 
     def completion(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -64,7 +64,7 @@ class Checker:
             balance=0.75,
             grad_clip=2.5,
         )
-        Experiment(config=config, run_dir=tmp_path, items=10, users=4).run()
+        Experiment(config=config, dir=tmp_path, items=10, users=4).run()
 
         assert captured["lr"] == pytest.approx(5e-4)
         assert captured["weight_decay"] == pytest.approx(3e-6)
@@ -84,12 +84,12 @@ class Checker:
 
         monkeypatch.setattr(module, "assemble", capture)
 
-        Experiment(config=small(batch=3), run_dir=tmp_path, items=10, users=4).run()
+        Experiment(config=small(batch=3), dir=tmp_path, items=10, users=4).run()
         assert captured["batch_size"] == 3
 
     def manifest(self, tmp_path: Path) -> None:
         config = small(epochs=3)
-        Experiment(config=config, run_dir=tmp_path, items=10, users=4).run()
+        Experiment(config=config, dir=tmp_path, items=10, users=4).run()
 
         manifest = json.loads((tmp_path / "manifest.json").read_text(encoding="utf-8"))
         assert manifest["extras"]["epochs"] == 3
@@ -98,7 +98,7 @@ class Checker:
     def written(self, tmp_path: Path) -> None:
         """The config written beside a run must be the one its hash was taken from."""
         config = small(lr=7e-4, epochs=2)
-        result = Experiment(config=config, run_dir=tmp_path, items=10, users=4).run()
+        result = Experiment(config=config, dir=tmp_path, items=10, users=4).run()
 
         written = Config.load(tmp_path / "config.yaml")
         assert written.hash() == result["cfg_hash"]

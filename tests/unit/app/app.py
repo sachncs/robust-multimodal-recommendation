@@ -13,10 +13,10 @@ class Checker:
 
     def experiment(self, tmp_path: Path) -> None:
         config = Config()
-        exp = Experiment(config=config, run_dir=tmp_path, items=10, users=4, epochs=1)
+        exp = Experiment(config=config, dir=tmp_path, items=10, users=4, epochs=1)
         result = exp.run()
         assert "duration" in result
-        assert "run_dir" in result
+        assert "dir" in result
         assert "cfg_hash" in result
         assert (tmp_path / "config.yaml").exists()
         assert (tmp_path / "manifest.json").exists()
@@ -27,15 +27,15 @@ class Checker:
     def reproduce(self, tmp_path: Path) -> None:
         config_path = tmp_path / "config.yaml"
         Config().save(config_path)
-        run_dir = tmp_path / "run"
-        rep = Reproduce(path=config_path, run_dir=run_dir, items=10, users=4, epochs=1)
+        dir = tmp_path / "run"
+        rep = Reproduce(path=config_path, dir=dir, items=10, users=4, epochs=1)
         result = rep.run()
         assert "duration" in result
         assert "cfg_hash" in result
 
     def benchmark(self, tmp_path: Path) -> None:
         config = Config()
-        bench = Benchmark(config=config, run_dir=tmp_path, sizes=[8], epochs=1)
+        bench = Benchmark(config=config, dir=tmp_path, sizes=[8], epochs=1)
         result = bench.run()
         assert "results" in result
         assert "forward_s" in result["results"]

@@ -94,11 +94,11 @@ def train(argv: list[str]) -> int:
         from morel.app import Experiment
 
         config = load_cfg(config_path)
-        run_dir = Path("runs") / "completion"
+        dir = Path("runs") / "completion"
         # epochs deliberately left unset so config.completion.epochs applies;
         # the run manifest records that config, so overriding it here would
         # make the recorded hash describe a run that never happened.
-        exp = Experiment(config=config, run_dir=run_dir, items=50, users=20)
+        exp = Experiment(config=config, dir=dir, items=50, users=20)
         result = exp.run()
         print(f"completion trained: {result}")
         return 0
@@ -106,8 +106,8 @@ def train(argv: list[str]) -> int:
         from morel.app import Rank
 
         config = load_cfg(config_path)
-        run_dir = Path("runs") / "recommendation"
-        rec = Rank(config=config, run_dir=run_dir, items=50, users=20)
+        dir = Path("runs") / "recommendation"
+        rec = Rank(config=config, dir=dir, items=50, users=20)
         result = rec.run()
         print(f"recommendation trained: {result}")
         return 0
@@ -145,8 +145,8 @@ def eval(argv: list[str]) -> int:
         from morel.app import Ablate
 
         config = load_cfg(resolve_cfg(argv))
-        run_dir = Path("runs") / "ablations"
-        result = Ablate(config=config, run_dir=run_dir, items=args.items, users=args.users).run()
+        dir = Path("runs") / "ablations"
+        result = Ablate(config=config, dir=dir, items=args.items, users=args.users).run()
         for metric in sorted(result["metrics"]):
             for condition, value in result["metrics"][metric].items():
                 print(f"{metric} {condition}={value:.4f}")
@@ -184,7 +184,7 @@ def bench(argv: list[str]) -> int:
     sizes = [int(s) for s in args.sizes.split(",") if s]
     bench = Benchmark(
         config=Config(),
-        run_dir=Path("runs") / "bench",
+        dir=Path("runs") / "bench",
         sizes=sizes,
         epochs=args.epochs,
     )
@@ -205,7 +205,7 @@ def repro(argv: list[str]) -> int:
 
     rep = Reproduce(
         path=Path(args.config),
-        run_dir=Path("runs") / "reproduce",
+        dir=Path("runs") / "reproduce",
         items=args.items,
         users=args.users,
         epochs=args.epochs,
