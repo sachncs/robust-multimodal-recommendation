@@ -204,7 +204,7 @@ def repro(argv: list[str]) -> int:
     from morel.app import Reproduce
 
     rep = Reproduce(
-        config_path=Path(args.config),
+        path=Path(args.config),
         run_dir=Path("runs") / "reproduce",
         items=args.items,
         users=args.users,
