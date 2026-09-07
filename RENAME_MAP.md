@@ -431,3 +431,27 @@ Examples:
 - `register_buffer` — PyTorch buffer registration
 
 Total compound self attributes: 149 (unchanged from start)
+
+## Final self attribute renames
+
+Reduced compound self attributes from 149 to 106 (43 renamed, 29% reduction).
+
+### Successfully renamed
+- `last_loss` → `last`
+- `valid_loss` → `valid`
+- `val_ratio` → `val`
+- `loss_window` → `window`
+- `ui_graph` → `ui`
+- `negatives_matrix` → `negmat`
+- `corpus_features` → `cfeat`
+- `corpus_mask` → `cmask`
+- `corpus_adj` → `cadj`
+
+### Blocked (106 remaining)
+- PyTorch module attributes: `adj_cache`, `feature_dim`, `feature_proj`, `register_buffer`
+- Test references: `buffer_lock`, `cooldown_until`, `config_path`, `dim_text`,
+  `feedback_ring`, `replay_ring`, `rollback_ring`, `run_dir`
+- Naming conflicts: `best_metric`, `cfg_hash`, `grad_clip`, `item_emb`,
+  `loss_step`, `negatives_count`, `normalize_adj`, `pe_dim`, `replay_ratio`,
+  `user_emb`
+- Semantic compound: `completion_config` and others
