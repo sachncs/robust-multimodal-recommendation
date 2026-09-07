@@ -88,7 +88,7 @@ class Checker:
 
         assert captured["lr"] == pytest.approx(4e-4)
         assert captured["weight_decay"] == pytest.approx(2e-6)
-        assert captured["negatives_count"] == 3
+        assert captured["neg"] == 3
         assert captured["trainer_config"].grad_clip == pytest.approx(1.5)
 
     def recommender(self, tmp_path: Path) -> None:

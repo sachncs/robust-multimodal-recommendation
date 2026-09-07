@@ -59,7 +59,7 @@ class BPR(Loss):
     """BPR loss using provided positive/negative scores."""
 
     pos: torch.Tensor
-    neg: torch.Tensor
+    neg_score: torch.Tensor
     eps: float = 1e-10
 
     def forward(
@@ -71,7 +71,7 @@ class BPR(Loss):
     ) -> torch.Tensor:
         """Return the mean BPR ranking loss."""
         del predictions, targets, mask
-        return -torch.log(torch.sigmoid(self.pos - self.neg) + self.eps).mean()
+        return -torch.log(torch.sigmoid(self.pos - self.neg_score) + self.eps).mean()
 
 
 @dataclass

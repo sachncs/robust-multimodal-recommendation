@@ -33,7 +33,7 @@ class Recommendation(Trainer):
         config: Rec,
         *,
         ui_graph: sp.csr_matrix,
-        negatives_count: int = 1,
+        neg: int = 1,
         seed: int = 0,
         lr: float = 1e-3,
         weight_decay: float = 1e-5,
@@ -57,7 +57,7 @@ class Recommendation(Trainer):
         self.ui = ui_graph
         self.users = ui_graph.shape[0]
         self.items = ui_graph.shape[1]
-        self.negatives_count = negatives_count
+        self.neg = neg
         self.seed = seed
         self.negmat: np.ndarray | None = None
 

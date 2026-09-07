@@ -282,7 +282,7 @@ class Rank:
             pipeline.recommender,
             Rec(grad_clip=self.config.recommendation.grad_clip),
             ui_graph=ui,
-            negatives_count=self.config.recommendation.negatives,
+            neg=self.config.recommendation.negatives,
             seed=seed_value,
             lr=self.config.recommendation.lr,
             weight_decay=self.config.recommendation.weight_decay,
