@@ -74,7 +74,7 @@ class Checker:
         for thread in threads:
             thread.join(timeout=TIMEOUT)
 
-        assert len(live.feedback_ring) == per_thread * 6
+        assert len(live.ring) == per_thread * 6
         assert len(live.replay_ring) == per_thread * 6
 
     def arrives(self) -> None:
@@ -146,4 +146,4 @@ class Checker:
         assert live.lock.readers == 0
         assert live.lock.writers == 0
         assert live.lock.writer is False
-        assert not live.buffer_lock.locked()
+        assert not live.sync.locked()

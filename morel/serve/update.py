@@ -123,8 +123,8 @@ class Updater:
         # about 4% of its unloaded rate. Buffer appends are not model updates
         # and do not need the model lock.
         self.lock = RWLock()
-        self.buffer_lock = threading.Lock()
-        self.feedback_ring: deque[Event] = deque(maxlen=feedback_capacity)
+        self.sync = threading.Lock()
+        self.ring: deque[Event] = deque(maxlen=feedback_capacity)
         self.replay_ring: deque[Event] = deque(maxlen=replay_capacity)
         self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
         self.cooldown_until: float = 0.0
@@ -140,16 +140,16 @@ class Updater:
     def accept(self, user: int, item: int, signal: Signal) -> None:
         """Append a feedback event to the feedback ring (thread-safe)."""
         event = Event(user=user, item=item, signal=signal, timestamp=time.time())
-        with self.buffer_lock:
-            self.feedback_ring.append(event)
+        with self.sync:
+            self.ring.append(event)
             self.replay_ring.append(event)
 
     def stats(self) -> dict[str, Any]:
         """Return a snapshot of the updater state."""
         # Take the buffer lock first and release it before the model lock, so
         # the two are always acquired in the same order and cannot deadlock.
-        with self.buffer_lock:
-            events_buffered = len(self.feedback_ring)
+        with self.sync:
+            events_buffered = len(self.ring)
             replay_buffered = len(self.replay_ring)
         with self.lock.read():
             return {
@@ -202,8 +202,8 @@ class Updater:
                     n_events_used=0,
                     n_replay_used=0,
                 )
-        with self.buffer_lock:
-            events = list(self.feedback_ring)
+        with self.sync:
+            events = list(self.ring)
             replay = list(self.replay_ring)
         if not events:
             return Outcome(False, float("nan"), None, self.version, 0, 0)

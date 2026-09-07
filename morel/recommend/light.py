@@ -81,7 +81,7 @@ class Light(nn.Module):
                     raise ValueError(f"feature_dim must be positive, got {feature_dim}")
                 self.fproj = nn.Linear(feature_dim, embed)
         self.fdim = feature_dim
-        self.adj_cache: tuple[str, torch.Tensor] | None = None
+        self.cache: tuple[str, torch.Tensor] | None = None
 
     def forward(
         self,
@@ -163,20 +163,20 @@ class Light(nn.Module):
         ------
             ValueError: If ``ui_graph is None`` and the cache is empty.
         """
-        if ui_graph is None and self.adj_cache is not None:
-            cached = self.adj_cache[1]
+        if ui_graph is None and self.cache is not None:
+            cached = self.cache[1]
             if cached.device != self.user_emb.weight.device:
                 cached = cached.to(self.user_emb.weight.device)
-                self.adj_cache = (self.adj_cache[0], cached)
+                self.cache = (self.cache[0], cached)
             return cached
         if ui_graph is None:
             raise ValueError("ui_graph is required on the first call")
         k = key(ui_graph)
-        if self.adj_cache is not None and self.adj_cache[0] == k:
-            cached = self.adj_cache[1]
+        if self.cache is not None and self.cache[0] == k:
+            cached = self.cache[1]
             if cached.device != self.user_emb.weight.device:
                 cached = cached.to(self.user_emb.weight.device)
-                self.adj_cache = (k, cached)
+                self.cache = (k, cached)
             return cached
         top = sp.hstack([sp.csr_matrix((self.users, self.users)), ui_graph])
         bottom = sp.hstack([ui_graph.T, sp.csr_matrix((self.items, self.items))])
@@ -205,7 +205,7 @@ class Light(nn.Module):
         target_device = self.user_emb.weight.device
         if tensor.device != target_device:
             tensor = tensor.to(target_device)
-        self.adj_cache = (key(ui_graph), tensor)
+        self.cache = (key(ui_graph), tensor)
         return tensor
 
 

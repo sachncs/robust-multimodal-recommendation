@@ -94,10 +94,10 @@ class Checker:
         assert ui1 is not ui2
         light = Light(users=users, items=items, embed=4, layers=1)
         light(torch.arange(users), torch.arange(items), ui1)
-        first_key, first_tensor = light.adj_cache
+        first_key, first_tensor = light.cache
         light(torch.arange(users), torch.arange(items), ui2)
-        assert light.adj_cache[0] == first_key
-        assert light.adj_cache[1] is first_tensor
+        assert light.cache[0] == first_key
+        assert light.cache[1] is first_tensor
 
     def graph(self) -> None:
         users, items = 4, 6
@@ -115,9 +115,9 @@ class Checker:
         )
         light = Light(users=users, items=items, embed=4, layers=1)
         light(torch.arange(users), torch.arange(items), ui_a)
-        first_key = light.adj_cache[0]
+        first_key = light.cache[0]
         light(torch.arange(users), torch.arange(items), ui_b)
-        assert light.adj_cache[0] != first_key
+        assert light.cache[0] != first_key
 
     def reproducible(self) -> None:
         torch.manual_seed(1)
