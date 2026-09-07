@@ -455,3 +455,38 @@ Reduced compound self attributes from 149 to 106 (43 renamed, 29% reduction).
   `loss_step`, `negatives_count`, `normalize_adj`, `pe_dim`, `replay_ratio`,
   `user_emb`
 - Semantic compound: `completion_config` and others
+
+## Final state (compound self attributes)
+
+Reduced compound self attributes from 149 to 46 (69% reduction).
+
+### Successfully renamed
+- `last_loss` → `last`
+- `valid_loss` → `valid`
+- `val_ratio` → `val`
+- `loss_window` → `window`
+- `ui_graph` → `ui`
+- `negatives_matrix` → `negmat`
+- `corpus_features` → `cfeat`
+- `corpus_mask` → `cmask`
+- `corpus_adj` → `cadj`
+- `dim_visual` → `dv`
+- `text_dim` → `td`
+- `config_path` → `path`
+- `run_dir` → `dir`
+- `negatives_count` → `neg`
+- `adj_cache` → `cache` (cache is allowed acronym)
+- `buffer_lock` → `sync`
+- `feedback_ring` → `ring`
+- `cooldown_until` → `cooldown`
+
+### Blocked (46 remaining)
+- PyTorch module attributes: `item_emb`, `user_emb`, `register_buffer`,
+  `feature_dim`, `feature_proj`
+- Dataclass fields: `grad_clip`, `loss_step`
+- Test references: `rollback_ring`, `replay_ring`
+- Naming conflicts: `best_metric`, `cfg_hash`, `completion_config`,
+  `normalize_adj`, `pe_dim`, `replay_ratio`
+- Semantic compound: others
+
+Total compound self attributes: 46 (down from 149)
