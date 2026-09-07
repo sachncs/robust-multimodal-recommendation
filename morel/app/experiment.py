@@ -37,7 +37,7 @@ log = logger("app.experiment")
 
 def synthetic(
     items: int,
-    dim_visual: int,
+    dv: int,
     td: int,
     users: int,
     masking: Masking | None = None,
@@ -46,7 +46,7 @@ def synthetic(
 
     Args:
         items: Number of items.
-        dim_visual: Visual feature width.
+        dv: Visual feature width.
         td: Text feature width.
         users: Number of users.
         masking: Masking settings; defaults to the shipped configuration. The
@@ -63,7 +63,7 @@ def synthetic(
     ui = build_bipartite(user_ids, item_ids, users, items)
     adj = cooccurrence(ui)
     features = {
-        "visual": rng.normal(size=(items, dim_visual)).astype(np.float32),
+        "visual": rng.normal(size=(items, dv)).astype(np.float32),
         "text": rng.normal(size=(items, td)).astype(np.float32),
     }
     mask = build_mask(
@@ -90,7 +90,7 @@ class Experiment:
     dir: Path
     items: int = 50
     users: int = 20
-    dim_visual: int = 8
+    dv: int = 8
     td: int = 4
     epochs: int | None = None
     seed: int | None = None
@@ -127,11 +127,11 @@ class Experiment:
         start = time.time()
 
         dataset = synthetic(
-            self.items, self.dim_visual, self.td, self.users, self.config.masking
+            self.items, self.dv, self.td, self.users, self.config.masking
         )
         pipeline = Pipeline(
             self.config,
-            dims={"visual": self.dim_visual, "text": self.td},
+            dims={"visual": self.dv, "text": self.td},
         )
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
 
@@ -369,7 +369,7 @@ class Ablate:
     dir: Path
     items: int = 50
     users: int = 20
-    dim_visual: int = 8
+    dv: int = 8
     td: int = 4
     seed: int | None = None
 
@@ -380,8 +380,8 @@ class Ablate:
         depends only on the interaction graph, every completion-stage ablation
         scores identically, and the sweep measures nothing.
         """
-        feature_dim = self.dim_visual + self.td
-        pipeline = Pipeline(config, dims={"visual": self.dim_visual, "text": self.td})
+        feature_dim = self.dv + self.td
+        pipeline = Pipeline(config, dims={"visual": self.dv, "text": self.td})
         pipeline.attach(dataset["features"], dataset["mask"], dataset["item_adj"])
         pipeline.wire(dataset["ui"], feature_dim=feature_dim)
         assert pipeline.recommender is not None
@@ -414,7 +414,7 @@ class Ablate:
         log.info("ablation.start", extra={"conditions": list(conditions(self.config))})
 
         dataset = synthetic(
-            self.items, self.dim_visual, self.td, self.users, self.config.masking
+            self.items, self.dv, self.td, self.users, self.config.masking
         )
         labels = dataset["ui"].sign().toarray()
 

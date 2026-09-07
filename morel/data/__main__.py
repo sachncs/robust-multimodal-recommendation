@@ -143,14 +143,14 @@ def run_extract(args: argparse.Namespace, cfg: Config) -> None:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     items = max(8, cfg.encode.hidden // 8)
-    dim_visual = cfg.encoder.visual_dim
+    dv = cfg.encoder.visual_dim
     dim_text = cfg.encoder.td
     text_kind = "random" if args.synthetic else cfg.encoder.text
     visual_kind = "random" if args.synthetic else cfg.encoder.visual
     log.info("extract.encoders", extra={"text": text_kind, "visual": visual_kind})
 
     text_encoder = assemble(text_kind, dim=dim_text, batch=cfg.encoder.batch, seed=cfg.seed + 1)
-    visual_encoder = assemble(visual_kind, dim=dim_visual, batch=cfg.encoder.batch, seed=cfg.seed)
+    visual_encoder = assemble(visual_kind, dim=dv, batch=cfg.encoder.batch, seed=cfg.seed)
     # Synthetic inputs are item ids; a real run would read them from data_dir.
     inputs = [f"item-{i}" for i in range(items)]
     feats = {

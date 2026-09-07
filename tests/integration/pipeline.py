@@ -29,17 +29,17 @@ class Checker:
     def real(self, tmp_path) -> None:
         rng = np.random.default_rng(0)
         n = 30
-        dim_visual = 6
+        dv = 6
         dim_text = 4
         features_np = {
-            "visual": rng.normal(size=(n, dim_visual)).astype(np.float32),
+            "visual": rng.normal(size=(n, dv)).astype(np.float32),
             "text": rng.normal(size=(n, dim_text)).astype(np.float32),
         }
         mask_np = np.ones((n, 2), dtype=np.float32)
         adj = build_path_graph(n)
 
         config = Config()
-        pipeline = Pipeline(config, dims={"visual": dim_visual, "text": dim_text})
+        pipeline = Pipeline(config, dims={"visual": dv, "text": dim_text})
         pipeline.attach(features_np, mask_np, adj)
 
         loader = DataLoader(
